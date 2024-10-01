@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = [
+    "geometric_algebra",
+    "ga_cayley",
+]
