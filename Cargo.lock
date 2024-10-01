@@ -12,3 +12,14 @@ dependencies = [
 [[package]]
 name = "geometric_algebra"
 version = "0.1.0"
+
+[[package]]
+name = "octahedral_cayley"
+version = "0.1.0"
+dependencies = [
+ "permutations",
+]
+
+[[package]]
+name = "permutations"
+version = "0.1.0"
