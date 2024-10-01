@@ -5,6 +5,9 @@ version = 3
 [[package]]
 name = "ga_cayley"
 version = "0.1.0"
+dependencies = [
+ "geometric_algebra",
+]
 
 [[package]]
 name = "geometric_algebra"
