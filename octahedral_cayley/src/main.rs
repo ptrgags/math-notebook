@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use permutations::Permutation;
 
@@ -88,6 +88,8 @@ fn main() {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
+
     use super::*;
 
     fn all_values_unique(values: &[String]) -> bool {
