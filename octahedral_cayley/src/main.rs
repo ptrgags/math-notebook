@@ -30,19 +30,22 @@ const OCTAHEDRAL_GROUP_DATA: [(&str, [usize; 4]); ORDER] = [
     ("C3^2", [1, 2, 0, 3]),
 ];
 
-fn make_forward_map() -> HashMap<String, Permutation> {
+// The chiral octahedral group O (just rotations, no reflections) is isomorphic to S_4
+type Octahedral = Permutation<4>;
+
+fn make_forward_map() -> HashMap<String, Octahedral> {
     let mut result = HashMap::new();
     for (label, elements) in OCTAHEDRAL_GROUP_DATA.iter() {
-        result.insert(String::from(*label), Permutation::new(elements).unwrap());
+        result.insert(String::from(*label), Permutation::new(*elements).unwrap());
     }
 
     result
 }
 
-fn make_reverse_map() -> HashMap<Permutation, String> {
+fn make_reverse_map() -> HashMap<Octahedral, String> {
     let mut result = HashMap::new();
     for (label, elements) in OCTAHEDRAL_GROUP_DATA.iter() {
-        result.insert(Permutation::new(elements).unwrap(), String::from(*label));
+        result.insert(Permutation::new(*elements).unwrap(), String::from(*label));
     }
 
     result
@@ -60,7 +63,7 @@ fn main() {
         let mut row: Vec<String> = Vec::new();
         for b_label in label_order.iter() {
             let b_perm = forward.get(*b_label).unwrap();
-            let product = Permutation::compose(a_perm.clone(), b_perm.clone()).unwrap();
+            let product = Permutation::compose(a_perm.clone(), b_perm.clone());
              
             let product_label = backward.get(&product).unwrap().clone();
             row.push(product_label)
