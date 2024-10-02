@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use permutations::Permutation;
 
@@ -51,13 +51,12 @@ fn make_reverse_map() -> HashMap<Octahedral, String> {
     result
 }
 
-
-fn main() {
+fn make_cayley_table() -> Vec<Vec<String>> {
     let label_order: Vec<&str> = OCTAHEDRAL_GROUP_DATA.iter().map(|(s, _)| *s).collect();
     let forward = make_forward_map();
     let backward = make_reverse_map();
     
-    let mut table: Vec<String> = Vec::new();
+    let mut table: Vec<Vec<String>> = Vec::with_capacity(ORDER);
     for a_label in label_order.iter() {
         let a_perm = forward.get(*a_label).unwrap();
         let mut row: Vec<String> = Vec::new();
@@ -68,10 +67,54 @@ fn main() {
             let product_label = backward.get(&product).unwrap().clone();
             row.push(product_label)
         }
-        table.push(row.join(","));
+        table.push(row);
     }
 
-    for row in table {
+    return table;
+}
+
+fn format_csv(table: &Vec<Vec<String>>) -> Vec<String> {
+    table.iter().map(|row| row.join(",")).collect()
+}
+
+fn main() {
+    let cayley_table = make_cayley_table();
+    let csv = format_csv(&cayley_table);
+
+    for row in csv {
         println!("{}", row);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn all_values_unique(values: &[String]) -> bool {
+        let unique_values: HashSet<String> = HashSet::from_iter(values.iter().cloned());
+        if unique_values.len() < values.len() {
+            return false;
+        }
+    
+        true
+    }
+    
+    
+    fn is_latin_square(table: &Vec<Vec<String>>) -> bool {
+        for row in table {
+            if !all_values_unique(row) {
+                return false
+            }
+        }
+    
+        true
+    }
+
+    // Sanity check!
+    #[test]
+    fn make_cayley_table_returns_latin_square() {
+        let result = make_cayley_table();
+
+        assert!(is_latin_square(&result));
     }
 }

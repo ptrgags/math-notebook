@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+/// Mathematical permutation of N elements. An element of the symmetric group S_N
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct Permutation<const N: usize> {
     values: [usize; N]
