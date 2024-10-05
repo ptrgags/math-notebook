@@ -2,6 +2,8 @@ use core::f64;
 use std::fmt::{self, Display};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
+use crate::nearly::is_nearly;
+
 #[derive(Copy, Clone, Debug)]
 pub enum Complex {
     Zero,
@@ -10,6 +12,9 @@ pub enum Complex {
 }
 
 impl Complex {
+    pub const EPSILON: f64 = 1e-15;
+    pub const ONE: Self = Complex::Finite(1.0, 0.0);
+
     pub fn new(real: f64, imag: f64) -> Complex {
         if real == 0.0 && imag == 0.0 {
             Complex::Zero
@@ -34,6 +39,22 @@ impl Complex {
             let (s, c) = theta.sin_cos();
             Complex::Finite(c, s)
         }).collect()
+    }
+
+    pub fn real(&self) -> f64 {
+        match self {
+            Complex::Zero => 0.0,
+            Complex::Infinity => f64::INFINITY,
+            Complex::Finite(real, _) => *real
+        }
+    }
+
+    pub fn imag(&self) -> f64 {
+        match self {
+            Complex::Zero => 0.0,
+            Complex::Infinity => f64::INFINITY,
+            Complex::Finite(_, imag) => *imag
+        }
     }
 
     pub fn norm(&self) -> f64 {
@@ -98,7 +119,7 @@ impl Sub for Complex {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        self + (-rhs);
+        self + (-rhs)
     }
 }
 
@@ -139,10 +160,8 @@ impl Display for Complex {
 
 impl PartialEq for Complex {
     fn eq(&self, other: &Self) -> bool {
-        const EPSILON: f64 = 1e-15;
-
         match (self, other) {
-            (Self::Finite(a, b), Self::Finite(c, d)) => (c-a).abs() < EPSILON && (d - b).abs() < EPSILON,
+            (Self::Finite(a, b), Self::Finite(c, d)) => is_nearly(*a, *c) && is_nearly(*b, *d),
             (a, b) => a == b,
         }
     }
