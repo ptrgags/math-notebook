@@ -1,6 +1,6 @@
 use core::f64;
 use std::fmt::{self, Display};
-use std::ops::{Add, Mul};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Copy, Clone, Debug)]
 pub enum Complex {
@@ -35,6 +35,38 @@ impl Complex {
             Complex::Finite(c, s)
         }).collect()
     }
+
+    pub fn norm(&self) -> f64 {
+        match self {
+            Complex::Zero => 0.0,
+            Complex::Infinity => f64::INFINITY,
+            Complex::Finite(a, b) => a * a + b * b
+        }
+    }
+
+    pub fn mag(&self) -> f64 {
+        self.norm().sqrt()
+    }
+
+    pub fn conj(&self) -> Self {
+        match self {
+            Complex::Zero => Complex::Zero,
+            Complex::Infinity => Complex::Infinity,
+            Complex::Finite(a, b) => Complex::Finite(*a, -b),
+        }
+    }
+
+    pub fn inverse(&self) -> Self {
+        match self {
+            Complex::Zero => Complex::Infinity,
+            Complex::Infinity => Complex::Zero,
+            // 1/z = conj(z) / |z|^2 = (a - bi) / (a^2 + b^2)
+            Complex::Finite(a, b) => {
+                let denom = a * a + b * b;
+                Complex::Finite(a / denom, -b / denom)
+            }
+        }
+    }
 }
 
 impl Add for Complex {
@@ -48,6 +80,49 @@ impl Add for Complex {
             (_, Complex::Infinity) => Complex::Infinity,
             (Complex::Finite(a, b), Complex::Finite(c, d)) => Complex::new(a + c, b + d),
         }
+    }
+}
+
+impl Neg for Complex {
+    type Output = Complex;
+
+    fn neg(self) -> Self::Output {
+        match self {
+            Complex::Finite(a, b) => Complex::Finite(-a, -b),
+            x => x
+        }
+    }
+}
+
+impl Sub for Complex {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self + (-rhs);
+    }
+}
+
+impl Mul for Complex {
+    type Output = Complex;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Complex::Zero, Complex::Infinity) => panic!("Multiplying zero and infinity!"),
+            (Complex::Infinity, Complex::Zero) => panic!("Multiplying infinity and zero!"),
+            (Complex::Zero, _) => Complex::Zero,
+            (Complex::Infinity, _) => Complex::Infinity,
+            (_, Complex::Zero) => Complex::Zero,
+            (_, Complex::Infinity) => Complex::Infinity,
+            (Complex::Finite(a, b), Complex::Finite(c, d)) => Complex::Finite(a * c - b * d, a * d + b * c),
+        }
+    }
+}
+
+impl Div for Complex {
+    type Output = Complex;
+    
+    fn div(self, rhs: Self) -> Self::Output {
+        self * rhs.inverse()
     }
 }
 
