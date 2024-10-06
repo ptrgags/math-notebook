@@ -35,7 +35,7 @@ pub enum FixedPoints {
 ///
 /// [a b]
 /// [c d]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Mobius {
     // a, b, c, d must be either Zero or Finite (enforced in constructor)
     a: Complex,
@@ -102,6 +102,22 @@ impl Mobius {
         })
     }
 
+    pub fn scale(k: f64) -> Result<Self, String> {
+        if k == 0.0 || !k.is_finite() {
+            return Err(String::from("k must be finite and nonzero"))
+        }
+
+        let sqrt_k = k.sqrt();
+        let inv_sqrt_k = 1.0 / sqrt_k;
+
+        Ok(Self {
+            a: Complex::new(sqrt_k, 0.0),
+            b: Complex::Zero,
+            c: Complex::Zero,
+            d: Complex::new(inv_sqrt_k, 0.0)
+        })
+    }
+
     pub fn det(&self) -> Complex {
         let &Mobius{a, b, c, d} = self;
         a * d - b * c
@@ -144,19 +160,6 @@ impl Mobius {
         Self{a: d, b: -b, c: -c, d: a}
     }
 
-    pub fn apply(&self, z: Complex) -> Complex {
-        let &Mobius{a, b, c, d} = self;
-
-        match z {
-            Complex::Zero => b / d,
-            // if c is zero, then we really have (az + b) / d, so the
-            // value will be infinity
-            Complex::Infinity if c == Complex::Zero => Complex::Infinity,
-            Complex::Infinity => a / c,
-            point @ Complex::Finite(_, _) => (a * point + b) / (c * point + d)
-        }
-    }
-
     pub fn fixed_points(&self) -> FixedPoints {
         let &Self{a, b, c, d} = self;
 
@@ -182,9 +185,7 @@ impl Mobius {
         }
 
         if c == Complex::Zero {
-            let k = a / d;
             let fixed_point = -b / (a - d);
-
             return FixedPoints::Pair(fixed_point, Complex::Infinity)
         }
         
@@ -238,11 +239,22 @@ impl Mul for Mobius {
         let Mobius{a, b, c, d} = self;
         let Mobius{a: e, b: f, c: g, d: h} = rhs;
 
-        Self {
-            a: a * e + b * g,
-            b: a * f + b * h,
-            c: c * e + d * g,
-            d: c * f + d * h,
+        let new_a = a * e + b * g;
+        let new_b = a * f + b * h;
+        let new_c = c * e + d * g;
+        let new_d = c * f + d * h;
+        
+        let det = new_a * new_d - new_b * new_c;
+        if det == Complex::ONE {
+            Self {a: new_a, b: new_b, c: new_c, d: new_d}
+        } else {
+            let sqrt_det = det.sqrt();
+            Self {
+                a: new_a / sqrt_det,
+                b: new_b / sqrt_det,
+                c: new_c / sqrt_det,
+                d: new_d / sqrt_det,
+            }
         }
     }
 }
@@ -251,9 +263,35 @@ impl Mul<Complex> for Mobius {
     type Output = Complex;
 
     fn mul(self, z: Complex) -> Self::Output {
-        let top = self.a * z + self.b;
-        let bottom = self.c * z + self.d;
-        top / bottom
+        let Self{a, b, c, d} = self;
+
+        match z {
+            Complex::Zero => b / d,
+            // if c is zero, then we really have (az + b) / d, so the
+            // value will be infinity
+            Complex::Infinity if c == Complex::Zero => Complex::Infinity,
+            Complex::Infinity => a / c,
+            point @ Complex::Finite(_, _) => (a * point + b) / (c * point + d)
+        }
+    }
+}
+
+impl PartialEq for Mobius {
+    fn eq(&self, other: &Self) -> bool {
+        // Subtlety that Indra's Pearls doesn't explain!
+        //
+        // Since a scalar multiple of a mobius transform is the same transformation,
+        // Notice that 
+        // 
+        // det (kM) = (ka)(kd) - (kb)(kc) = k^2 (ad - bc) = k^2 det M
+        // 
+        // So if k^2 = 1 (k = {-1, 1}), then we don't change the determinant even
+        // though we scaled the coefficients.
+        //
+        // Therefore, our equality function is M1 == M2 || M1 == -M2 in terms of
+        // the matrix coefficients.
+        (self.a == other.a && self.b == other.b && self.c == other.c && self.d == other.d)
+        || (self.a == -other.a && self.b == -other.b && self.c == -other.c && self.d == -other.d)
     }
 }
 
@@ -296,12 +334,30 @@ mod test {
     }
 
     #[test]
+    pub fn scale_is_a_hyperbolic_transform() -> Result<(), String> {
+        let theta = f64::consts::FRAC_PI_4;
+        let scale = Mobius::scale(theta)?;
+
+        let xform_type = scale.classify();
+
+        assert_eq!(xform_type, MobiusType::Hyperbolic);
+        Ok(())
+    }
+
+    #[test]
     pub fn inversion_is_an_ellptic_transform() {
         let inversion = Mobius::INVERSION;
 
         let xform_type = inversion.classify();
 
         assert_eq!(xform_type, MobiusType::Elliptic)
+    }
+
+    #[test]
+    pub fn inversion_is_an_involution() {
+        let inv_sqr = Mobius::INVERSION * Mobius::INVERSION;
+
+        assert_eq!(inv_sqr, Mobius::IDENTITY)
     }
 
     #[test_case(Mobius::IDENTITY; "identity")]
@@ -312,5 +368,25 @@ mod test {
         let result = mobius.det();
 
         assert_eq!(result, Complex::ONE)
+    }
+
+    #[test_case(
+        Mobius::rotation(f64::consts::FRAC_PI_6).unwrap(),
+        Mobius::translation(Complex::ONE).unwrap(); 
+        "rotation and translation"
+    )]
+    #[test_case(
+        Mobius::scale(3.4).unwrap(),
+        Mobius::rotation(f64::consts::FRAC_PI_3).unwrap();
+        "commutative case"
+    )]
+    pub fn commutator_is_difference_ab_ba(a: Mobius, b: Mobius) {
+        let ab = a * b;
+        let ba = b * a;
+        
+        let comm = Mobius::commutator(a, b);
+        let diff = Mobius::difference(ab, ba);
+
+        assert_eq!(comm, diff);
     }
 }
