@@ -3,7 +3,7 @@ use std::ops::Mul;
 use crate::{complex::Complex, nearly::is_nearly};
 
 #[derive(PartialEq, Debug)]
-pub enum MobiusType{
+pub enum MobiusType {
     /// Generalization of translations. Points move along
     /// generalized circles through a single fixed point
     /// (both sink and source)
@@ -19,6 +19,11 @@ pub enum MobiusType{
     Loxodromic,
 }
 
+pub enum FixedPoints {
+    Single(Complex),
+    Pair(Complex, Complex),
+}
+
 /// A Mobius transformation is a function 
 ///
 /// M(z) = (az + b) / (cz + d)
@@ -30,6 +35,7 @@ pub enum MobiusType{
 ///
 /// [a b]
 /// [c d]
+#[derive(Clone, Copy)]
 pub struct Mobius {
     // a, b, c, d must be either Zero or Finite (enforced in constructor)
     a: Complex,
@@ -46,6 +52,15 @@ impl Mobius {
         b: Complex::Zero, 
         c: Complex::Zero, 
         d: Complex::ONE
+    };
+
+    // Complex inversion nu(z) = 1/z, implemented as
+    // (0z + i) / (iz + 0) to have determinant 1
+    pub const INVERSION: Self = Mobius {
+        a: Complex::Zero,
+        b: Complex::I,
+        c: Complex::I,
+        d: Complex::Zero,
     };
 
     /// Constructor
@@ -89,7 +104,7 @@ impl Mobius {
 
     pub fn det(&self) -> Complex {
         let &Mobius{a, b, c, d} = self;
-        a * d + b * c
+        a * d - b * c
     }
 
     pub fn trace(&self) -> Complex {
@@ -117,6 +132,99 @@ impl Mobius {
             MobiusType::Hyperbolic
         }
     }
+
+    /// Since we assume det 1, the inverse transformation
+    /// is a simplified matrix inverse
+    /// 
+    /// [a b]^(-1) = [ d -b]
+    /// [c d]        [-c  a]
+    pub fn inverse(&self) -> Self {
+        let &Self{a, b, c, d} = self;
+
+        Self{a: d, b: -b, c: -c, d: a}
+    }
+
+    pub fn apply(&self, z: Complex) -> Complex {
+        let &Mobius{a, b, c, d} = self;
+
+        match z {
+            Complex::Zero => b / d,
+            // if c is zero, then we really have (az + b) / d, so the
+            // value will be infinity
+            Complex::Infinity if c == Complex::Zero => Complex::Infinity,
+            Complex::Infinity => a / c,
+            point @ Complex::Finite(_, _) => (a * point + b) / (c * point + d)
+        }
+    }
+
+    pub fn fixed_points(&self) -> FixedPoints {
+        let &Self{a, b, c, d} = self;
+
+        // When c is 0, the equation reduces to 
+        //
+        // (a/d)z + b/d = z.
+        //
+        // also d != 0 because we constrain parameters so ad - bc = 1
+        //
+        // this always has one fixed point z = inf.
+        // Let's solve for the other one
+        //
+        // az + b = dz
+        // (a - d)z + b = 0
+        // z = -b / (a - d)
+        //
+        // Note that when a = d, we get z = inf a second time.
+        // This corresponds to a parabolic transformation,
+        // specifically
+        // z + b/d which is a basic translation!
+        if c == Complex::Zero && a == d {
+            return FixedPoints::Single(Complex::Infinity)
+        }
+
+        if c == Complex::Zero {
+            let k = a / d;
+            let fixed_point = -b / (a - d);
+
+            return FixedPoints::Pair(fixed_point, Complex::Infinity)
+        }
+        
+        let trace = self.trace();
+        let discriminant = trace * trace - Complex::Finite(4.0, 0.0);
+        let denominator = Complex::Finite(2.0, 0.0) * c;
+        let midpoint = (a - d) / denominator;
+        
+        if discriminant == Complex::Zero {
+            FixedPoints::Single(midpoint)
+        } else {
+            let offset = discriminant.sqrt() / denominator;
+            FixedPoints::Pair(midpoint - offset, midpoint + offset)
+        }
+    }
+    
+    /// The "difference" between left and right transformations.
+    /// This is kind of like a "ratio" of the two transformations
+    /// left * right^-1.
+    pub fn difference(left: Self, right: Self) -> Self {
+        left * right.inverse()
+    }
+
+    /// The sandwich product
+    /// a 🥪 b = aba^(-1)
+    /// also known as "conjugation". The resulting transformation
+    /// does the same thing as b, but adjusted from the perspective of
+    /// applying a
+    pub fn sandwich(bread: Self, filling: Self) -> Self {
+        bread * filling * bread.inverse()
+    }
+
+    /// Commutator product
+    /// [a, b] = aba^(-1)b^(-1)
+    /// which is equal to difference(ab, ba)
+    pub fn commutator(left: Self, right: Self) -> Self {
+        left * right * left.inverse() * right.inverse()
+    }
+
+    
 }
 
 impl Mul for Mobius {
@@ -153,6 +261,8 @@ impl Mul<Complex> for Mobius {
 mod test {
     use core::f64;
 
+    use test_case::test_case;
+
     use super::*;
 
     #[test]
@@ -183,5 +293,24 @@ mod test {
 
         assert_eq!(xform_type, MobiusType::Elliptic);
         Ok(())
+    }
+
+    #[test]
+    pub fn inversion_is_an_ellptic_transform() {
+        let inversion = Mobius::INVERSION;
+
+        let xform_type = inversion.classify();
+
+        assert_eq!(xform_type, MobiusType::Elliptic)
+    }
+
+    #[test_case(Mobius::IDENTITY; "identity")]
+    #[test_case(Mobius::INVERSION; "complex inversion")]
+    #[test_case(Mobius::translation(Complex::new(3.0, 4.0)).unwrap(); "translation")]
+    #[test_case(Mobius::rotation(f64::consts::FRAC_PI_6).unwrap(); "rotation")]
+    pub fn specialized_constructors_have_determinant_one(mobius: Mobius) {
+        let result = mobius.det();
+
+        assert_eq!(result, Complex::ONE)
     }
 }

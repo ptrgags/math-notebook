@@ -14,6 +14,7 @@ pub enum Complex {
 impl Complex {
     pub const EPSILON: f64 = 1e-15;
     pub const ONE: Self = Complex::Finite(1.0, 0.0);
+    pub const I: Self = Complex::Finite(0.0, 1.0);
 
     pub fn new(real: f64, imag: f64) -> Complex {
         if f64::is_nan(real) || f64::is_nan(imag) {
@@ -75,6 +76,14 @@ impl Complex {
         self.norm().sqrt()
     }
 
+    pub fn arg(&self) -> Option<f64> {
+        match self {
+            Complex::Zero => None,
+            Complex::Infinity => None,
+            Complex::Finite(a, b) => Some(b.atan2(*a))
+        }
+    }
+
     pub fn conj(&self) -> Self {
         match self {
             Complex::Zero => Complex::Zero,
@@ -91,6 +100,21 @@ impl Complex {
             Complex::Finite(a, b) => {
                 let denom = a * a + b * b;
                 Complex::Finite(a / denom, -b / denom)
+            }
+        }
+    }
+
+    pub fn sqrt(&self) -> Self {
+        match self {
+            Complex::Zero => Complex::Zero,
+            Complex::Infinity => Complex::Infinity,
+            Complex::Finite(_, _) => {
+                let r = self.mag();
+                let theta = self.arg().expect("arg z = None for finite complex number!");
+
+                let sqrt_r = r.sqrt();
+                let half_theta = theta / 2.0;
+                Complex::from_polar(sqrt_r, half_theta)
             }
         }
     }
@@ -275,5 +299,13 @@ mod test {
         let result = format!("{}", Complex::Infinity);
 
         assert_eq!(result, "♾️")
+    }
+
+    #[test_case(Complex::Zero; "zero")]
+    #[test_case(Complex::Infinity; "infinity")]
+    pub fn sqrt_fixes_poles(pole: Complex) {
+        let result = pole.sqrt();
+
+        assert_eq!(result, pole)
     }
 }
