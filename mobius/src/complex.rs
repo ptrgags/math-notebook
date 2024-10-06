@@ -16,7 +16,13 @@ impl Complex {
     pub const ONE: Self = Complex::Finite(1.0, 0.0);
 
     pub fn new(real: f64, imag: f64) -> Complex {
-        if real == 0.0 && imag == 0.0 {
+        if f64::is_nan(real) || f64::is_nan(imag) {
+            panic!("NaN NaN NaN NaN NaN NaN NaN NaN BatNaN!");
+        }
+
+        if f64::is_infinite(real) || f64::is_infinite(imag) {
+            Complex::Infinity
+        } else if is_nearly(real, 0.0) && is_nearly(imag, 0.0) {
             Complex::Zero
         } else {
             Complex::Finite(real, imag)
@@ -162,7 +168,9 @@ impl PartialEq for Complex {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Finite(a, b), Self::Finite(c, d)) => is_nearly(*a, *c) && is_nearly(*b, *d),
-            (a, b) => a == b,
+            (Self::Zero, Self::Zero) => true,
+            (Self::Infinity, Self::Infinity) => true,
+            _ => false
         }
     }
 }
@@ -170,6 +178,26 @@ impl PartialEq for Complex {
 #[cfg(test)]
 mod test {
     use super::*;
+    use test_case::test_case;
+
+    #[should_panic]
+    #[test_case(-3.0, f64::NAN; "NaN in imaginary part")]
+    #[test_case(f64::NAN, 3.0; "NaN in real part")]
+    #[test_case(f64::NAN, f64::NAN; "NaN in both components")]
+    pub fn new_panics_for_nan(real: f64, imag: f64) {
+        Complex::new(real, imag);
+    }
+
+    #[test_case(f64::INFINITY, 3.0; "inf in real part")]
+    #[test_case(-f64::INFINITY, 3.0; "neg inf in real part")]
+    #[test_case(4.0, f64::INFINITY; "inf in imag part")]
+    #[test_case(4.0, -f64::INFINITY; "neg inf in imag part")]
+    #[test_case(f64::INFINITY, -f64::INFINITY; "inf in both parts")]
+    pub fn new_returns_infinity_for_infinite_component(real: f64, imag: f64) {
+        let result = Complex::new(real, imag);
+
+        assert_eq!(result, Complex::Infinity)
+    }
 
     #[test]
     pub fn new_returns_zero_for_exactly_zero() {
@@ -178,11 +206,14 @@ mod test {
         assert_eq!(result, Complex::Zero);
     }
 
-    #[test]
-    pub fn new_returns_finite_for_other_values() {
-        let result = Complex::new(3.0, 4.0);
+    #[test_case(1.0, 0.0; "1")]
+    #[test_case(-1.0, 0.0; "negative 1")]
+    #[test_case(0.0, 1.0; "i")]
+    #[test_case(3.0, -4.0; "arbitrary complex number")]
+    pub fn new_returns_finite_for_other_values(real: f64, imag: f64) {
+        let result = Complex::new(real, imag);
 
-        assert_eq!(result, Complex::Finite(3.0, 4.0));
+        assert_eq!(result, Complex::Finite(real, imag));
     }
 
     #[test]
@@ -230,5 +261,19 @@ mod test {
         let sum = a + b;
 
         assert_eq!(sum, Complex::Finite(13.0, 7.0));
+    }
+
+    #[test]
+    pub fn display_formats_zero_as_zero() {
+        let result = format!("{}", Complex::Zero);
+
+        assert_eq!(result, "0")
+    }
+
+    #[test]
+    pub fn display_formats_infinity_as_emoji() {
+        let result = format!("{}", Complex::Infinity);
+
+        assert_eq!(result, "♾️")
     }
 }
