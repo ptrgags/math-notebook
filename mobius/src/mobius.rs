@@ -54,15 +54,6 @@ impl Mobius {
         d: Complex::ONE
     };
 
-    // Complex inversion nu(z) = 1/z, implemented as
-    // (0z + i) / (iz + 0) to have determinant 1
-    pub const INVERSION: Self = Mobius {
-        a: Complex::Zero,
-        b: Complex::I,
-        c: Complex::I,
-        d: Complex::Zero,
-    };
-
     /// Constructor
     /// 
     /// This enforces that a, b, c, d are all Zero or Finite and
@@ -79,55 +70,23 @@ impl Mobius {
         }
 
         Ok(Self{a, b, c, d})
-    }
+    }    
 
-    pub fn translation(displacement: Complex) -> Result<Self, String> {
-        match displacement {
-            Complex::Infinity => Err(String::from("displacement must be finite")),
-            d => Ok(Mobius { a: Complex::ONE, b: d, c: Complex::Zero, d: Complex::ONE })
-        }
-    }
-
-    pub fn rotation(theta: f64) -> Result<Self, String> {
-        if !theta.is_finite() {
-            return Err(String::from("theta must be finite"))
-        }
-
-        let rotor = Complex::from_polar(1.0, 0.5 * theta);
-        Ok(Self {
-            a: rotor,
-            b: Complex::Zero,
-            c: Complex::Zero,
-            d: rotor.inverse()
-        })
-    }
-
-    pub fn scale(k: f64) -> Result<Self, String> {
-        if k == 0.0 || !k.is_finite() {
-            return Err(String::from("k must be finite and nonzero"))
-        }
-
-        let sqrt_k = k.sqrt();
-        let inv_sqrt_k = 1.0 / sqrt_k;
-
-        Ok(Self {
-            a: Complex::new(sqrt_k, 0.0),
-            b: Complex::Zero,
-            c: Complex::Zero,
-            d: Complex::new(inv_sqrt_k, 0.0)
-        })
-    }
-
+    /// Compute the determinant, ad - bc
     pub fn det(&self) -> Complex {
         let &Mobius{a, b, c, d} = self;
         a * d - b * c
     }
 
+    /// Compute the trace, a + d
     pub fn trace(&self) -> Complex {
         let &Mobius{a, d, ..} = self;
         a + d
     }
 
+    /// Classify the Mobius transformation as
+    /// parabolic, elliptic, hyperbolic, or loxodromic
+    /// depending on the trace
     pub fn classify(&self) -> MobiusType {
         let tr = self.trace();
 
@@ -297,11 +256,43 @@ impl PartialEq for Mobius {
 
 #[cfg(test)]
 mod test {
-    use core::f64;
-
-    use test_case::test_case;
-
     use super::*;
+
+    #[test]
+    pub fn new_returns_error_for_infinite_entry() {
+        let result = Mobius::new(
+            Complex::Infinity,
+            Complex::Zero,
+            Complex::Zero,
+            Complex::ONE
+        );
+
+        assert!(result.is_err_and(|e| e.contains("must be finite")))
+    }
+
+    #[test]
+    pub fn new_returns_error_for_unnormalized_input() {
+        let result = Mobius::new(
+            Complex::new(2.0, 0.0),
+            Complex::Zero,
+            Complex::Zero,
+            Complex::new(1.0, 0.0),
+        );
+
+        assert!(result.is_err_and(|e| e.contains("ab - dc must equal 1")))
+    }
+
+    #[test]
+    pub fn new_returns_ok_for_valid_input() {
+        let result = Mobius::new(
+            Complex::ONE,
+            Complex::Zero,
+            Complex::Zero,
+            Complex::ONE,
+        );
+
+        assert!(result.is_ok_and(|x| x == Mobius::IDENTITY))
+    }
 
     #[test]
     pub fn identity_maps_point_to_itself() {
@@ -313,74 +304,20 @@ mod test {
     }
 
     #[test]
-    pub fn translate_is_a_parabolic_transform() -> Result<(), String> {
-        let translate = Mobius::translation(Complex::new(1.0, 2.0))?;
+    pub fn commutator_is_difference_ab_ba() {
+        let a = Mobius {
+            a: Complex::new(2.0, 0.0),
+            b: Complex::Zero,
+            c: Complex::Zero,
+            d: Complex::new(0.5, 0.0)
+        };
+        let b = Mobius {
+            a: Complex::ONE,
+            b: Complex::new(3.0, 4.0),
+            c: Complex::Zero,
+            d: Complex::ONE,
+        };
 
-        let xform_type = translate.classify();
-
-        assert_eq!(xform_type, MobiusType::Parabolic);
-        Ok(())
-    }
-
-    #[test]
-    pub fn rotation_is_an_elliptic_transform() -> Result<(), String> {
-        let theta = f64::consts::FRAC_PI_4;
-        let rotate = Mobius::rotation(theta)?;
-
-        let xform_type = rotate.classify();
-
-        assert_eq!(xform_type, MobiusType::Elliptic);
-        Ok(())
-    }
-
-    #[test]
-    pub fn scale_is_a_hyperbolic_transform() -> Result<(), String> {
-        let theta = f64::consts::FRAC_PI_4;
-        let scale = Mobius::scale(theta)?;
-
-        let xform_type = scale.classify();
-
-        assert_eq!(xform_type, MobiusType::Hyperbolic);
-        Ok(())
-    }
-
-    #[test]
-    pub fn inversion_is_an_ellptic_transform() {
-        let inversion = Mobius::INVERSION;
-
-        let xform_type = inversion.classify();
-
-        assert_eq!(xform_type, MobiusType::Elliptic)
-    }
-
-    #[test]
-    pub fn inversion_is_an_involution() {
-        let inv_sqr = Mobius::INVERSION * Mobius::INVERSION;
-
-        assert_eq!(inv_sqr, Mobius::IDENTITY)
-    }
-
-    #[test_case(Mobius::IDENTITY; "identity")]
-    #[test_case(Mobius::INVERSION; "complex inversion")]
-    #[test_case(Mobius::translation(Complex::new(3.0, 4.0)).unwrap(); "translation")]
-    #[test_case(Mobius::rotation(f64::consts::FRAC_PI_6).unwrap(); "rotation")]
-    pub fn specialized_constructors_have_determinant_one(mobius: Mobius) {
-        let result = mobius.det();
-
-        assert_eq!(result, Complex::ONE)
-    }
-
-    #[test_case(
-        Mobius::rotation(f64::consts::FRAC_PI_6).unwrap(),
-        Mobius::translation(Complex::ONE).unwrap(); 
-        "rotation and translation"
-    )]
-    #[test_case(
-        Mobius::scale(3.4).unwrap(),
-        Mobius::rotation(f64::consts::FRAC_PI_3).unwrap();
-        "commutative case"
-    )]
-    pub fn commutator_is_difference_ab_ba(a: Mobius, b: Mobius) {
         let ab = a * b;
         let ba = b * a;
         
