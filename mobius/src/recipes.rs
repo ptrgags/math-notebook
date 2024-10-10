@@ -50,13 +50,56 @@ pub fn scale(k: f64) -> Result<Mobius, String> {
     )
 }
 
+/// Compute a Mobius transform that fixes the upper half plane.
+/// It also separately fixes the extended real line, as it does
+/// the lower half plane.
+/// 
+/// This is simply the group of mobius transformations with real
+/// parameters.
+pub fn upper_half_plane(a: f64, b: f64, c: f64, d: f64) -> Result<Mobius, String> {
+    Mobius::new(
+        a.into(),
+        b.into(),
+        c.into(),
+        d.into()
+    )
+}
+
+/// The Cayley map K(z) = (z - i) / (z + i) is a 3-fold rotation
+/// of the Riemann sphere with axis through (+1, +1, +1). It permutes
+/// the corners of the Riemann sphere (0 -1 i)(inf 1 -i)
+/// 
+/// This implementation normalizes it to have determinant 1
+pub fn cayley_map() -> Mobius {
+    // This transform is expressed as
+    //
+    // [1 -i]
+    // [1  i]
+    //
+    // but this has determinant i - (-i) = 2i
+    // 
+    // so we must divide by sqrt(2i).
+    // This has angle pi/4 and radius sqrt(2)
+    // which is sqrt(2) (sqrt(2) / 2 + i * sqrt(2) / 2)
+    // which is (1 + i);
+    let divisor = Complex::new(1.0, 1.0);
+
+    Mobius::new(
+        Complex::ONE / divisor,
+        -Complex::I / divisor,
+        Complex::ONE / divisor,
+        Complex::I / divisor
+    ).unwrap()
+}
+
+#[cfg(test)]
 mod test {
-    
+
     use core::f64;
 
-    use crate::mobius::MobiusType;
-    use super::*;
+    use crate::{mobius::MobiusType, nearly::is_nearly};
 
+    use super::*;
 
     #[test]
     pub fn inversion_has_determinant_one() {
@@ -141,5 +184,76 @@ mod test {
         Ok(())
     }
 
+    #[test]
+    pub fn upper_half_plane_fixes_upper_half_plane() -> Result<(), String> {
+        let upper_point = Complex::new(-2.0, 3.0);
+        let xform = upper_half_plane(2.0, 0.0, 0.0, 0.5)?;
+
+        let result = xform * upper_point;
+
+        assert!(result.imag() > 0.0);
+        Ok(())
+    }
+
+    #[test]
+    pub fn upper_half_plane_fixes_real_line() -> Result<(), String> {
+        let real_point: Complex = (15.0).into();
+        let xform = upper_half_plane(2.0, 0.0, 0.0, 0.5)?;
+
+        let result = xform * real_point;
+
+        assert!(is_nearly(result.imag(), 0.0));
+        Ok(())
+    }
+
+    #[test]
+    pub fn upper_half_plane_fixes_lower_half_plane() -> Result<(), String> {
+        let upper_point = Complex::new(-5.0, -1.5);
+        let xform = upper_half_plane(2.0, 0.0, 0.0, 0.5)?;
+
+        let result = xform * upper_point;
+
+        assert!(result.imag() < 0.0);
+        Ok(())
+    }
+
+    #[test]
+    pub fn cayley_map_has_det_one() {
+        let k = cayley_map();
+
+        let result = k.det();
+
+        assert_eq!(result, Complex::ONE);
+    }
+
+    #[test]
+    pub fn cayley_map_has_order_3() {
+        let k = cayley_map();
+
+        let k_cubed = k * k * k;
+
+        assert_eq!(k_cubed, Mobius::IDENTITY);
+    }
+
+    #[test]
+    pub fn cayley_map_permutes_sphere_corners() {
+        let zero = Complex::Zero;
+        let inf = Complex::Infinity;
+        let k = cayley_map();
+        let k_sqr = k * k;
+
+        let k_zero = k * zero;
+        let k2_zero = k_sqr * zero;
+        let k_inf = k * inf;
+        let k2_inf = k_sqr * inf;
+
+        // Expected permutation is 
+        // (0 -1 i)(inf 1 -i)
+        assert_eq!(k_zero, -Complex::ONE);
+        assert_eq!(k2_zero, Complex::I);
+        assert_eq!(k_inf, Complex::ONE);
+        assert_eq!(k2_inf, -Complex::I);
+
+    }
     
 }

@@ -24,6 +24,11 @@ pub enum FixedPoints {
     Pair(Complex, Complex),
 }
 
+pub enum MobiusParameter {
+    Displacement(Complex),
+    ScaleFactor(Complex),
+}
+
 /// A Mobius transformation is a function 
 ///
 /// M(z) = (az + b) / (cz + d)
@@ -119,6 +124,18 @@ impl Mobius {
         Self{a: d, b: -b, c: -c, d: a}
     }
 
+    /// Compute the distance
+    /// |M(z) - M(w)| = |z - w| / (|cz + d||cw + d|)
+    pub fn distance(&self, z: Complex, w: Complex) -> f64 {
+        let &Self{c, d, ..} = self;
+        let numerator = (z - w).mag();
+        let denominator_z = (c * z + d).mag();
+        let denominator_w = (c * w + d).mag();
+        let denominator = denominator_z * denominator_w;
+
+        numerator / denominator
+    }
+
     pub fn fixed_points(&self) -> FixedPoints {
         let &Self{a, b, c, d} = self;
 
@@ -160,6 +177,16 @@ impl Mobius {
             FixedPoints::Pair(midpoint - offset, midpoint + offset)
         }
     }
+
+    // TODO: solve for the parameter k (loxodromic, elliptic, hyperbolic)
+    // or the displacement d (parabolic)
+    // this involves:
+    // 1. Finding the fixed points
+    // 2. Compute a transform S such that S(P) = inf
+    // 3. If there was only 1 fixed point, S 🥪 T = translation, so just extract
+    //      the translation amount
+    // 4. Otherwise, recompute S so that S(Q) = 0
+    
     
     /// The "difference" between left and right transformations.
     /// This is kind of like a "ratio" of the two transformations
