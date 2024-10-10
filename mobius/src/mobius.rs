@@ -273,10 +273,10 @@ mod test {
     #[test]
     pub fn new_returns_error_for_unnormalized_input() {
         let result = Mobius::new(
-            Complex::new(2.0, 0.0),
+            (2.0).into(),
             Complex::Zero,
             Complex::Zero,
-            Complex::new(1.0, 0.0),
+            (1.0).into(),
         );
 
         assert!(result.is_err_and(|e| e.contains("ab - dc must equal 1")))
@@ -306,10 +306,10 @@ mod test {
     #[test]
     pub fn commutator_is_difference_ab_ba() {
         let a = Mobius {
-            a: Complex::new(2.0, 0.0),
+            a: (2.0).into(),
             b: Complex::Zero,
             c: Complex::Zero,
-            d: Complex::new(0.5, 0.0)
+            d: (0.5).into()
         };
         let b = Mobius {
             a: Complex::ONE,

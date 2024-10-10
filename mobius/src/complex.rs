@@ -120,6 +120,14 @@ impl Complex {
     }
 }
 
+// For convenience, Complex::from(x) creates
+// a real number
+impl From<f64> for Complex {
+    fn from(value: f64) -> Self {
+        Self::new(value, 0.0)
+    }
+}
+
 impl Add for Complex {
     type Output = Complex;
 
