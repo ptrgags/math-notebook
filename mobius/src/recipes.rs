@@ -95,7 +95,7 @@ pub fn cayley_map() -> Mobius {
 }
 
 /// Create a map that preserves the unit circle
-pub fn unit_circle(u: Complex, v: Complex) -> Result<Mobius, String>{
+pub fn unit_circle_map(u: Complex, v: Complex) -> Result<Mobius, String>{
     let norm = u.norm() - v.norm();
     if !is_nearly(norm, 1.0) {
         return Err(String::from("norm(u) - norm(v) must equal 1"))
@@ -107,6 +107,15 @@ pub fn unit_circle(u: Complex, v: Complex) -> Result<Mobius, String>{
         u.conj(),
         v.conj()
     )
+}
+
+pub fn special_stretch_map(u: f64) -> Result<Mobius, String>{
+    if u <= 1.0 {
+        return Err(String::from("u must be greater than 1.0"))
+    }
+    let v = (u * u - 1.0).sqrt();
+
+    unit_circle_map(u.into(), v.into())
 }
 
 #[cfg(test)]
