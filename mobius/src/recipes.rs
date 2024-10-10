@@ -1,4 +1,6 @@
-use crate::{Complex, Mobius};
+use core::error;
+
+use crate::{nearly::is_nearly, Complex, Mobius};
 
 // Complex inversion nu(z) = 1/z, implemented as
 // (0z + i) / (iz + 0) to have determinant 1
@@ -92,10 +94,27 @@ pub fn cayley_map() -> Mobius {
     ).unwrap()
 }
 
+/// Create a map that preserves the unit circle
+pub fn unit_circle(u: Complex, v: Complex) -> Result<Mobius, String>{
+    let norm = u.norm() - v.norm();
+    if !is_nearly(norm, 1.0) {
+        return Err(String::from("norm(u) - norm(v) must equal 1"))
+    }
+
+    Mobius::new(
+        u,
+        v,
+        u.conj(),
+        v.conj()
+    )
+}
+
 #[cfg(test)]
 mod test {
 
     use core::f64;
+
+    use test_case::test_case;
 
     use crate::{mobius::MobiusType, nearly::is_nearly};
 
@@ -255,5 +274,26 @@ mod test {
         assert_eq!(k2_inf, -Complex::I);
 
     }
-    
+
+    #[test]
+    pub fn cayley_map_maps_real_line_to_unit_circle() {
+        let real_point: Complex = (45.0).into();
+        let k = cayley_map();
+
+        let result = k * real_point;
+
+        assert!(is_nearly(result.mag(), 1.0));
+    }
+
+    #[test_case(Complex::new(3.0, 4.0); "real = positive, outside unit circle")]
+    #[test_case(Complex::new(0.25, 0.5); "real = positive, inside unit circle")]
+    #[test_case(Complex::new(-3.0, 4.0); "real = negative, outside unit circle")]
+    #[test_case(Complex::new(-0.25, 0.5); "real = negative, inside unit circle")]
+    pub fn cayley_map_maps_upper_half_plane_to_unit_disk(z: Complex) {
+        let k = cayley_map();
+
+        let result = k * z;
+
+        assert!(result.mag() < 1.0);
+    }
 }
