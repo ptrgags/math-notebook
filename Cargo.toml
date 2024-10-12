@@ -4,5 +4,5 @@ members = [
     "geometric_algebra",
     "ga_cayley", 
     "permutations", 
-    "octahedral_cayley", "mobius",
+    "octahedral_cayley", "mobius", "mobius_sierpinski",
 ]

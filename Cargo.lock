@@ -27,6 +27,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mobius_sierpinski"
+version = "0.1.0"
+dependencies = [
+ "mobius",
+]
+
+[[package]]
 name = "octahedral_cayley"
 version = "0.1.0"
 dependencies = [

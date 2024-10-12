@@ -185,12 +185,22 @@ impl Div for Complex {
     }
 }
 
+fn format_finite_complex(a: f64, b: f64) -> String {
+    if is_nearly(b, 0.0) {
+        format!("{:.3}", a)
+    } else if is_nearly(a, 0.0) {
+        format!("{:.3}i", b)
+    } else {
+        format!("({:.3} + {:.3}i)", a, b)
+    }
+}
+
 impl Display for Complex {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let pretty_str = match self {
             Complex::Zero => String::from("0"),
             Complex::Infinity => String::from("♾️"),
-            Complex::Finite(a, b) => format!("{}+{}i", a, b)
+            Complex::Finite(a, b) => format_finite_complex(*a, *b),
         };
         write!(f, "{}", pretty_str)
     }

@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::{fmt::Display, ops::Mul};
 
 use crate::{complex::Complex, nearly::is_nearly};
 
@@ -19,9 +19,19 @@ pub enum MobiusType {
     Loxodromic,
 }
 
+#[derive(Debug)]
 pub enum FixedPoints {
     Single(Complex),
     Pair(Complex, Complex),
+}
+
+impl Display for FixedPoints {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Single(z) => write!(f, "Single({})", z),
+            Self::Pair(a, b) => write!(f, "Pair({}, {})", a, b),
+        }
+    }
 }
 
 pub enum MobiusParameter {
@@ -278,6 +288,13 @@ impl PartialEq for Mobius {
         // the matrix coefficients.
         (self.a == other.a && self.b == other.b && self.c == other.c && self.d == other.d)
         || (self.a == -other.a && self.b == -other.b && self.c == -other.c && self.d == -other.d)
+    }
+}
+
+impl Display for Mobius {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let &Mobius{a, b, c, d} = self;
+        write!(f, "[{} {}]\n[{} {}]", a, b, c, d)
     }
 }
 
