@@ -1,4 +1,5 @@
 use mobius::{scale, Complex, Mobius};
+use rand::random;
 
 struct MobiusSierpinski {
     a: Mobius,
@@ -80,9 +81,18 @@ fn compute_xforms() -> MobiusSierpinski {
     }
 }
 
+fn chaos_game(xforms: &[Mobius], start_point: Complex, n: usize) -> Vec<Complex> {
+    let mut z = start_point;
+    (0..n).map(|_| {
+        z = xforms[random::<usize>() % xforms.len()] * z;
+        z
+    }).collect()
+}
+
 fn main() {
     let MobiusSierpinski{a, b, c} = compute_xforms();
 
+    /*
     println!("A:");
     println!("{}", a);
     println!("type: {:?}", a.classify());
@@ -97,18 +107,22 @@ fn main() {
     println!("{}", c);
     println!("type: {:?}", c.classify());
     println!("fixed points: {}", c.fixed_points());
+    */
 
-    println!("Orbit of 0 under B:");
-    let mut value = Complex::Zero;
-    for _ in 0..5 {
-        value = b * value;
-        println!("z = {}", value);
+    
+    let forward_only = vec![a, b, c];
+    /*for z in chaos_game(&forward_only, 10000) {
+        println!("{},{}", z.real(), z.imag());
     }
+    */
 
-    println!("Orbit of i under B:");
-    let mut value = Complex::I;
-    for _ in 0..5 {
-        value = b * value;
-        println!("z = {}", value);
+    for _ in 0..100 {
+        let start_point = Complex::new(
+            4.0 * random::<f64>() - 2.0,
+            4.0 * random::<f64>() - 2.0
+        );
+        for z in chaos_game(&forward_only, start_point, 1000) {
+            println!("{},{}", z.real(), z.imag());
+        }
     }
 }

@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 mobius = { path="../mobius" }
+rand = "0.8.5"
