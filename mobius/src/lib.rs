@@ -4,6 +4,7 @@ mod complex;
 mod mobius;
 mod nearly;
 mod recipes;
+pub mod svg_plot;
 
 pub use cline_tile::ClineTile;
 pub use complex::Complex;

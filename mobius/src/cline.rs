@@ -81,8 +81,20 @@ impl Cline {
         }
     }
 
+    pub fn unit_circle() -> Self {
+        Self::circle(Complex::Zero, 1.0)
+    }
+
+    pub fn real_axis() -> Self {
+        Self::line(Complex::I, 0.0).unwrap()
+    }
+
+    pub fn imag_axis() -> Self {
+        Self::line(Complex::ONE, 0.0).unwrap()
+    }
+
     pub fn classify(&self) -> GeneralizedCircle {
-        let &Cline { a, b, c, d } = self;
+        let &Cline { a, b: _, c, d } = self;
 
         if a == Complex::Zero {
             // Line n.conj() z + n * z.conj() - 2d = 0
