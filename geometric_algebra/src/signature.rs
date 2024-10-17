@@ -1,16 +1,20 @@
 pub struct Signature {
     positive: usize,
     negative: usize,
-    zero: usize
+    zero: usize,
 }
 
 impl Signature {
     pub fn new(positive: usize, negative: usize, zero: usize) -> Result<Self, String> {
         if positive + negative + zero > 8usize {
-            return Err(String::from("Only up to 8 dimensions are supported"))
+            return Err(String::from("Only up to 8 dimensions are supported"));
         }
 
-        Ok(Self {positive, negative, zero})
+        Ok(Self {
+            positive,
+            negative,
+            zero,
+        })
     }
 
     pub fn get_dimensions(&self) -> usize {
@@ -38,14 +42,14 @@ mod test {
     #[test]
     fn new_returns_error_for_too_many_dimensions() {
         let result = Signature::new(4, 4, 4);
-        
+
         assert!(result.is_err_and(|e| e.contains("Only up to 8 dimensions are supported")));
     }
 
     #[test]
     fn get_dimensions_computes_total_dimensions() {
         let signature = Signature::new(3, 1, 2).unwrap();
-        
+
         let result = signature.get_dimensions();
 
         assert_eq!(result, 6);

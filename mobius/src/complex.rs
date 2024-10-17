@@ -8,7 +8,7 @@ use crate::nearly::is_nearly;
 pub enum Complex {
     Zero,
     Finite(f64, f64),
-    Infinity
+    Infinity,
 }
 
 impl Complex {
@@ -32,27 +32,29 @@ impl Complex {
 
     pub fn from_polar(r: f64, theta: f64) -> Complex {
         if r == 0.0 {
-            return Complex::Zero
+            return Complex::Zero;
         }
 
         let (s, c) = theta.sin_cos();
-        return Complex::Finite(r * c, r * s)
+        return Complex::Finite(r * c, r * s);
     }
 
     pub fn roots_of_unity(n: usize) -> Vec<Complex> {
         let angle = (f64::consts::TAU) / (n as f64);
-        (0..n).map(|i| {
-            let theta = (i as f64) * angle;
-            let (s, c) = theta.sin_cos();
-            Complex::Finite(c, s)
-        }).collect()
+        (0..n)
+            .map(|i| {
+                let theta = (i as f64) * angle;
+                let (s, c) = theta.sin_cos();
+                Complex::Finite(c, s)
+            })
+            .collect()
     }
 
     pub fn real(&self) -> f64 {
         match self {
             Complex::Zero => 0.0,
             Complex::Infinity => f64::INFINITY,
-            Complex::Finite(real, _) => *real
+            Complex::Finite(real, _) => *real,
         }
     }
 
@@ -60,7 +62,7 @@ impl Complex {
         match self {
             Complex::Zero => 0.0,
             Complex::Infinity => f64::INFINITY,
-            Complex::Finite(_, imag) => *imag
+            Complex::Finite(_, imag) => *imag,
         }
     }
 
@@ -68,7 +70,7 @@ impl Complex {
         match self {
             Complex::Zero => 0.0,
             Complex::Infinity => f64::INFINITY,
-            Complex::Finite(a, b) => a * a + b * b
+            Complex::Finite(a, b) => a * a + b * b,
         }
     }
 
@@ -80,7 +82,7 @@ impl Complex {
         match self {
             Complex::Zero => None,
             Complex::Infinity => None,
-            Complex::Finite(a, b) => Some(b.atan2(*a))
+            Complex::Finite(a, b) => Some(b.atan2(*a)),
         }
     }
 
@@ -148,7 +150,7 @@ impl Neg for Complex {
     fn neg(self) -> Self::Output {
         match self {
             Complex::Finite(a, b) => Complex::Finite(-a, -b),
-            x => x
+            x => x,
         }
     }
 }
@@ -172,14 +174,16 @@ impl Mul for Complex {
             (Complex::Infinity, _) => Complex::Infinity,
             (_, Complex::Zero) => Complex::Zero,
             (_, Complex::Infinity) => Complex::Infinity,
-            (Complex::Finite(a, b), Complex::Finite(c, d)) => Complex::Finite(a * c - b * d, a * d + b * c),
+            (Complex::Finite(a, b), Complex::Finite(c, d)) => {
+                Complex::Finite(a * c - b * d, a * d + b * c)
+            }
         }
     }
 }
 
 impl Div for Complex {
     type Output = Complex;
-    
+
     fn div(self, rhs: Self) -> Self::Output {
         self * rhs.inverse()
     }
@@ -212,7 +216,7 @@ impl PartialEq for Complex {
             (Self::Finite(a, b), Self::Finite(c, d)) => is_nearly(*a, *c) && is_nearly(*b, *d),
             (Self::Zero, Self::Zero) => true,
             (Self::Infinity, Self::Infinity) => true,
-            _ => false
+            _ => false,
         }
     }
 }
@@ -278,11 +282,8 @@ mod test {
 
         // From high school trig, a 30 degree angle will give (cos, sin) = (1/2, sqrt(3)/2)
         // but the radius of 2 clears the denominator
-        let expected = Complex::Finite(
-            1.0, (3.0f64).sqrt()
-        );
+        let expected = Complex::Finite(1.0, (3.0f64).sqrt());
         assert_eq!(result, expected);
-
     }
 
     #[test]

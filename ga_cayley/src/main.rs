@@ -13,7 +13,6 @@ fn make_cayley_table(positive: usize, negative: usize, zero: usize) -> Result<()
     Err(String::from("Not implemented (yet)"))
 }
 
-
 fn main() {
     println!("Hello, world!");
 }

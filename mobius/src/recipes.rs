@@ -5,40 +5,28 @@ use crate::{nearly::is_nearly, Complex, Mobius};
 // Complex inversion nu(z) = 1/z, implemented as
 // (0z + i) / (iz + 0) to have determinant 1
 pub fn inversion() -> Mobius {
-    Mobius::new(
-        Complex::Zero,
-        Complex::I,
-        Complex::I,
-        Complex::Zero
-    ).unwrap()
+    Mobius::new(Complex::Zero, Complex::I, Complex::I, Complex::Zero).unwrap()
 }
 
 pub fn translation(displacement: Complex) -> Result<Mobius, String> {
     match displacement {
         Complex::Infinity => Err(String::from("displacement must be finite")),
-        d => Mobius::new(
-            Complex::ONE, d, Complex::Zero,  Complex::ONE
-        )
+        d => Mobius::new(Complex::ONE, d, Complex::Zero, Complex::ONE),
     }
 }
 
 pub fn rotation(theta: f64) -> Result<Mobius, String> {
     if !theta.is_finite() {
-        return Err(String::from("theta must be finite"))
+        return Err(String::from("theta must be finite"));
     }
 
     let rotor = Complex::from_polar(1.0, 0.5 * theta);
-    Mobius::new(
-        rotor,
-        Complex::Zero,
-        Complex::Zero,
-        rotor.inverse()
-    )
+    Mobius::new(rotor, Complex::Zero, Complex::Zero, rotor.inverse())
 }
 
 pub fn scale(k: f64) -> Result<Mobius, String> {
     if k == 0.0 || !k.is_finite() {
-        return Err(String::from("k must be finite and nonzero"))
+        return Err(String::from("k must be finite and nonzero"));
     }
 
     let sqrt_k = k.sqrt();
@@ -48,29 +36,24 @@ pub fn scale(k: f64) -> Result<Mobius, String> {
         Complex::new(sqrt_k, 0.0),
         Complex::Zero,
         Complex::Zero,
-        Complex::new(inv_sqrt_k, 0.0)
+        Complex::new(inv_sqrt_k, 0.0),
     )
 }
 
 /// Compute a Mobius transform that fixes the upper half plane.
 /// It also separately fixes the extended real line, as it does
 /// the lower half plane.
-/// 
+///
 /// This is simply the group of mobius transformations with real
 /// parameters.
 pub fn upper_half_plane(a: f64, b: f64, c: f64, d: f64) -> Result<Mobius, String> {
-    Mobius::new(
-        a.into(),
-        b.into(),
-        c.into(),
-        d.into()
-    )
+    Mobius::new(a.into(), b.into(), c.into(), d.into())
 }
 
 /// The Cayley map K(z) = (z - i) / (z + i) is a 3-fold rotation
 /// of the Riemann sphere with axis through (+1, +1, +1). It permutes
 /// the corners of the Riemann sphere (0 -1 i)(inf 1 -i)
-/// 
+///
 /// This implementation normalizes it to have determinant 1
 pub fn cayley_map() -> Mobius {
     // This transform is expressed as
@@ -79,7 +62,7 @@ pub fn cayley_map() -> Mobius {
     // [1  i]
     //
     // but this has determinant i - (-i) = 2i
-    // 
+    //
     // so we must divide by sqrt(2i).
     // This has angle pi/4 and radius sqrt(2)
     // which is sqrt(2) (sqrt(2) / 2 + i * sqrt(2) / 2)
@@ -90,28 +73,24 @@ pub fn cayley_map() -> Mobius {
         Complex::ONE / divisor,
         -Complex::I / divisor,
         Complex::ONE / divisor,
-        Complex::I / divisor
-    ).unwrap()
+        Complex::I / divisor,
+    )
+    .unwrap()
 }
 
 /// Create a map that preserves the unit circle
-pub fn unit_circle_map(u: Complex, v: Complex) -> Result<Mobius, String>{
+pub fn unit_circle_map(u: Complex, v: Complex) -> Result<Mobius, String> {
     let norm = u.norm() - v.norm();
     if !is_nearly(norm, 1.0) {
-        return Err(String::from("norm(u) - norm(v) must equal 1"))
+        return Err(String::from("norm(u) - norm(v) must equal 1"));
     }
 
-    Mobius::new(
-        u,
-        v,
-        u.conj(),
-        v.conj()
-    )
+    Mobius::new(u, v, u.conj(), v.conj())
 }
 
-pub fn special_stretch_map(u: f64) -> Result<Mobius, String>{
+pub fn special_stretch_map(u: f64) -> Result<Mobius, String> {
     if u <= 1.0 {
-        return Err(String::from("u must be greater than 1.0"))
+        return Err(String::from("u must be greater than 1.0"));
     }
     let v = (u * u - 1.0).sqrt();
 
@@ -197,7 +176,7 @@ mod test {
     #[test]
     pub fn rotation_of_zero_is_identity() {
         let rot_zero = rotation(0.0).unwrap();
-        
+
         assert_eq!(rot_zero, Mobius::IDENTITY);
     }
 
@@ -275,13 +254,12 @@ mod test {
         let k_inf = k * inf;
         let k2_inf = k_sqr * inf;
 
-        // Expected permutation is 
+        // Expected permutation is
         // (0 -1 i)(inf 1 -i)
         assert_eq!(k_zero, -Complex::ONE);
         assert_eq!(k2_zero, Complex::I);
         assert_eq!(k_inf, Complex::ONE);
         assert_eq!(k2_inf, -Complex::I);
-
     }
 
     #[test]

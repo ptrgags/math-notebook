@@ -4,7 +4,7 @@ mod unit_blade;
 pub use signature::Signature;
 use unit_blade::UnitBlade;
 
-fn choose_bits(n: usize, choices: &[u8]) -> Vec<u8>{
+fn choose_bits(n: usize, choices: &[u8]) -> Vec<u8> {
     if n == 0 || choices.len() == 0 {
         return vec![0];
     }
@@ -12,8 +12,11 @@ fn choose_bits(n: usize, choices: &[u8]) -> Vec<u8>{
     let mut result = Vec::new();
     for i in 0..choices.len() {
         let choice = choices[i];
-        let rest = &choices[i+1..];
-        let partial_results: Vec<u8> = choose_bits(n - 1, rest).iter().map(|x| choice | x).collect();
+        let rest = &choices[i + 1..];
+        let partial_results: Vec<u8> = choose_bits(n - 1, rest)
+            .iter()
+            .map(|x| choice | x)
+            .collect();
         result.extend_from_slice(&partial_results);
     }
 
@@ -48,7 +51,7 @@ mod test {
 
         let result = make_blades(signature);
 
-        let expected_blades= vec![UnitBlade::new(0b0)];
+        let expected_blades = vec![UnitBlade::new(0b0)];
 
         assert_eq!(result, expected_blades);
     }
@@ -61,10 +64,11 @@ mod test {
 
         let expected_blades: Vec<UnitBlade> = [
             // scalar
-            0b0,
-            // pseudoscalar
-            0b1
-        ].map(|x| UnitBlade::new(x)).to_vec();
+            0b0, // pseudoscalar
+            0b1,
+        ]
+        .map(|x| UnitBlade::new(x))
+        .to_vec();
 
         assert_eq!(result, expected_blades);
     }
@@ -77,18 +81,13 @@ mod test {
 
         let expected_blades: Vec<UnitBlade> = [
             // scalar
-            0b000,
-            // vectors
-            0b001,
-            0b010,
-            0b100,
-            // bivectors
-            0b011,
-            0b101,
-            0b110,
-            // pseudoscalar
-            0b111
-        ].map(|x| UnitBlade::new(x)).to_vec();
+            0b000, // vectors
+            0b001, 0b010, 0b100, // bivectors
+            0b011, 0b101, 0b110, // pseudoscalar
+            0b111,
+        ]
+        .map(|x| UnitBlade::new(x))
+        .to_vec();
 
         assert_eq!(result, expected_blades);
     }
@@ -98,30 +97,17 @@ mod test {
         let signature = Signature::new(2, 1, 1).unwrap();
 
         let result = make_blades(signature);
-        
+
         let expected_blades: Vec<UnitBlade> = [
             // scalar
-            0b0000,
-            // vectors
-            0b0001,
-            0b0010,
-            0b0100,
-            0b1000,
-            // bivectors
-            0b0011,
-            0b0101,
-            0b1001,
-            0b0110,
-            0b1010,
-            0b1100,
-            //trivectors
-            0b0111,
-            0b1011,
-            0b1101,
-            0b1110,
-            // pseudoscalr
+            0b0000, // vectors
+            0b0001, 0b0010, 0b0100, 0b1000, // bivectors
+            0b0011, 0b0101, 0b1001, 0b0110, 0b1010, 0b1100, //trivectors
+            0b0111, 0b1011, 0b1101, 0b1110, // pseudoscalr
             0b1111,
-        ].map(|x| UnitBlade::new(x)).to_vec();
+        ]
+        .map(|x| UnitBlade::new(x))
+        .to_vec();
 
         assert_eq!(result, expected_blades)
     }

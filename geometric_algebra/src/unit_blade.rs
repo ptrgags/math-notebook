@@ -5,22 +5,21 @@ pub struct UnitBlade {
 
 impl UnitBlade {
     pub fn new(vectors: u8) -> Self {
-        Self {
-            vectors
-        }
+        Self { vectors }
     }
 
     pub fn pretty(&self, labels: &[&str]) -> String {
-        let components: Vec<&str> = (0..8).map(
-            |i| if self.vectors >> i & 1 == 1{
-                labels[i] 
-            } else {
-                ""
-            }  
-        ).collect();
+        let components: Vec<&str> = (0..8)
+            .map(|i| {
+                if self.vectors >> i & 1 == 1 {
+                    labels[i]
+                } else {
+                    ""
+                }
+            })
+            .collect();
         components.join("")
     }
-        
 }
 
 #[cfg(test)]

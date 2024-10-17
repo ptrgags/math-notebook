@@ -39,10 +39,10 @@ pub enum MobiusParameter {
     ScaleFactor(Complex),
 }
 
-/// A Mobius transformation is a function 
+/// A Mobius transformation is a function
 ///
 /// M(z) = (az + b) / (cz + d)
-/// 
+///
 /// such that ad - bc = 1
 ///
 /// This is isomorphic to a 2x2 matrix from SL(2, Complex)
@@ -62,40 +62,44 @@ pub struct Mobius {
 impl Mobius {
     // The identity function I(z) = z, implemented
     // as (1z + 0) / (0z + 1)
-    pub const IDENTITY: Self = Mobius{
-        a: Complex::ONE, 
-        b: Complex::Zero, 
-        c: Complex::Zero, 
-        d: Complex::ONE
+    pub const IDENTITY: Self = Mobius {
+        a: Complex::ONE,
+        b: Complex::Zero,
+        c: Complex::Zero,
+        d: Complex::ONE,
     };
 
     /// Constructor
-    /// 
+    ///
     /// This enforces that a, b, c, d are all Zero or Finite and
     /// that the determinant is 1  
-    pub fn new(a: Complex, b: Complex, c: Complex, d: Complex) -> Result<Self, String>{
+    pub fn new(a: Complex, b: Complex, c: Complex, d: Complex) -> Result<Self, String> {
         let det = a * d - b * c;
 
-        if a == Complex::Infinity || b == Complex::Infinity || c == Complex::Infinity || d == Complex::Infinity {
-            return Err(String::from("parameters must be finite"))
+        if a == Complex::Infinity
+            || b == Complex::Infinity
+            || c == Complex::Infinity
+            || d == Complex::Infinity
+        {
+            return Err(String::from("parameters must be finite"));
         }
 
         if det != Complex::ONE {
-            return Err(String::from("ab - dc must equal 1"))
+            return Err(String::from("ab - dc must equal 1"));
         }
 
-        Ok(Self{a, b, c, d})
-    }    
+        Ok(Self { a, b, c, d })
+    }
 
     /// Compute the determinant, ad - bc
     pub fn det(&self) -> Complex {
-        let &Mobius{a, b, c, d} = self;
+        let &Mobius { a, b, c, d } = self;
         a * d - b * c
     }
 
     /// Compute the trace, a + d
     pub fn trace(&self) -> Complex {
-        let &Mobius{a, d, ..} = self;
+        let &Mobius { a, d, .. } = self;
         a + d
     }
 
@@ -106,11 +110,11 @@ impl Mobius {
         let tr = self.trace();
 
         if !is_nearly(tr.imag(), 0.0) {
-            return MobiusType::Loxodromic
+            return MobiusType::Loxodromic;
         }
 
         let norm = tr.norm().abs();
-        
+
         // Parabolic transformations happen when the trace is +/- 2
         // so the norm will be (+/- 2)^2 = 4
         const PARABOLIC_NORM: f64 = 4.0;
@@ -125,19 +129,24 @@ impl Mobius {
 
     /// Since we assume det 1, the inverse transformation
     /// is a simplified matrix inverse
-    /// 
+    ///
     /// [a b]^(-1) = [ d -b]
     /// [c d]        [-c  a]
     pub fn inverse(&self) -> Self {
-        let &Self{a, b, c, d} = self;
+        let &Self { a, b, c, d } = self;
 
-        Self{a: d, b: -b, c: -c, d: a}
+        Self {
+            a: d,
+            b: -b,
+            c: -c,
+            d: a,
+        }
     }
 
     /// Compute the distance
     /// |M(z) - M(w)| = |z - w| / (|cz + d||cw + d|)
     pub fn distance(&self, z: Complex, w: Complex) -> f64 {
-        let &Self{c, d, ..} = self;
+        let &Self { c, d, .. } = self;
         let numerator = (z - w).mag();
         let denominator_z = (c * z + d).mag();
         let denominator_w = (c * w + d).mag();
@@ -147,9 +156,9 @@ impl Mobius {
     }
 
     pub fn fixed_points(&self) -> FixedPoints {
-        let &Self{a, b, c, d} = self;
+        let &Self { a, b, c, d } = self;
 
-        // When c is 0, the equation reduces to 
+        // When c is 0, the equation reduces to
         //
         // (a/d)z + b/d = z.
         //
@@ -167,19 +176,19 @@ impl Mobius {
         // specifically
         // z + b/d which is a basic translation!
         if c == Complex::Zero && a == d {
-            return FixedPoints::Single(Complex::Infinity)
+            return FixedPoints::Single(Complex::Infinity);
         }
 
         if c == Complex::Zero {
             let fixed_point = -b / (a - d);
-            return FixedPoints::Pair(fixed_point, Complex::Infinity)
+            return FixedPoints::Pair(fixed_point, Complex::Infinity);
         }
-        
+
         let trace = self.trace();
         let discriminant = trace * trace - Complex::Finite(4.0, 0.0);
         let denominator = Complex::Finite(2.0, 0.0) * c;
         let midpoint = (a - d) / denominator;
-        
+
         if discriminant == Complex::Zero {
             FixedPoints::Single(midpoint)
         } else {
@@ -196,8 +205,7 @@ impl Mobius {
     // 3. If there was only 1 fixed point, S 🥪 T = translation, so just extract
     //      the translation amount
     // 4. Otherwise, recompute S so that S(Q) = 0
-    
-    
+
     /// The "difference" between left and right transformations.
     /// This is kind of like a "ratio" of the two transformations
     /// left * right^-1.
@@ -220,8 +228,6 @@ impl Mobius {
     pub fn commutator(left: Self, right: Self) -> Self {
         left * right * left.inverse() * right.inverse()
     }
-
-    
 }
 
 impl Mul for Mobius {
@@ -232,17 +238,27 @@ impl Mul for Mobius {
          * [a b][e f] = [ae + bg af + bh]
          * [c d][g h]   [ce + dg cf + dh]
          */
-        let Mobius{a, b, c, d} = self;
-        let Mobius{a: e, b: f, c: g, d: h} = rhs;
+        let Mobius { a, b, c, d } = self;
+        let Mobius {
+            a: e,
+            b: f,
+            c: g,
+            d: h,
+        } = rhs;
 
         let new_a = a * e + b * g;
         let new_b = a * f + b * h;
         let new_c = c * e + d * g;
         let new_d = c * f + d * h;
-        
+
         let det = new_a * new_d - new_b * new_c;
         if det == Complex::ONE {
-            Self {a: new_a, b: new_b, c: new_c, d: new_d}
+            Self {
+                a: new_a,
+                b: new_b,
+                c: new_c,
+                d: new_d,
+            }
         } else {
             let sqrt_det = det.sqrt();
             Self {
@@ -259,7 +275,7 @@ impl Mul<Complex> for Mobius {
     type Output = Complex;
 
     fn mul(self, z: Complex) -> Self::Output {
-        let Self{a, b, c, d} = self;
+        let Self { a, b, c, d } = self;
 
         match z {
             Complex::Zero => b / d,
@@ -267,7 +283,7 @@ impl Mul<Complex> for Mobius {
             // value will be infinity
             Complex::Infinity if c == Complex::Zero => Complex::Infinity,
             Complex::Infinity => a / c,
-            point @ Complex::Finite(_, _) => (a * point + b) / (c * point + d)
+            point @ Complex::Finite(_, _) => (a * point + b) / (c * point + d),
         }
     }
 }
@@ -277,23 +293,26 @@ impl PartialEq for Mobius {
         // Subtlety that Indra's Pearls doesn't explain!
         //
         // Since a scalar multiple of a mobius transform is the same transformation,
-        // Notice that 
-        // 
+        // Notice that
+        //
         // det (kM) = (ka)(kd) - (kb)(kc) = k^2 (ad - bc) = k^2 det M
-        // 
+        //
         // So if k^2 = 1 (k = {-1, 1}), then we don't change the determinant even
         // though we scaled the coefficients.
         //
         // Therefore, our equality function is M1 == M2 || M1 == -M2 in terms of
         // the matrix coefficients.
         (self.a == other.a && self.b == other.b && self.c == other.c && self.d == other.d)
-        || (self.a == -other.a && self.b == -other.b && self.c == -other.c && self.d == -other.d)
+            || (self.a == -other.a
+                && self.b == -other.b
+                && self.c == -other.c
+                && self.d == -other.d)
     }
 }
 
 impl Display for Mobius {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let &Mobius{a, b, c, d} = self;
+        let &Mobius { a, b, c, d } = self;
         write!(f, "[{} {}]\n[{} {}]", a, b, c, d)
     }
 }
@@ -308,7 +327,7 @@ mod test {
             Complex::Infinity,
             Complex::Zero,
             Complex::Zero,
-            Complex::ONE
+            Complex::ONE,
         );
 
         assert!(result.is_err_and(|e| e.contains("must be finite")))
@@ -316,24 +335,14 @@ mod test {
 
     #[test]
     pub fn new_returns_error_for_unnormalized_input() {
-        let result = Mobius::new(
-            (2.0).into(),
-            Complex::Zero,
-            Complex::Zero,
-            (1.0).into(),
-        );
+        let result = Mobius::new((2.0).into(), Complex::Zero, Complex::Zero, (1.0).into());
 
         assert!(result.is_err_and(|e| e.contains("ab - dc must equal 1")))
     }
 
     #[test]
     pub fn new_returns_ok_for_valid_input() {
-        let result = Mobius::new(
-            Complex::ONE,
-            Complex::Zero,
-            Complex::Zero,
-            Complex::ONE,
-        );
+        let result = Mobius::new(Complex::ONE, Complex::Zero, Complex::Zero, Complex::ONE);
 
         assert!(result.is_ok_and(|x| x == Mobius::IDENTITY))
     }
@@ -353,7 +362,7 @@ mod test {
             a: (2.0).into(),
             b: Complex::Zero,
             c: Complex::Zero,
-            d: (0.5).into()
+            d: (0.5).into(),
         };
         let b = Mobius {
             a: Complex::ONE,
@@ -364,7 +373,7 @@ mod test {
 
         let ab = a * b;
         let ba = b * a;
-        
+
         let comm = Mobius::commutator(a, b);
         let diff = Mobius::difference(ab, ba);
 

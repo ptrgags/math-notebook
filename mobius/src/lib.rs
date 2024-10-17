@@ -1,6 +1,6 @@
-mod nearly;
 mod complex;
 mod mobius;
+mod nearly;
 mod recipes;
 
 pub use complex::Complex;
