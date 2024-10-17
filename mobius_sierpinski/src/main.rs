@@ -1,4 +1,4 @@
-use mobius::{scale, Complex, Mobius};
+use mobius::{scale, Cline, Complex, Mobius};
 use rand::random;
 
 struct MobiusSierpinski {
@@ -55,7 +55,7 @@ fn compute_xforms() -> MobiusSierpinski {
     // let mirror(z) = i * conj(z)
     // and note that mirror^(-1) = mirror
     //
-    // we want 
+    // we want
     // C = mirror 🥪 B
     //   = mirror B mirror
     //   = i conj((a (i conj(z)) + b) / (c (i conj (z)) + d))
@@ -72,7 +72,8 @@ fn compute_xforms() -> MobiusSierpinski {
         Complex::I * b.conj(),
         -Complex::I * c.conj(),
         d.conj(),
-    ).expect("Determinant not 1???");
+    )
+    .expect("Determinant not 1???");
 
     MobiusSierpinski {
         a: xform_a,
@@ -83,23 +84,37 @@ fn compute_xforms() -> MobiusSierpinski {
 
 fn chaos_game(xforms: &[Mobius], start_point: Complex, n: usize) -> Vec<Complex> {
     let mut z = start_point;
-    (0..n).map(|_| {
-        z = xforms[random::<usize>() % xforms.len()] * z;
-        z
-    }).collect()
+    (0..n)
+        .map(|_| {
+            z = xforms[random::<usize>() % xforms.len()] * z;
+            z
+        })
+        .collect()
+}
+
+type Tile = Vec<Cline>;
+
+fn transform_tile(xform: Mobius, tile: &Tile) -> Tile {
+    tile.iter().map(|x| Cline::transform(xform, *x)).collect()
+}
+
+fn display_tile(tile: &Tile) {
+    for x in tile {
+        println!("{:?}", x.classify())
+    }
 }
 
 fn main() {
-    let MobiusSierpinski{a, b, c} = compute_xforms();
+    let MobiusSierpinski { a, b, c } = compute_xforms();
 
     /*
     println!("A:");
     println!("{}", a);
     println!("type: {:?}", a.classify());
     println!("fixed points: {}", a.fixed_points());
-    
+
     println!("B:");
-    println!("{}", b); 
+    println!("{}", b);
     println!("type: {:?}", b.classify());
     println!("fixed points: {}", b.fixed_points());
 
@@ -109,13 +124,13 @@ fn main() {
     println!("fixed points: {}", c.fixed_points());
     */
 
-    
-    let forward_only = vec![a, b, c];
+    //let forward_only = vec![a, b, c];
     /*for z in chaos_game(&forward_only, 10000) {
         println!("{},{}", z.real(), z.imag());
     }
     */
 
+    /*
     for _ in 0..100 {
         let start_point = Complex::new(
             4.0 * random::<f64>() - 2.0,
@@ -125,4 +140,24 @@ fn main() {
             println!("{},{}", z.real(), z.imag());
         }
     }
+    */
+
+    let tile: Tile = vec![
+        Cline::line(Complex::I, 0.0).unwrap(),
+        Cline::line(Complex::ONE, 0.0).unwrap(),
+        Cline::circle(Complex::Zero, 1.0),
+    ];
+
+    let tile_a = transform_tile(a, &tile);
+    let tile_b = transform_tile(b, &tile);
+    let tile_c = transform_tile(c, &tile);
+
+    println!("Original");
+    display_tile(&tile);
+    println!("A\n{}", a);
+    display_tile(&tile_a);
+    println!("B\n{}", b);
+    display_tile(&tile_b);
+    println!("C\n{}", c);
+    display_tile(&tile_c);
 }

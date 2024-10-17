@@ -53,10 +53,10 @@ pub enum MobiusParameter {
 #[derive(Clone, Copy, Debug)]
 pub struct Mobius {
     // a, b, c, d must be either Zero or Finite (enforced in constructor)
-    a: Complex,
-    b: Complex,
-    c: Complex,
-    d: Complex,
+    pub a: Complex,
+    pub b: Complex,
+    pub c: Complex,
+    pub d: Complex,
 }
 
 impl Mobius {

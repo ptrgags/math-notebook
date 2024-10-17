@@ -66,6 +66,14 @@ impl Complex {
         }
     }
 
+    pub fn is_real(&self) -> bool {
+        is_nearly(self.imag(), 0.0)
+    }
+
+    pub fn is_imag(&self) -> bool {
+        is_nearly(self.real(), 0.0)
+    }
+
     pub fn norm(&self) -> f64 {
         match self {
             Complex::Zero => 0.0,
@@ -91,6 +99,19 @@ impl Complex {
             Complex::Zero => Complex::Zero,
             Complex::Infinity => Complex::Infinity,
             Complex::Finite(a, b) => Complex::Finite(*a, -b),
+        }
+    }
+
+    // Normalize the vector. This may return None when this operation is
+    // not defined (e.g. 0 / 0 and inf / inf are undefined)
+    pub fn normalize(&self) -> Option<Self> {
+        match self {
+            Complex::Zero => None,
+            Complex::Infinity => None,
+            Complex::Finite(a, b) => {
+                let r = self.mag();
+                Some(Complex::Finite(a / r, b / r))
+            }
         }
     }
 
