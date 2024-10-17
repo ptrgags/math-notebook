@@ -38,6 +38,48 @@ pub fn scale(k: f64) -> Result<Mobius, String> {
     )
 }
 
+pub fn parabolic(d: Complex) -> Result<Mobius, String> {
+    Mobius::new(Complex::ONE, Complex::Zero, Complex::ONE / d, Complex::ONE)
+}
+
+/// Hyperbolic transformation with a source at +1 and sink at -1 (when k is positive)
+///
+/// H(k) = 1/(2 sqrt(k))[(1 + k) (1 - k)]
+///                     [(1 - k) (1 + k)]
+pub fn hyperbolic(k: f64) -> Result<Mobius, String> {
+    let coefficient: Complex = (0.5 / k.sqrt()).into();
+    let k_complex: Complex = k.into();
+    let plus = (Complex::ONE + k_complex) * coefficient;
+    let minus = (Complex::ONE - k_complex) * coefficient;
+
+    Mobius::new(plus, minus, minus, plus)
+}
+
+// Elliptic transformation that's counterclockwise around +1
+//
+// E(theta) = [cos(theta/2) -isin(theta/2)]
+//            [-isin(theta/2), cos(theta/2)]
+pub fn elliptic(theta: f64) -> Result<Mobius, String> {
+    let c: Complex = (0.5 * theta).cos().into();
+    let s: Complex = -Complex::I * (0.5 * theta).sin().into();
+
+    Mobius::new(c, s, s, c)
+}
+
+/// Loxodromic transformation which is the composition of an elliptic
+/// rotation and a hyperbolic stretching. The formula is the same as
+/// for the hyperbolic version, but now k is any complex number
+///
+/// L(k) = 1/(2 sqrt(k))[(1 + k) (1 - k)]
+///                     [(1 - k) (1 + k)]
+pub fn loxodromic(k: Complex) -> Result<Mobius, String> {
+    let coefficient = Complex::ONE / k.sqrt() * (0.5).into();
+    let plus = (Complex::ONE + k) * coefficient;
+    let minus = (Complex::ONE - k) * coefficient;
+
+    Mobius::new(plus, minus, minus, plus)
+}
+
 /// Compute a Mobius transform that fixes the upper half plane.
 /// It also separately fixes the extended real line, as it does
 /// the lower half plane.
