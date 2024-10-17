@@ -5,7 +5,7 @@ use svg::{
 
 use crate::{
     cline::{Cline, GeneralizedCircle},
-    Complex,
+    ClineTile, Complex,
 };
 
 const FAR_AWAY: f64 = 1000.0;
@@ -36,6 +36,10 @@ pub fn svg_cline(cline: &Cline) -> Box<dyn Node> {
             )
         }
     }
+}
+
+pub fn svg_cline_tile(tile: &ClineTile) -> Vec<Box<dyn Node>> {
+    tile.get_clines().iter().map(|x| svg_cline(x)).collect()
 }
 
 pub fn make_axes() -> Group {

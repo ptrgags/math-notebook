@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use crate::{cline::Cline, Mobius};
 
+#[derive(Clone)]
 pub struct ClineTile {
     clines: Vec<Cline>,
 }
@@ -21,6 +22,10 @@ impl ClineTile {
         Self {
             clines: transformed,
         }
+    }
+
+    pub fn get_clines(&self) -> &[Cline] {
+        &self.clines
     }
 }
 
