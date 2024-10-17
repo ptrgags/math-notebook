@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{Complex, Mobius};
 
 // Simpler data structure for representing clines in human-understandable
@@ -6,6 +8,20 @@ use crate::{Complex, Mobius};
 pub enum GeneralizedCircle {
     Circle { center: Complex, radius: f64 },
     Line { unit_normal: Complex, distance: f64 },
+}
+
+impl Display for GeneralizedCircle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GeneralizedCircle::Circle { center, radius } => {
+                write!(f, "Circle({}, {:.3})", center, radius)
+            }
+            GeneralizedCircle::Line {
+                unit_normal,
+                distance,
+            } => write!(f, "Line({}, {:.3})", unit_normal, distance),
+        }
+    }
 }
 
 /// Generalized circle/line, sometimes called a "cline"

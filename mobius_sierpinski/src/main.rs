@@ -1,4 +1,4 @@
-use mobius::{scale, Cline, Complex, Mobius};
+use mobius::{scale, Cline, ClineTile, Complex, Mobius};
 use rand::random;
 
 struct MobiusSierpinski {
@@ -92,18 +92,6 @@ fn chaos_game(xforms: &[Mobius], start_point: Complex, n: usize) -> Vec<Complex>
         .collect()
 }
 
-type Tile = Vec<Cline>;
-
-fn transform_tile(xform: Mobius, tile: &Tile) -> Tile {
-    tile.iter().map(|x| Cline::transform(xform, *x)).collect()
-}
-
-fn display_tile(tile: &Tile) {
-    for x in tile {
-        println!("{:?}", x.classify())
-    }
-}
-
 fn main() {
     let MobiusSierpinski { a, b, c } = compute_xforms();
 
@@ -142,22 +130,18 @@ fn main() {
     }
     */
 
-    let tile: Tile = vec![
+    let tile = ClineTile::new(vec![
         Cline::line(Complex::I, 0.0).unwrap(),
         Cline::line(Complex::ONE, 0.0).unwrap(),
         Cline::circle(Complex::Zero, 1.0),
-    ];
+    ]);
 
-    let tile_a = transform_tile(a, &tile);
-    let tile_b = transform_tile(b, &tile);
-    let tile_c = transform_tile(c, &tile);
+    let tile_a = tile.transform(a);
+    let tile_b = tile.transform(b);
+    let tile_c = tile.transform(c);
 
-    println!("Original");
-    display_tile(&tile);
-    println!("A\n{}", a);
-    display_tile(&tile_a);
-    println!("B\n{}", b);
-    display_tile(&tile_b);
-    println!("C\n{}", c);
-    display_tile(&tile_c);
+    println!("Original\n{}", tile);
+    println!("A\n{}\n{}", a, tile_a);
+    println!("B\n{}\n{}", b, tile_b);
+    println!("C\n{}\n{}", c, tile_c);
 }
