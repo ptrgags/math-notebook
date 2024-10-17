@@ -141,11 +141,11 @@ impl Cline {
         let l_11 = -mb * cb + ma * cd;
 
         // Now compute L * conj(M^-1)
-        let a = l_00 * ma.conj() + l_01 * mc.conj();
-        let b = l_00 * -mb.conj() + l_01 * md.conj();
+        let a = l_00 * md.conj() + l_01 * -mc.conj();
+        let b = l_00 * -mb.conj() + l_01 * ma.conj();
 
-        let c = l_10 * ma.conj() + l_11 * mc.conj();
-        let d = l_10 * -mb.conj() + l_11 * md.conj();
+        let c = l_10 * md.conj() + l_11 * -mc.conj();
+        let d = l_10 * -mb.conj() + l_11 * ma.conj();
 
         if a != Complex::Zero {
             // For a circle, we want A = 1, so divide everything by A

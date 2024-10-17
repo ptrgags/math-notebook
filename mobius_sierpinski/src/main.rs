@@ -1,4 +1,4 @@
-use mobius::{scale, Cline, ClineTile, Complex, Mobius};
+use mobius::{cline::Cline, scale, ClineTile, Complex, Mobius};
 use rand::random;
 
 struct MobiusSierpinski {

@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{Cline, Mobius};
+use crate::{cline::Cline, Mobius};
 
 pub struct ClineTile {
     clines: Vec<Cline>,
@@ -26,11 +26,15 @@ impl ClineTile {
 
 impl Display for ClineTile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ClineTile:\n")?;
         for cline in self.clines.iter() {
             write!(f, "{}\n", cline.classify())?;
         }
 
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
 }

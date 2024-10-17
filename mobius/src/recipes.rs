@@ -1,5 +1,3 @@
-use core::error;
-
 use crate::{nearly::is_nearly, Complex, Mobius};
 
 // Complex inversion nu(z) = 1/z, implemented as
