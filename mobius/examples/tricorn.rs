@@ -1,4 +1,5 @@
 use core::f64;
+use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, PI, TAU};
 
 use mobius::{
     cline::Cline,
@@ -131,23 +132,44 @@ fn main() {
     geometry = add_geometry(geometry, svg_level4);
     geometry = add_geometry(geometry, svg_level5);
 
-    // For debugging
-    let bc = xforms[2] * xforms[1];
-    let tile_bc = tile.transform(bc);
-    let svg_bc = svg_cline_arc_tile(&tile_bc);
-    let mut another = Group::new()
-        .set("stroke", "red")
-        .set("stroke-width", "0.5%")
-        .set("fill", "none");
-    another = add_geometry(another, svg_bc);
-
-    let start_segment = ClineArc::line_segment(Complex::I, Complex::Zero);
-    let bad_segment = ClineArc::transform(bc, start_segment);
-    println!("{}", start_segment.classify());
-    println!("{}", bad_segment.classify());
-
-    let flipped2 = flip_y().add(axes).add(geometry).add(another);
+    let flipped2 = flip_y().add(axes.clone()).add(geometry.clone());
 
     let doc = make_card(Complex::new(0.5, 0.5), 0.6).add(flipped2);
-    svg::save("sierpinski2.svg", &doc).unwrap();
+    svg::save("tricorn.svg", &doc).unwrap();
+
+    // --
+
+    let another_tile = ClineArcTile::new(vec![
+        ClineArc::line_segment(Complex::Zero, -Complex::I),
+        ClineArc::from_circle_and_angles(Complex::Zero, 1.0, 3.0 * FRAC_PI_2, 7.0 * FRAC_PI_4, TAU),
+        ClineArc::line_segment(Complex::ONE, Complex::Zero),
+    ]);
+
+    let tiles_level1 = apply_xforms(&xforms, &another_tile);
+    let tiles_level2 = iteration(&xforms, &tiles_level1);
+    let tiles_level3 = iteration(&xforms, &tiles_level2);
+    let tiles_level4 = iteration(&xforms, &tiles_level3);
+    let tiles_level5 = iteration(&xforms, &tiles_level4);
+
+    let svg_level1 = svg_cline_arc_tiles(&tiles_level1);
+    let svg_level2 = svg_cline_arc_tiles(&tiles_level2);
+    let svg_level3 = svg_cline_arc_tiles(&tiles_level3);
+    let svg_level4 = svg_cline_arc_tiles(&tiles_level4);
+    let svg_level5 = svg_cline_arc_tiles(&tiles_level5);
+
+    let mut geometry2 = Group::new()
+        .set("stroke", "cyan")
+        .set("stroke-width", "0.25%")
+        .set("fill", "none");
+    geometry2 = add_geometry(geometry2, svg_cline_arc_tile(&tile));
+    geometry2 = add_geometry(geometry2, svg_level1);
+    geometry2 = add_geometry(geometry2, svg_level2);
+    geometry2 = add_geometry(geometry2, svg_level3);
+    geometry2 = add_geometry(geometry2, svg_level4);
+    geometry2 = add_geometry(geometry2, svg_level5);
+
+    let flipped2 = flip_y().add(axes).add(geometry).add(geometry2);
+
+    let doc = make_card(Complex::new(0.5, 0.0), 0.6).add(flipped2);
+    svg::save("tricorn2.svg", &doc).unwrap();
 }
