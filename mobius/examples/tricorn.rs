@@ -170,6 +170,6 @@ fn main() {
 
     let flipped2 = flip_y().add(axes).add(geometry).add(geometry2);
 
-    let doc = make_card(Complex::new(0.5, 0.0), 0.6).add(flipped2);
+    let doc = make_card(Complex::new(0.5, 0.0), 0.8).add(flipped2);
     svg::save("tricorn2.svg", &doc).unwrap();
 }
