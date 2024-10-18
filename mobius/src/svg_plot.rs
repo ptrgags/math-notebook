@@ -8,7 +8,8 @@ use svg::{
 use crate::{
     cline::{Cline, GeneralizedCircle},
     cline_arc::{ClineArc, ClineArcGeometry},
-    ClineTile, Complex,
+    cline_tile::{ClineArcTile, ClineTile},
+    Complex,
 };
 
 const FAR_AWAY: f64 = 1000.0;
@@ -105,6 +106,23 @@ pub fn svg_cline_arc(cline_arc: &ClineArc) -> Box<dyn Node> {
             Box::new(Group::new().add(ray_a).add(ray_b))
         }
     }
+}
+
+pub fn svg_cline_arc_tile(tile: &ClineArcTile) -> Vec<Box<dyn Node>> {
+    tile.get_arcs().iter().map(|x| svg_cline_arc(x)).collect()
+}
+
+pub fn svg_cline_arc_tiles(tiles: &[ClineArcTile]) -> Vec<Box<dyn Node>> {
+    tiles.iter().flat_map(|x| svg_cline_arc_tile(x)).collect()
+}
+
+pub fn add_geometry(group: Group, geometry: Vec<Box<dyn Node>>) -> Group {
+    let mut result = group;
+    for node in geometry {
+        result = result.add(node);
+    }
+
+    result
 }
 
 pub fn make_axes() -> Group {

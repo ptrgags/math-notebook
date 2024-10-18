@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{cline::Cline, Mobius};
+use crate::{cline::Cline, cline_arc::ClineArc, Mobius};
 
 #[derive(Clone)]
 pub struct ClineTile {
@@ -36,5 +36,29 @@ impl Display for ClineTile {
         }
 
         Ok(())
+    }
+}
+
+pub struct ClineArcTile {
+    arcs: Vec<ClineArc>,
+}
+
+impl ClineArcTile {
+    pub fn new(arcs: Vec<ClineArc>) -> Self {
+        Self { arcs }
+    }
+
+    pub fn transform(&self, xform: Mobius) -> Self {
+        let transformed: Vec<ClineArc> = self
+            .arcs
+            .iter()
+            .map(|x| ClineArc::transform(xform, *x))
+            .collect();
+
+        Self { arcs: transformed }
+    }
+
+    pub fn get_arcs(&self) -> &[ClineArc] {
+        &self.arcs
     }
 }

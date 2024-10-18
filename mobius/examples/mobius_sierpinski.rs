@@ -1,12 +1,15 @@
 use core::f64;
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use mobius::{
     cline::Cline,
     cline_arc::ClineArc,
+    cline_tile::{ClineArcTile, ClineTile},
     scale,
-    svg_plot::{flip_y, make_axes, svg_circular_arc, svg_cline_arc, svg_cline_tile},
-    ClineTile, Complex, Mobius,
+    svg_plot::{
+        add_geometry, flip_y, make_axes, svg_cline_arc, svg_cline_arc_tile, svg_cline_arc_tiles,
+        svg_cline_tile,
+    },
+    Complex, Mobius,
 };
 use svg::{
     node::element::{Group, Rectangle},
@@ -99,6 +102,17 @@ fn iterate(xforms: &[Mobius], tile: &ClineTile, depth: u8) -> Vec<ClineTile> {
     result
 }
 
+fn apply_xforms(xforms: &[Mobius], tile: &ClineArcTile) -> Vec<ClineArcTile> {
+    xforms.iter().map(|x| tile.transform(*x)).collect()
+}
+
+fn iteration(xforms: &[Mobius], tiles: &[ClineArcTile]) -> Vec<ClineArcTile> {
+    tiles
+        .iter()
+        .flat_map(|tile| apply_xforms(xforms, tile))
+        .collect()
+}
+
 fn main() {
     let xforms = compute_xforms();
 
@@ -145,31 +159,52 @@ fn main() {
 
     // ----------------------
 
-    let bottom = ClineArc::line_segment(Complex::Zero, Complex::ONE);
-    let circle_arc = ClineArc::from_circle_and_angles(
-        Complex::Zero,
-        1.0,
-        0.0,
-        f64::consts::FRAC_PI_4,
-        f64::consts::FRAC_PI_2,
-    );
-    let left = ClineArc::line_segment(Complex::I, Complex::Zero);
+    let tile = ClineArcTile::new(vec![
+        ClineArc::line_segment(Complex::Zero, Complex::ONE),
+        ClineArc::from_circle_and_angles(
+            Complex::Zero,
+            1.0,
+            0.0,
+            f64::consts::FRAC_PI_4,
+            f64::consts::FRAC_PI_2,
+        ),
+        ClineArc::line_segment(Complex::I, Complex::Zero),
+    ]);
 
-    let geometry = Group::new()
+    let tiles_level1 = apply_xforms(&xforms, &tile);
+    let tiles_level2 = iteration(&xforms, &tiles_level1);
+    let tiles_level3 = iteration(&xforms, &tiles_level2);
+    let tiles_level4 = iteration(&xforms, &tiles_level3);
+
+    let svg_level1 = svg_cline_arc_tiles(&tiles_level1);
+    let svg_level2 = svg_cline_arc_tiles(&tiles_level2);
+    let svg_level3 = svg_cline_arc_tiles(&tiles_level3);
+    let svg_level4 = svg_cline_arc_tiles(&tiles_level4);
+
+    let mut geometry = Group::new()
         .set("stroke", "yellow")
-        .set("stroke-width", "0.5%")
-        .set("fill", "none")
-        .add(svg_cline_arc(&bottom))
-        .add(svg_cline_arc(&circle_arc))
-        .add(svg_cline_arc(&left));
+        .set("stroke-width", "0.25%")
+        .set("fill", "none");
+    geometry = add_geometry(geometry, svg_cline_arc_tile(&tile));
+    geometry = add_geometry(geometry, svg_level1);
+    geometry = add_geometry(geometry, svg_level2);
+    geometry = add_geometry(geometry, svg_level3);
+    geometry = add_geometry(geometry, svg_level4);
 
     let flipped2 = flip_y().add(axes).add(geometry);
+
+    let background2 = Rectangle::new()
+        .set("x", -0.5)
+        .set("y", -1.5)
+        .set("width", "100%")
+        .set("height", "100%")
+        .set("fill", "black");
 
     let arc_test = Document::new()
         .set("width", 500)
         .set("height", 500)
-        .set("viewBox", (-2, -2, 4, 4))
-        .add(background)
+        .set("viewBox", (-0.5, -1.5, 2, 2))
+        .add(background2)
         .add(flipped2);
 
     svg::save("arc_test.svg", &arc_test).unwrap();

@@ -1,13 +1,12 @@
 pub mod cline;
 pub mod cline_arc;
-mod cline_tile;
+pub mod cline_tile;
 mod complex;
 mod mobius;
 mod nearly;
 mod recipes;
 pub mod svg_plot;
 
-pub use cline_tile::ClineTile;
 pub use complex::Complex;
 pub use mobius::Mobius;
 pub use recipes::*;
