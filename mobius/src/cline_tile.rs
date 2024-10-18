@@ -38,8 +38,3 @@ impl Display for ClineTile {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-}

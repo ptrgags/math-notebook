@@ -141,6 +141,10 @@ impl Complex {
             }
         }
     }
+
+    pub fn dot(a: Complex, b: Complex) -> f64 {
+        (a * b.conj()).real()
+    }
 }
 
 // For convenience, Complex::from(x) creates

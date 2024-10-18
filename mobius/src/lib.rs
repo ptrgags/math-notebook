@@ -1,4 +1,5 @@
 pub mod cline;
+pub mod cline_arc;
 mod cline_tile;
 mod complex;
 mod mobius;

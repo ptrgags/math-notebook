@@ -79,8 +79,8 @@ fn main() {
     let flipped = flip_y().add(axes).add(lattitude_lines).add(meridians);
 
     let document = Document::new()
-        .set("width", 1000)
-        .set("height", 1000)
+        .set("width", 500)
+        .set("height", 500)
         .set("viewBox", (-3, -3, 6, 6))
         .add(boundary)
         .add(flipped);

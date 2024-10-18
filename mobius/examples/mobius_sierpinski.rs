@@ -1,7 +1,11 @@
+use core::f64;
+use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
+
 use mobius::{
     cline::Cline,
+    cline_arc::ClineArc,
     scale,
-    svg_plot::{flip_y, make_axes, svg_cline_tile},
+    svg_plot::{flip_y, make_axes, svg_circular_arc, svg_cline_arc, svg_cline_tile},
     ClineTile, Complex, Mobius,
 };
 use svg::{
@@ -128,14 +132,45 @@ fn main() {
         .set("height", "100%")
         .set("fill", "black");
 
-    let flipped = flip_y().add(axes).add(geometry);
+    let flipped = flip_y().add(axes.clone()).add(geometry);
 
     let document = Document::new()
         .set("width", 500)
         .set("height", 500)
         .set("viewBox", (-2, -2, 4, 4))
-        .add(background)
+        .add(background.clone())
         .add(flipped);
 
     svg::save("mobius_sierpinski.svg", &document).unwrap();
+
+    // ----------------------
+
+    let bottom = ClineArc::line_segment(Complex::Zero, Complex::ONE);
+    let circle_arc = ClineArc::from_circle_and_angles(
+        Complex::Zero,
+        1.0,
+        0.0,
+        f64::consts::FRAC_PI_4,
+        f64::consts::FRAC_PI_2,
+    );
+    let left = ClineArc::line_segment(Complex::I, Complex::Zero);
+
+    let geometry = Group::new()
+        .set("stroke", "yellow")
+        .set("stroke-width", "0.5%")
+        .set("fill", "none")
+        .add(svg_cline_arc(&bottom))
+        .add(svg_cline_arc(&circle_arc))
+        .add(svg_cline_arc(&left));
+
+    let flipped2 = flip_y().add(axes).add(geometry);
+
+    let arc_test = Document::new()
+        .set("width", 500)
+        .set("height", 500)
+        .set("viewBox", (-2, -2, 4, 4))
+        .add(background)
+        .add(flipped2);
+
+    svg::save("arc_test.svg", &arc_test).unwrap();
 }

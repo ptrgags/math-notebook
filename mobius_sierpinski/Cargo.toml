@@ -1,8 +1,0 @@
-[package]
-name = "mobius_sierpinski"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-mobius = { path="../mobius" }
-rand = "0.8.5"
