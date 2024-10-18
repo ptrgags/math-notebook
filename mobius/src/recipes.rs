@@ -137,6 +137,49 @@ pub fn special_stretch_map(u: f64) -> Result<Mobius, String> {
     unit_circle_map(u.into(), v.into())
 }
 
+type PointTriple = (Complex, Complex, Complex);
+
+/// The map S(z) = (z - p)(q - r) / ((z - r)(q - p))
+/// maps p -> 0
+///      q -> 1
+///      r -> inf
+pub fn map_to_zero_one_inf(triple: PointTriple) -> Result<Mobius, String> {
+    let (p, q, r) = triple;
+
+    if p == q || q == r || r == p {
+        return Err(String::from("points must be distinct"));
+    }
+
+    if p == Complex::Infinity || q == Complex::Infinity || r == Complex::Infinity {
+        panic!("not yet implemented: handle infinity gracefully")
+    }
+
+    let rq = q - r;
+    let pq = q - p;
+
+    let a = rq;
+    let b = rq * -p;
+    let c = pq;
+    let d = pq * -r;
+
+    let inv_sqr_det = (a * d - b * c).inverse().sqrt();
+
+    Mobius::new(
+        a * inv_sqr_det,
+        b * inv_sqr_det,
+        c * inv_sqr_det,
+        d * inv_sqr_det,
+    )
+}
+
+pub fn map_triple(input: PointTriple, output: PointTriple) -> Result<Mobius, String> {
+    // make maps input --> (0, 1, inf) <-- output
+    // and compose the arrows so we get input --> output
+    let input_to_standard = map_to_zero_one_inf(input)?;
+    let output_to_standard = map_to_zero_one_inf(output)?;
+    Ok(output_to_standard.inverse() * input_to_standard)
+}
+
 #[cfg(test)]
 mod test {
 
@@ -322,5 +365,53 @@ mod test {
         let result = k * z;
 
         assert!(result.mag() < 1.0);
+    }
+
+    #[test_case((Complex::Zero, Complex::Zero, Complex::ONE); "first two equal")]
+    #[test_case((Complex::Zero, Complex::ONE, Complex::ONE); "Second two equal")]
+    #[test_case((Complex::Zero, Complex::ONE, Complex::Zero); "First and last equal")]
+    pub fn map_to_zero_one_inf_returns_error_for_duplicate_points(triple: PointTriple) {
+        let result = map_to_zero_one_inf(triple);
+
+        assert!(result.is_err_and(|x| x.contains("points must be distinct")))
+    }
+
+    #[test_case((Complex::Zero, Complex::ONE, (2.0).into()) ; "colinear points")]
+    #[test_case((Complex::Zero, (2.0).into(), Complex::I) ; "arbitrary points")]
+    pub fn map_to_zero_one_inf_maps_respective_points(
+        triple: (Complex, Complex, Complex),
+    ) -> Result<(), String> {
+        let xform = map_to_zero_one_inf(triple)?;
+        let (p, q, r) = triple;
+
+        let p2 = xform * p;
+        let q2 = xform * q;
+        let r2 = xform * r;
+
+        assert_eq!(p2, Complex::Zero);
+        assert_eq!(q2, Complex::ONE);
+        assert_eq!(r2, Complex::Infinity);
+        Ok(())
+    }
+
+    #[test_case((Complex::Zero, Complex::ONE, (2.0).into()), (Complex::Zero, Complex::I, Complex::new(0.0, 2.0)); "map pair of lines")]
+    #[test_case((Complex::new(3.0, 2.0), Complex::new(-4.0, 3.0), (2.0).into()), (Complex::Zero, Complex::I, Complex::new(-0.5, -2.0)); "map arbitrary points")]
+    pub fn map_triple_maps_respective_points(
+        input: PointTriple,
+        output: PointTriple,
+    ) -> Result<(), String> {
+        let xform = map_triple(input, output)?;
+
+        let (p, q, r) = input;
+        let (u, v, w) = output;
+
+        let p2 = xform * p;
+        let q2 = xform * q;
+        let r2 = xform * r;
+
+        assert_eq!(p2, u);
+        assert_eq!(q2, v);
+        assert_eq!(r2, w);
+        Ok(())
     }
 }

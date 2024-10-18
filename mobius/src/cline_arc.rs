@@ -1,5 +1,3 @@
-use std::f64::consts::TAU;
-
 use crate::{
     cline::{Cline, GeneralizedCircle},
     Complex, Mobius,

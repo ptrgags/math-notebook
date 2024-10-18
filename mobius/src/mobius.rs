@@ -34,11 +34,6 @@ impl Display for FixedPoints {
     }
 }
 
-pub enum MobiusParameter {
-    Displacement(Complex),
-    ScaleFactor(Complex),
-}
-
 /// A Mobius transformation is a function
 ///
 /// M(z) = (az + b) / (cz + d)

@@ -1,8 +1,8 @@
 use core::f64;
 
 use svg::{
-    node::element::{path::Data, Circle, Group, Line, Path},
-    Node,
+    node::element::{path::Data, Circle, Group, Line, Path, Rectangle},
+    Document, Node,
 };
 
 use crate::{
@@ -134,4 +134,39 @@ pub fn make_axes() -> Group {
 
 pub fn flip_y() -> Group {
     Group::new().set("transform", "scale(1, -1)")
+}
+
+pub fn make_card(center: Complex, half_width: f64) -> Document {
+    // My usual art trading card format for my website is 500x700px
+    const WIDTH: f64 = 500.0;
+    const HEIGHT: f64 = 700.0;
+    const ASPECT_RATIO: f64 = WIDTH / HEIGHT;
+
+    let half_height = half_width / ASPECT_RATIO;
+    let offset = Complex::new(half_width, half_height);
+
+    let top_left = center.conj() - offset;
+    let dimensions = offset + offset;
+
+    let view_box = (
+        top_left.real(),
+        top_left.imag(),
+        dimensions.real(),
+        dimensions.imag(),
+    );
+
+    let background = Rectangle::new()
+        .set("x", top_left.real())
+        .set("y", top_left.imag())
+        .set("width", "100%")
+        .set("height", "100%")
+        .set("fill", "black")
+        .set("stroke", "none");
+
+    Document::new()
+        .set("style", "background-color: #7f00ff")
+        .set("width", 500)
+        .set("height", 700)
+        .set("viewBox", view_box)
+        .add(background)
 }
