@@ -112,11 +112,13 @@ fn main() {
     let tiles_level2 = iteration(&xforms, &tiles_level1);
     let tiles_level3 = iteration(&xforms, &tiles_level2);
     let tiles_level4 = iteration(&xforms, &tiles_level3);
+    let tiles_level5 = iteration(&xforms, &tiles_level4);
 
     let svg_level1 = svg_cline_arc_tiles(&tiles_level1);
     let svg_level2 = svg_cline_arc_tiles(&tiles_level2);
     let svg_level3 = svg_cline_arc_tiles(&tiles_level3);
     let svg_level4 = svg_cline_arc_tiles(&tiles_level4);
+    let svg_level5 = svg_cline_arc_tiles(&tiles_level5);
 
     let mut geometry = Group::new()
         .set("stroke", "yellow")
@@ -127,8 +129,24 @@ fn main() {
     geometry = add_geometry(geometry, svg_level2);
     geometry = add_geometry(geometry, svg_level3);
     geometry = add_geometry(geometry, svg_level4);
+    geometry = add_geometry(geometry, svg_level5);
 
-    let flipped2 = flip_y().add(axes).add(geometry);
+    // For debugging
+    let bc = xforms[2] * xforms[1];
+    let tile_bc = tile.transform(bc);
+    let svg_bc = svg_cline_arc_tile(&tile_bc);
+    let mut another = Group::new()
+        .set("stroke", "red")
+        .set("stroke-width", "0.5%")
+        .set("fill", "none");
+    another = add_geometry(another, svg_bc);
+
+    let start_segment = ClineArc::line_segment(Complex::I, Complex::Zero);
+    let bad_segment = ClineArc::transform(bc, start_segment);
+    println!("{}", start_segment.classify());
+    println!("{}", bad_segment.classify());
+
+    let flipped2 = flip_y().add(axes).add(geometry).add(another);
 
     let doc = make_card(Complex::new(0.5, 0.5), 0.6).add(flipped2);
     svg::save("sierpinski2.svg", &doc).unwrap();

@@ -145,6 +145,10 @@ impl Complex {
     pub fn dot(a: Complex, b: Complex) -> f64 {
         (a * b.conj()).real()
     }
+
+    pub fn wedge(a: Complex, b: Complex) -> f64 {
+        (a.conj() * b).imag()
+    }
 }
 
 // For convenience, Complex::from(x) creates

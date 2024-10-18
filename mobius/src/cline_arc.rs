@@ -1,3 +1,5 @@
+use std::{f64::consts::TAU, fmt::Display};
+
 use crate::{
     cline::{Cline, GeneralizedCircle},
     Complex, Mobius,
@@ -30,6 +32,31 @@ pub enum ClineArcGeometry {
         // the other is infinity <- a in the-ab direction
         dir_ab: Complex,
     },
+}
+
+impl Display for ClineArcGeometry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ClineArcGeometry::CircularArc {
+                center,
+                radius,
+                start_angle,
+                end_angle,
+            } => write!(
+                f,
+                "Arc({}, {:.3}, {:.3}° -> {:.3}°)",
+                center,
+                radius,
+                start_angle.to_degrees(),
+                end_angle.to_degrees()
+            ),
+            ClineArcGeometry::LineSegment { a, b } => write!(f, "Segment({} -> {})", a, b),
+            ClineArcGeometry::Ray { start, dir } => write!(f, "Ray({} --{}->)", start, dir),
+            ClineArcGeometry::RayPair { a, b, dir_ab } => {
+                write!(f, "RayPair(<--{} {}--{}->", a, b, dir_ab)
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -138,17 +165,24 @@ impl ClineArc {
                 }
             }
             GeneralizedCircle::Circle { center, radius } => {
-                let theta_a = (self.a - center).arg().unwrap();
-                let theta_b = (self.b - center).arg().unwrap();
-                let theta_c = (self.c - center).arg().unwrap();
+                // Determine if the 3 points circulate counterclockwise or
+                // clockwise by forming a triangle ABC and computing
+                // (the magnitude of) the wedge product.
+                let ab = self.b - self.a;
+                let ac = self.c - self.a;
+                let ccw = Complex::wedge(ab, ac) > 0.0;
 
-                // We want to measure the signed angle from a to c in the direction
-                // of c regardless of what order the points are in. So compute
-                // the signed angles a -> b, and b -> c and then chain them
-                // to get the end angle
-                let theta_ab = theta_b - theta_a;
-                let theta_bc = theta_c - theta_b;
-                let end_angle = theta_a + theta_ab + theta_bc;
+                let theta_a = (self.a - center).arg().unwrap();
+                let theta_c = (self.c - center).arg().unwrap();
+                let a_bigger = theta_a > theta_c;
+
+                let end_angle = if !ccw && !a_bigger {
+                    theta_c - TAU
+                } else if ccw && a_bigger {
+                    theta_c + TAU
+                } else {
+                    theta_c
+                };
                 ClineArcGeometry::CircularArc {
                     center,
                     radius,

@@ -6,7 +6,7 @@ use mobius::{
     cline_tile::{ClineArcTile, ClineTile},
     scale,
     svg_plot::{
-        add_geometry, flip_y, make_axes, svg_cline_arc, svg_cline_arc_tile, svg_cline_arc_tiles,
+        add_geometry, flip_y, make_axes, make_card, svg_cline_arc_tile, svg_cline_arc_tiles,
         svg_cline_tile,
     },
     Complex, Mobius,
@@ -193,19 +193,6 @@ fn main() {
 
     let flipped2 = flip_y().add(axes).add(geometry);
 
-    let background2 = Rectangle::new()
-        .set("x", -0.5)
-        .set("y", -1.5)
-        .set("width", "100%")
-        .set("height", "100%")
-        .set("fill", "black");
-
-    let arc_test = Document::new()
-        .set("width", 500)
-        .set("height", 500)
-        .set("viewBox", (-0.5, -1.5, 2, 2))
-        .add(background2)
-        .add(flipped2);
-
-    svg::save("arc_test.svg", &arc_test).unwrap();
+    let doc = make_card(Complex::new(0.5, 0.5), 0.6).add(flipped2);
+    svg::save("arc_test.svg", &doc).unwrap();
 }
