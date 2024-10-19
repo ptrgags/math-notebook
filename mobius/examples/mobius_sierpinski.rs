@@ -194,5 +194,5 @@ fn main() {
     let flipped2 = flip_y().add(axes).add(geometry);
 
     let doc = make_card(Complex::new(0.5, 0.5), 0.6).add(flipped2);
-    svg::save("arc_test.svg", &doc).unwrap();
+    svg::save("output/mobius_sierpinski.svg", &doc).unwrap();
 }

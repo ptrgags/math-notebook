@@ -85,5 +85,5 @@ fn main() {
         .add(boundary)
         .add(flipped);
 
-    svg::save("grid.svg", &document).unwrap();
+    svg::save("output/parallels_and_meridians.svg", &document).unwrap();
 }

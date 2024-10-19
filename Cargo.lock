@@ -9,13 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "ga_cayley"
-version = "0.1.0"
-dependencies = [
- "geometric_algebra",
-]
-
-[[package]]
 name = "geometric_algebra"
 version = "0.1.0"
 
@@ -25,13 +18,6 @@ version = "0.1.0"
 dependencies = [
  "svg",
  "test-case",
-]
-
-[[package]]
-name = "octahedral_cayley"
-version = "0.1.0"
-dependencies = [
- "permutations",
 ]
 
 [[package]]
