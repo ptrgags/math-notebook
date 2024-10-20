@@ -3,80 +3,12 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
 use mobius::{
     cline_arc::ClineArc,
     cline_tile::ClineArcTile,
+    iterated_function_system::{self, transform_tile, IFS},
     map_triple, scale,
     svg_plot::{add_geometry, flip_y, make_card, style_lines, svg_cline, svg_cline_arc_tiles},
     Complex, Mobius,
 };
 use svg::node::element::Group;
-
-struct IFS {
-    xforms: Vec<Mobius>,
-}
-
-impl IFS {
-    pub fn new(xforms: Vec<Mobius>) -> Self {
-        Self { xforms }
-    }
-
-    pub fn get_xform(&self, index: usize) -> Mobius {
-        self.xforms[index]
-    }
-
-    pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, Mobius> {
-        self.xforms.iter()
-    }
-
-    pub fn dfs(&self, max_depth: usize) -> IFSDepthFirstIterator {
-        IFSDepthFirstIterator::new(self, max_depth)
-    }
-}
-
-struct IFSDepthFirstIterator<'a> {
-    ifs: &'a IFS,
-    max_depth: usize,
-    // pairs of (depth, xform)
-    stack: Vec<(usize, Mobius)>,
-}
-
-impl<'a> IFSDepthFirstIterator<'a> {
-    fn new(ifs: &'a IFS, max_depth: usize) -> Self {
-        Self {
-            ifs,
-            max_depth,
-            stack: vec![(0, Mobius::IDENTITY)],
-        }
-    }
-}
-
-impl<'a> Iterator for IFSDepthFirstIterator<'a> {
-    type Item = (usize, Mobius);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.stack.pop() {
-            None => None,
-            Some((depth, xform)) => {
-                if depth < self.max_depth {
-                    for next_xform in self.ifs.iter().cloned() {
-                        self.stack.push((depth + 1, next_xform * xform));
-                    }
-                }
-                Some((depth, xform))
-            }
-        }
-    }
-}
-
-fn transform_tile(
-    ifs: &IFS,
-    tile: &ClineArcTile,
-    min_depth: usize,
-    max_depth: usize,
-) -> Vec<ClineArcTile> {
-    ifs.dfs(max_depth)
-        .filter(|(depth, _)| *depth >= min_depth)
-        .map(|(_, xform)| tile.transform(xform))
-        .collect()
-}
 
 fn compute_xforms() -> Vec<Mobius> {
     // Similar to the Sierpinski triangle, we want to send the overall triangle

@@ -2,6 +2,7 @@ pub mod cline;
 pub mod cline_arc;
 pub mod cline_tile;
 mod complex;
+pub mod iterated_function_system;
 mod mobius;
 mod nearly;
 mod recipes;
