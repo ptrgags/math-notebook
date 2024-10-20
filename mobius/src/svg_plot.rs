@@ -164,7 +164,6 @@ pub fn make_card(center: Complex, half_width: f64) -> Document {
         .set("stroke", "none");
 
     Document::new()
-        .set("style", "background-color: #7f00ff")
         .set("width", 500)
         .set("height", 700)
         .set("viewBox", view_box)
