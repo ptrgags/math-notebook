@@ -4,7 +4,7 @@ use mobius::{
     cline_arc::ClineArc,
     cline_tile::ClineArcTile,
     map_triple, scale,
-    svg_plot::{add_geometry, make_card, svg_cline_arc_tiles},
+    svg_plot::{add_geometry, flip_y, make_card, style_lines, svg_cline, svg_cline_arc_tiles},
     Complex, Mobius,
 };
 use svg::node::element::Group;
@@ -16,6 +16,10 @@ struct IFS {
 impl IFS {
     pub fn new(xforms: Vec<Mobius>) -> Self {
         Self { xforms }
+    }
+
+    pub fn get_xform(&self, index: usize) -> Mobius {
+        self.xforms[index]
     }
 
     pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, Mobius> {
@@ -60,6 +64,18 @@ impl<'a> Iterator for IFSDepthFirstIterator<'a> {
             }
         }
     }
+}
+
+fn transform_tile(
+    ifs: &IFS,
+    tile: &ClineArcTile,
+    min_depth: usize,
+    max_depth: usize,
+) -> Vec<ClineArcTile> {
+    ifs.dfs(max_depth)
+        .filter(|(depth, _)| *depth >= min_depth)
+        .map(|(_, xform)| tile.transform(xform))
+        .collect()
 }
 
 fn compute_xforms() -> Vec<Mobius> {
@@ -107,7 +123,8 @@ fn compute_xforms() -> Vec<Mobius> {
 }
 
 fn main() {
-    let modified_sierpinski = IFS::new(compute_xforms());
+    let xforms = compute_xforms();
+    let modified_sierpinski = IFS::new(xforms.clone());
 
     let tile = ClineArcTile::new(vec![
         ClineArc::line_segment(Complex::Zero, Complex::ONE),
@@ -128,8 +145,38 @@ fn main() {
         .set("fill", "none");
     geometry = add_geometry(geometry, svg_tiles);
 
-    let flipped = Group::new().set("transform", "scale(1, -1)").add(geometry);
+    let flipped = Group::new()
+        .set("transform", "scale(1, -1)")
+        .add(geometry.clone());
 
     let doc = make_card(Complex::new(0.5, 0.5), 0.5001).add(flipped);
-    svg::save("output/mobius_sierpinski2.svg", &doc).unwrap();
+    svg::save("output/nacho.svg", &doc).unwrap();
+
+    let a_only = IFS::new(vec![xforms[0]]);
+    let b_only = IFS::new(vec![xforms[1]]);
+    let c_only = IFS::new(vec![xforms[2]]);
+
+    let min_depth = 1;
+    let overlay_depth = 3;
+    let tiles_a = transform_tile(&a_only, &tile, min_depth, overlay_depth);
+    let tiles_b = transform_tile(&b_only, &tile, min_depth, overlay_depth);
+    let tiles_c = transform_tile(&c_only, &tile, min_depth, overlay_depth);
+
+    let overlay_width = "0.5%";
+    let mut geometry_a = style_lines("cyan", overlay_width);
+    geometry_a = add_geometry(geometry_a, svg_cline_arc_tiles(&tiles_a));
+
+    let mut geometry_b = style_lines("red", overlay_width);
+    geometry_b = add_geometry(geometry_b, svg_cline_arc_tiles(&tiles_b));
+
+    let mut geometry_c = style_lines("white", overlay_width);
+    geometry_c = add_geometry(geometry_c, svg_cline_arc_tiles(&tiles_c));
+
+    let flipped = flip_y()
+        .add(geometry)
+        .add(geometry_a)
+        .add(geometry_b)
+        .add(geometry_c);
+    let doc2 = make_card(Complex::new(0.5, 0.5), 0.5001).add(flipped);
+    svg::save("output/labeled_nacho.svg", &doc2).unwrap();
 }

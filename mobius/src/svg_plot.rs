@@ -117,12 +117,22 @@ pub fn svg_cline_arc_tiles(tiles: &[ClineArcTile]) -> Vec<Box<dyn Node>> {
 }
 
 pub fn add_geometry(group: Group, geometry: Vec<Box<dyn Node>>) -> Group {
+    geometry.into_iter().fold(group, |group, x| group.add(x))
+
+    /*
     let mut result = group;
     for node in geometry {
         result = result.add(node);
     }
 
-    result
+    result*/
+}
+
+pub fn style_lines(color: &str, width: &str) -> Group {
+    Group::new()
+        .set("stroke", color)
+        .set("stroke-width", width)
+        .set("fill", "none")
 }
 
 pub fn make_axes() -> Group {
