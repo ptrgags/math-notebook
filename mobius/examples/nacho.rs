@@ -5,7 +5,7 @@ use mobius::{
     cline_tile::ClineArcTile,
     iterated_function_system::{transform_tile, IFS},
     map_triple, scale,
-    svg_plot::{add_geometry, flip_y, make_card, style_lines, svg_cline_arc_tiles},
+    svg_plot::{add_geometry, flip_y, make_card, style_lines},
     Complex, Mobius,
 };
 use svg::node::element::Group;
@@ -69,13 +69,11 @@ fn main() {
         .map(|(_, xform)| tile.transform(xform))
         .collect();
 
-    let svg_tiles = svg_cline_arc_tiles(&sierpinski_tiles);
-
     let mut geometry = Group::new()
         .set("stroke", "orange")
         .set("stroke-width", "0.125%")
         .set("fill", "none");
-    geometry = add_geometry(geometry, svg_tiles);
+    geometry = add_geometry(geometry, &sierpinski_tiles[..]);
 
     let flipped = Group::new()
         .set("transform", "scale(1, -1)")
@@ -96,13 +94,13 @@ fn main() {
 
     let overlay_width = "0.5%";
     let mut geometry_a = style_lines("cyan", overlay_width);
-    geometry_a = add_geometry(geometry_a, svg_cline_arc_tiles(&tiles_a));
+    geometry_a = add_geometry(geometry_a, &tiles_a[..]);
 
     let mut geometry_b = style_lines("red", overlay_width);
-    geometry_b = add_geometry(geometry_b, svg_cline_arc_tiles(&tiles_b));
+    geometry_b = add_geometry(geometry_b, &tiles_b[..]);
 
     let mut geometry_c = style_lines("white", overlay_width);
-    geometry_c = add_geometry(geometry_c, svg_cline_arc_tiles(&tiles_c));
+    geometry_c = add_geometry(geometry_c, &tiles_c[..]);
 
     let flipped = flip_y()
         .add(geometry)

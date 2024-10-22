@@ -6,10 +6,7 @@ use mobius::{
     cline_tile::{ClineArcTile, ClineTile},
     iterated_function_system::IFS,
     rotation, scale,
-    svg_plot::{
-        add_geometry, flip_y, make_axes, make_card, style_lines, svg_cline_arc_tile,
-        svg_cline_arc_tiles, svg_cline_tile, svg_cline_tiles,
-    },
+    svg_plot::{add_geometry, flip_y, make_card, style_lines},
     translation, Complex, Mobius,
 };
 
@@ -80,8 +77,8 @@ pub fn main() {
     let (body, face) = make_ghost_parts();
 
     let mut ghost = style_lines("#c5f2fa", "0.25%");
-    ghost = add_geometry(ghost, svg_cline_arc_tile(&body));
-    ghost = add_geometry(ghost, svg_cline_tile(&face));
+    ghost = add_geometry(ghost, &body);
+    ghost = add_geometry(ghost, &face);
 
     // Basic ghost
     let flipped = flip_y().add(ghost);
@@ -105,8 +102,8 @@ pub fn main() {
         .collect();
 
     let mut down_the_drain = style_lines("#c5f2fa", "0.25%");
-    down_the_drain = add_geometry(down_the_drain, svg_cline_arc_tiles(&drained_bodies));
-    down_the_drain = add_geometry(down_the_drain, svg_cline_tiles(&drained_faces));
+    down_the_drain = add_geometry(down_the_drain, &drained_bodies[..]);
+    down_the_drain = add_geometry(down_the_drain, &drained_faces[..]);
 
     let flipped = flip_y().add(down_the_drain);
     let doc = make_card(Complex::new(1.5, 0.0), 2.5).add(flipped);

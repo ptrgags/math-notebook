@@ -5,7 +5,7 @@ use mobius::{
     cline_tile::ClineArcTile,
     iterated_function_system::{transform_tile, IFS},
     map_triple,
-    svg_plot::{add_geometry, flip_y, make_card, style_lines, svg_cline_arc_tiles},
+    svg_plot::{add_geometry, flip_y, make_card, style_lines},
     Complex, Mobius,
 };
 use svg::node::element::Group;
@@ -49,7 +49,7 @@ fn show_individual_xforms(
             let tiles = transform_tile(&ifs, &tile, min_depth, max_depth);
 
             let mut geometry = style_lines(color, "0.25%");
-            geometry = add_geometry(geometry, svg_cline_arc_tiles(&tiles));
+            geometry = add_geometry(geometry, &tiles[..]);
 
             geometry
         })
@@ -70,7 +70,7 @@ fn main() {
 
     let tiles = transform_tile(&ifs, &half_circle, 8, 8);
     let mut geometry = style_lines("red", "0.125%");
-    geometry = add_geometry(geometry, svg_cline_arc_tiles(&tiles));
+    geometry = add_geometry(geometry, &tiles[..]);
 
     let flipped = flip_y().add(geometry.clone());
     let doc = make_card(Complex::new(0.0, 0.0), 1.25).add(flipped.clone());

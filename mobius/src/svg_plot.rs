@@ -42,14 +42,6 @@ pub fn svg_cline(cline: &Cline) -> Box<dyn Node> {
     }
 }
 
-pub fn svg_cline_tile(tile: &ClineTile) -> Vec<Box<dyn Node>> {
-    tile.get_clines().iter().map(|x| svg_cline(x)).collect()
-}
-
-pub fn svg_cline_tiles(tiles: &[ClineTile]) -> Vec<Box<dyn Node>> {
-    tiles.iter().flat_map(|x| svg_cline_tile(x)).collect()
-}
-
 pub fn svg_ray(start: Complex, direction: Complex) -> Line {
     let end = direction * FAR_AWAY.into();
 
@@ -94,7 +86,7 @@ pub fn svg_circular_arc(center: Complex, radius: f64, start_angle: f64, end_angl
     Path::new().set("d", data)
 }
 
-pub fn svg_cline_arc(cline_arc: &ClineArc) -> Box<dyn Node> {
+fn svg_cline_arc(cline_arc: &ClineArc) -> Box<dyn Node> {
     match cline_arc.classify() {
         ClineArcGeometry::CircularArc {
             center,
@@ -112,16 +104,51 @@ pub fn svg_cline_arc(cline_arc: &ClineArc) -> Box<dyn Node> {
     }
 }
 
-pub fn svg_cline_arc_tile(tile: &ClineArcTile) -> Vec<Box<dyn Node>> {
-    tile.get_arcs().iter().map(|x| svg_cline_arc(x)).collect()
+pub struct SvgNodes(Vec<Box<dyn Node>>);
+
+impl From<&ClineArcTile> for SvgNodes {
+    fn from(tile: &ClineArcTile) -> Self {
+        SvgNodes(tile.get_arcs().iter().map(|x| svg_cline_arc(x)).collect())
+    }
 }
 
-pub fn svg_cline_arc_tiles(tiles: &[ClineArcTile]) -> Vec<Box<dyn Node>> {
-    tiles.iter().flat_map(|x| svg_cline_arc_tile(x)).collect()
+impl From<&[ClineArcTile]> for SvgNodes {
+    fn from(tiles: &[ClineArcTile]) -> Self {
+        SvgNodes(
+            tiles
+                .iter()
+                .flat_map(|x| {
+                    let SvgNodes(nodes) = x.into();
+                    nodes
+                })
+                .collect(),
+        )
+    }
 }
 
-pub fn add_geometry(group: Group, geometry: Vec<Box<dyn Node>>) -> Group {
-    geometry.into_iter().fold(group, |group, x| group.add(x))
+impl From<&ClineTile> for SvgNodes {
+    fn from(tile: &ClineTile) -> Self {
+        SvgNodes(tile.get_clines().iter().map(|x| svg_cline(x)).collect())
+    }
+}
+
+impl From<&[ClineTile]> for SvgNodes {
+    fn from(tiles: &[ClineTile]) -> Self {
+        SvgNodes(
+            tiles
+                .iter()
+                .flat_map(|x| {
+                    let SvgNodes(nodes) = x.into();
+                    nodes
+                })
+                .collect(),
+        )
+    }
+}
+
+pub fn add_geometry(group: Group, geometry: impl Into<SvgNodes>) -> Group {
+    let SvgNodes(nodes) = geometry.into();
+    nodes.into_iter().fold(group, |group, x| group.add(x))
 }
 
 pub fn style_lines(color: &str, width: &str) -> Group {

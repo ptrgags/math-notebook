@@ -5,15 +5,12 @@ use mobius::{
     cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
     scale,
-    svg_plot::{
-        add_geometry, flip_y, make_axes, make_card, svg_cline_arc_tile, svg_cline_arc_tiles,
-        svg_cline_tile,
-    },
+    svg_plot::{add_geometry, flip_y, make_axes, make_card},
     Complex, Mobius,
 };
 use svg::{
     node::element::{Group, Rectangle},
-    Document, Node,
+    Document,
 };
 
 fn compute_xforms() -> Vec<Mobius> {
@@ -124,15 +121,11 @@ fn main() {
 
     let new_tiles = iterate(&xforms[1..2], &initial_tile, 1);
 
-    let svg_tiles: Vec<Box<dyn Node>> = new_tiles.iter().flat_map(|x| svg_cline_tile(x)).collect();
-
     let mut geometry = Group::new()
         .set("stroke", "yellow")
         .set("stroke-width", "0.5%")
         .set("fill", "none");
-    for svg_node in svg_tiles {
-        geometry = geometry.add(svg_node);
-    }
+    geometry = add_geometry(geometry, &new_tiles[..]);
 
     let axes = make_axes()
         .set("fill", "none")
@@ -176,20 +169,15 @@ fn main() {
     let tiles_level3 = iteration(&xforms, &tiles_level2);
     let tiles_level4 = iteration(&xforms, &tiles_level3);
 
-    let svg_level1 = svg_cline_arc_tiles(&tiles_level1);
-    let svg_level2 = svg_cline_arc_tiles(&tiles_level2);
-    let svg_level3 = svg_cline_arc_tiles(&tiles_level3);
-    let svg_level4 = svg_cline_arc_tiles(&tiles_level4);
-
     let mut geometry = Group::new()
         .set("stroke", "yellow")
         .set("stroke-width", "0.25%")
         .set("fill", "none");
-    geometry = add_geometry(geometry, svg_cline_arc_tile(&tile));
-    geometry = add_geometry(geometry, svg_level1);
-    geometry = add_geometry(geometry, svg_level2);
-    geometry = add_geometry(geometry, svg_level3);
-    geometry = add_geometry(geometry, svg_level4);
+    geometry = add_geometry(geometry, &tile);
+    geometry = add_geometry(geometry, &tiles_level1[..]);
+    geometry = add_geometry(geometry, &tiles_level2[..]);
+    geometry = add_geometry(geometry, &tiles_level3[..]);
+    geometry = add_geometry(geometry, &tiles_level4[..]);
 
     let flipped2 = flip_y().add(axes).add(geometry);
 

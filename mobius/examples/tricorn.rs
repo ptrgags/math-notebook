@@ -6,13 +6,10 @@ use mobius::{
     cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
     map_triple, scale,
-    svg_plot::{
-        add_geometry, flip_y, make_axes, make_card, svg_cline_arc_tile, svg_cline_arc_tiles,
-        svg_cline_tile,
-    },
+    svg_plot::{add_geometry, flip_y, make_axes, make_card},
     Complex, Mobius,
 };
-use svg::{node::element::Group, Node};
+use svg::node::element::Group;
 
 fn compute_xforms() -> Vec<Mobius> {
     // Transform A just shrinks the unit circle to the circle with
@@ -80,15 +77,11 @@ fn main() {
 
     let new_tiles = iterate(&xforms[1..2], &initial_tile, 1);
 
-    let svg_tiles: Vec<Box<dyn Node>> = new_tiles.iter().flat_map(|x| svg_cline_tile(x)).collect();
-
     let mut geometry = Group::new()
         .set("stroke", "yellow")
         .set("stroke-width", "0.5%")
         .set("fill", "none");
-    for svg_node in svg_tiles {
-        geometry = geometry.add(svg_node);
-    }
+    geometry = add_geometry(geometry, &new_tiles[..]);
 
     let axes = make_axes()
         .set("fill", "none")
@@ -115,22 +108,16 @@ fn main() {
     let tiles_level4 = iteration(&xforms, &tiles_level3);
     let tiles_level5 = iteration(&xforms, &tiles_level4);
 
-    let svg_level1 = svg_cline_arc_tiles(&tiles_level1);
-    let svg_level2 = svg_cline_arc_tiles(&tiles_level2);
-    let svg_level3 = svg_cline_arc_tiles(&tiles_level3);
-    let svg_level4 = svg_cline_arc_tiles(&tiles_level4);
-    let svg_level5 = svg_cline_arc_tiles(&tiles_level5);
-
     let mut geometry = Group::new()
         .set("stroke", "yellow")
         .set("stroke-width", "0.25%")
         .set("fill", "none");
-    geometry = add_geometry(geometry, svg_cline_arc_tile(&tile));
-    geometry = add_geometry(geometry, svg_level1);
-    geometry = add_geometry(geometry, svg_level2);
-    geometry = add_geometry(geometry, svg_level3);
-    geometry = add_geometry(geometry, svg_level4);
-    geometry = add_geometry(geometry, svg_level5);
+    geometry = add_geometry(geometry, &tile);
+    geometry = add_geometry(geometry, &tiles_level1[..]);
+    geometry = add_geometry(geometry, &tiles_level2[..]);
+    geometry = add_geometry(geometry, &tiles_level3[..]);
+    geometry = add_geometry(geometry, &tiles_level4[..]);
+    geometry = add_geometry(geometry, &tiles_level5[..]);
 
     let flipped2 = flip_y().add(axes.clone()).add(geometry.clone());
 
@@ -151,22 +138,16 @@ fn main() {
     let tiles_level4 = iteration(&xforms, &tiles_level3);
     let tiles_level5 = iteration(&xforms, &tiles_level4);
 
-    let svg_level1 = svg_cline_arc_tiles(&tiles_level1);
-    let svg_level2 = svg_cline_arc_tiles(&tiles_level2);
-    let svg_level3 = svg_cline_arc_tiles(&tiles_level3);
-    let svg_level4 = svg_cline_arc_tiles(&tiles_level4);
-    let svg_level5 = svg_cline_arc_tiles(&tiles_level5);
-
     let mut geometry2 = Group::new()
         .set("stroke", "cyan")
         .set("stroke-width", "0.25%")
         .set("fill", "none");
-    geometry2 = add_geometry(geometry2, svg_cline_arc_tile(&tile));
-    geometry2 = add_geometry(geometry2, svg_level1);
-    geometry2 = add_geometry(geometry2, svg_level2);
-    geometry2 = add_geometry(geometry2, svg_level3);
-    geometry2 = add_geometry(geometry2, svg_level4);
-    geometry2 = add_geometry(geometry2, svg_level5);
+    geometry2 = add_geometry(geometry2, &tile);
+    geometry2 = add_geometry(geometry2, &tiles_level1[..]);
+    geometry2 = add_geometry(geometry2, &tiles_level2[..]);
+    geometry2 = add_geometry(geometry2, &tiles_level3[..]);
+    geometry2 = add_geometry(geometry2, &tiles_level4[..]);
+    geometry2 = add_geometry(geometry2, &tiles_level5[..]);
 
     let flipped2 = flip_y().add(axes).add(geometry).add(geometry2);
 
