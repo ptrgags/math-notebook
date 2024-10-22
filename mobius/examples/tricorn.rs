@@ -2,9 +2,8 @@ use core::f64;
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, TAU};
 
 use mobius::{
-    cline::Cline,
     cline_arc::ClineArc,
-    cline_tile::{ClineArcTile, ClineTile},
+    cline_tile::ClineArcTile,
     map_triple, scale,
     svg_plot::{add_geometry, flip_y, make_axes, make_card},
     Complex, Mobius,
@@ -40,21 +39,6 @@ fn compute_xforms() -> Vec<Mobius> {
     vec![xform_a, xform_b, xform_c]
 }
 
-fn iterate(xforms: &[Mobius], tile: &ClineTile, depth: u8) -> Vec<ClineTile> {
-    if depth == 0 {
-        return xforms.iter().map(|x| tile.transform(*x)).collect();
-    }
-
-    let mut result: Vec<ClineTile> = vec![tile.clone()];
-    for xform in xforms {
-        let prefixed: Vec<Mobius> = xforms.iter().map(|x| *xform * *x).collect();
-        let subtree = iterate(&prefixed, tile, depth - 1);
-        result.extend(subtree);
-    }
-
-    result
-}
-
 fn apply_xforms(xforms: &[Mobius], tile: &ClineArcTile) -> Vec<ClineArcTile> {
     xforms.iter().map(|x| tile.transform(*x)).collect()
 }
@@ -68,20 +52,6 @@ fn iteration(xforms: &[Mobius], tiles: &[ClineArcTile]) -> Vec<ClineArcTile> {
 
 fn main() {
     let xforms = compute_xforms();
-
-    let initial_tile = ClineTile::new(vec![
-        Cline::real_axis(),
-        Cline::imag_axis(),
-        Cline::unit_circle(),
-    ]);
-
-    let new_tiles = iterate(&xforms[1..2], &initial_tile, 1);
-
-    let mut geometry = Group::new()
-        .set("stroke", "yellow")
-        .set("stroke-width", "0.5%")
-        .set("fill", "none");
-    geometry = add_geometry(geometry, &new_tiles[..]);
 
     let axes = make_axes()
         .set("fill", "none")
