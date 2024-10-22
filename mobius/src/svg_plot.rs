@@ -46,6 +46,10 @@ pub fn svg_cline_tile(tile: &ClineTile) -> Vec<Box<dyn Node>> {
     tile.get_clines().iter().map(|x| svg_cline(x)).collect()
 }
 
+pub fn svg_cline_tiles(tiles: &[ClineTile]) -> Vec<Box<dyn Node>> {
+    tiles.iter().flat_map(|x| svg_cline_tile(x)).collect()
+}
+
 pub fn svg_ray(start: Complex, direction: Complex) -> Line {
     let end = direction * FAR_AWAY.into();
 
