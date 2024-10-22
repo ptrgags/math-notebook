@@ -3,6 +3,10 @@
 version = 3
 
 [[package]]
+name = "abstraction"
+version = "0.1.0"
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16,6 +20,7 @@ version = "0.1.0"
 name = "mobius"
 version = "0.1.0"
 dependencies = [
+ "abstraction",
  "svg",
  "test-case",
 ]

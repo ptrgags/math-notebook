@@ -1,5 +1,6 @@
 use core::f64;
 
+use abstraction::Semigroup;
 use mobius::{
     cline::Cline,
     elliptic, hyperbolic,
@@ -27,7 +28,7 @@ fn main() {
     let h = hyperbolic(2.0).unwrap();
     let mut h_forward_powers = iterate_xform(h, 10);
     let mut h_inv_powers = iterate_xform(h.inverse(), 10);
-    let mut h_powers = vec![Mobius::IDENTITY];
+    let mut h_powers = vec![Mobius::identity()];
     h_powers.append(&mut h_forward_powers);
     h_powers.append(&mut h_inv_powers);
 

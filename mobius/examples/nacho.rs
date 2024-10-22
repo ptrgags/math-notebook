@@ -3,9 +3,9 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
 use mobius::{
     cline_arc::ClineArc,
     cline_tile::ClineArcTile,
-    iterated_function_system::{self, transform_tile, IFS},
+    iterated_function_system::{transform_tile, IFS},
     map_triple, scale,
-    svg_plot::{add_geometry, flip_y, make_card, style_lines, svg_cline, svg_cline_arc_tiles},
+    svg_plot::{add_geometry, flip_y, make_card, style_lines, svg_cline_arc_tiles},
     Complex, Mobius,
 };
 use svg::node::element::Group;

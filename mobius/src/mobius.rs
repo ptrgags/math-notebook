@@ -1,5 +1,7 @@
 use std::{fmt::Display, ops::Mul};
 
+use abstraction::{Group, Semigroup};
+
 use crate::{complex::Complex, nearly::is_nearly};
 
 #[derive(PartialEq, Debug)]
@@ -55,15 +57,6 @@ pub struct Mobius {
 }
 
 impl Mobius {
-    // The identity function I(z) = z, implemented
-    // as (1z + 0) / (0z + 1)
-    pub const IDENTITY: Self = Mobius {
-        a: Complex::ONE,
-        b: Complex::Zero,
-        c: Complex::Zero,
-        d: Complex::ONE,
-    };
-
     /// Constructor
     ///
     /// This enforces that a, b, c, d are all Zero or Finite and
@@ -283,6 +276,25 @@ impl Mul<Complex> for Mobius {
     }
 }
 
+impl Semigroup for Mobius {
+    // The identity function I(z) = z, implemented
+    // as (1z + 0) / (0z + 1)
+    fn identity() -> Self {
+        Self {
+            a: Complex::ONE,
+            b: Complex::Zero,
+            c: Complex::Zero,
+            d: Complex::ONE,
+        }
+    }
+}
+
+impl Group for Mobius {
+    fn inverse(&self) -> Self {
+        self.inverse()
+    }
+}
+
 impl PartialEq for Mobius {
     fn eq(&self, other: &Self) -> bool {
         // Subtlety that Indra's Pearls doesn't explain!
@@ -314,6 +326,8 @@ impl Display for Mobius {
 
 #[cfg(test)]
 mod test {
+    use abstraction::{test_associativity, test_group, test_identity};
+
     use super::*;
 
     #[test]
@@ -339,39 +353,100 @@ mod test {
     pub fn new_returns_ok_for_valid_input() {
         let result = Mobius::new(Complex::ONE, Complex::Zero, Complex::Zero, Complex::ONE);
 
-        assert!(result.is_ok_and(|x| x == Mobius::IDENTITY))
+        assert!(result.is_ok_and(|x| x == Mobius::identity()))
     }
+
+    test_identity!(
+        Mobius,
+        [
+            (
+                scale_transform,
+                Mobius {
+                    a: (2.0).into(),
+                    b: Complex::Zero,
+                    c: Complex::Zero,
+                    d: (0.5).into()
+                }
+            ),
+            (
+                translate_transform,
+                Mobius {
+                    a: Complex::ONE,
+                    b: Complex::new(3.0, 4.0),
+                    c: Complex::Zero,
+                    d: Complex::ONE,
+                }
+            )
+        ]
+    );
+
+    test_associativity!(
+        Mobius,
+        [(
+            three_arbitrary_xforms,
+            Mobius {
+                a: Complex::ONE,
+                b: Complex::Zero,
+                c: Complex::new(3.0, 4.0),
+                d: Complex::ONE,
+            },
+            Mobius {
+                a: (2.0).into(),
+                b: Complex::Zero,
+                c: Complex::Zero,
+                d: (0.5).into(),
+            },
+            Mobius {
+                a: Complex::ONE,
+                b: Complex::new(3.0, 4.0),
+                c: Complex::Zero,
+                d: Complex::ONE,
+            }
+        )]
+    );
+
+    test_group!(
+        Mobius,
+        [
+            (
+                parabolic_and_scale,
+                Mobius {
+                    a: Complex::ONE,
+                    b: Complex::Zero,
+                    c: Complex::new(3.0, 4.0),
+                    d: Complex::ONE,
+                },
+                Mobius {
+                    a: (2.0).into(),
+                    b: Complex::Zero,
+                    c: Complex::Zero,
+                    d: (0.5).into(),
+                }
+            ),
+            (
+                inverse_and_translation,
+                Mobius {
+                    a: Complex::Zero,
+                    b: Complex::I,
+                    c: Complex::I,
+                    d: Complex::Zero,
+                },
+                Mobius {
+                    a: Complex::ONE,
+                    b: (5.0).into(),
+                    c: Complex::Zero,
+                    d: Complex::ONE,
+                }
+            )
+        ]
+    );
 
     #[test]
     pub fn identity_maps_point_to_itself() {
         let z = Complex::new(4.0, 3.0);
 
-        let result = Mobius::IDENTITY * z;
+        let result = Mobius::identity() * z;
 
         assert_eq!(result, z);
-    }
-
-    #[test]
-    pub fn commutator_is_difference_ab_ba() {
-        let a = Mobius {
-            a: (2.0).into(),
-            b: Complex::Zero,
-            c: Complex::Zero,
-            d: (0.5).into(),
-        };
-        let b = Mobius {
-            a: Complex::ONE,
-            b: Complex::new(3.0, 4.0),
-            c: Complex::Zero,
-            d: Complex::ONE,
-        };
-
-        let ab = a * b;
-        let ba = b * a;
-
-        let comm = Mobius::commutator(a, b);
-        let diff = Mobius::difference(ab, ba);
-
-        assert_eq!(comm, diff);
     }
 }

@@ -1,3 +1,5 @@
+use abstraction::Semigroup;
+
 use crate::{cline_tile::ClineArcTile, Mobius};
 
 /// Iterated Function System. This is still in a prototype stage
@@ -45,7 +47,7 @@ impl<'a> IFSDepthFirstIterator<'a> {
         Self {
             ifs,
             max_depth,
-            stack: vec![(0, Mobius::IDENTITY)],
+            stack: vec![(0, Mobius::identity())],
         }
     }
 }

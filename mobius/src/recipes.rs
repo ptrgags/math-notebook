@@ -185,6 +185,7 @@ mod test {
 
     use core::f64;
 
+    use abstraction::Semigroup;
     use test_case::test_case;
 
     use crate::{mobius::MobiusType, nearly::is_nearly};
@@ -212,7 +213,7 @@ mod test {
         let invert = inversion();
         let inv_sqr = invert * invert;
 
-        assert_eq!(inv_sqr, Mobius::IDENTITY)
+        assert_eq!(inv_sqr, Mobius::identity())
     }
 
     #[test]
@@ -260,7 +261,7 @@ mod test {
     pub fn rotation_of_zero_is_identity() {
         let rot_zero = rotation(0.0).unwrap();
 
-        assert_eq!(rot_zero, Mobius::IDENTITY);
+        assert_eq!(rot_zero, Mobius::identity());
     }
 
     #[test]
@@ -322,7 +323,7 @@ mod test {
 
         let k_cubed = k * k * k;
 
-        assert_eq!(k_cubed, Mobius::IDENTITY);
+        assert_eq!(k_cubed, Mobius::identity());
     }
 
     #[test]
