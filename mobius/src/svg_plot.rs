@@ -1,4 +1,5 @@
 use core::f64;
+use std::path;
 
 use svg::{
     node::element::{path::Data, Circle, Group, Line, Path, Rectangle},
@@ -201,4 +202,25 @@ pub fn make_card(center: Complex, half_width: f64) -> Document {
         .set("height", 700)
         .set("viewBox", view_box)
         .add(background)
+}
+
+pub struct View<'a>(pub &'a str, pub f64, pub f64, pub f64);
+
+pub fn render_views<P: AsRef<path::Path>>(
+    output_dir: P,
+    prefix: &str,
+    views: &[View],
+    geometry: Group,
+) -> Result<(), std::io::Error> {
+    for View(label, x, y, half_width) in views {
+        let flipped = flip_y().add(geometry.clone());
+        let doc = make_card(Complex::new(*x, *y), *half_width).add(flipped);
+
+        let separator = if prefix == "" { "" } else { "_" };
+        let filename = format!("{}{}{}.svg", prefix, separator, label);
+        let path = output_dir.as_ref().join(path::Path::new(&filename));
+        svg::save(path, &doc)?
+    }
+
+    Ok(())
 }

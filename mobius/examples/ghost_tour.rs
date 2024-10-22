@@ -4,9 +4,10 @@ use mobius::{
     cline::Cline,
     cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
+    elliptic,
     iterated_function_system::IFS,
-    map_triple, rotation, scale,
-    svg_plot::{add_geometry, flip_y, make_card, style_lines},
+    loxodromic, map_triple, rotation, scale,
+    svg_plot::{add_geometry, render_views, style_lines, View},
     translation, Complex, Mobius,
 };
 use svg::node::element::Group;
@@ -121,13 +122,16 @@ impl Ghost {
     }
 }
 
-pub fn main() {
+pub fn main() -> Result<(), std::io::Error> {
     let ghost = Ghost::new();
 
     // Show the ghost by themself -----------------------------------
-    let flipped = flip_y().add(ghost.render_svg());
-    let doc = make_card(Complex::new(0.0, -0.5), 1.5).add(flipped);
-    svg::save("output/ghosty.svg", &doc).unwrap();
+    render_views(
+        "output",
+        "ghosty",
+        &[View("", 0.0, -0.5, 2.5)],
+        ghost.render_svg(),
+    )?;
 
     // Oh no! the ghost fell down the drain! ----------------------
 
@@ -138,9 +142,12 @@ pub fn main() {
     let ifs = IFS::new(vec![drain]);
     let down_the_drain = ghost.render_ifs(&ifs, 20);
 
-    let flipped = flip_y().add(down_the_drain);
-    let doc = make_card(Complex::new(1.5, 0.0), 2.5).add(flipped);
-    svg::save("output/ghost_down_drain.svg", &doc).unwrap();
+    render_views(
+        "output",
+        "ghost_down_drain",
+        &[View("", 1.5, 0.0, 2.5)],
+        down_the_drain,
+    )?;
 
     // Caught between parabolic transforms that have fixed points at -1 and
     // 1, and map the opposite point on the unit circle 90 degrees around the
@@ -168,9 +175,56 @@ pub fn main() {
         right_parabolic,
         //right_parabolic.inverse(),
     ]);
-    let parabolic_walk = small_ghost.render_ifs(&ifs, 5);
+    let parabolic_walk = small_ghost.render_ifs(&ifs, 6);
 
-    let flipped = flip_y().add(parabolic_walk);
-    let doc = make_card(Complex::new(0.0, 0.5), 0.9).add(flipped);
-    svg::save("output/ghost_parabolic.svg", &doc).unwrap();
+    render_views(
+        "output",
+        "ghost_parabolic",
+        &[View("", 0.0, 0.5, 0.9), View("zoom_in", -0.5, 0.6, 0.2)],
+        parabolic_walk,
+    )?;
+
+    // A loxodromic double spiral. Though instead of going from -1 to 1,
+    // I want it from -i to i, so conjugate by a rotate
+    let double_spiral = loxodromic(Complex::new(1.5, 1.1)).unwrap();
+    let rotate90 = rotation(FRAC_PI_2).unwrap();
+    let vertical_spiral = Mobius::sandwich(rotate90, double_spiral);
+    let ifs = IFS::new(vec![vertical_spiral, vertical_spiral.inverse()]);
+    let double_spiral_walk = small_ghost.render_ifs(&ifs, 10);
+    render_views(
+        "output",
+        "ghost_double_spiral",
+        &[View("", 0.0, 0.0, 1.0), View("sink", -0.125, 0.75, 0.5)],
+        double_spiral_walk,
+    )?;
+
+    // Two 90 degree elliptic rotations 90 degrees apart. This is isomorphic
+    // to the rotation symmetry group of the cube/octahedron
+    let swirl = elliptic(FRAC_PI_2).unwrap();
+    let swirl2 = Mobius::sandwich(rotate90, swirl);
+    let to_the_left = translation(Complex::new(-0.5, 0.0)).unwrap();
+    let ifs = IFS::new(vec![swirl, swirl2]);
+    let swirl_walk = small_ghost.transform(to_the_left).render_ifs(&ifs, 8);
+    render_views(
+        "output",
+        "ghost_octahedral",
+        &[View("", 0.0, 0.0, 3.0)],
+        swirl_walk,
+    )?;
+
+    // But now if we make the rotation slightly different, things don't
+    // quite line up. I find the result amusing.
+    let swirl = elliptic(PI / 2.01).unwrap();
+    let swirl2 = Mobius::sandwich(rotate90, swirl);
+    let to_the_left = translation(Complex::new(-0.5, 0.0)).unwrap();
+    let ifs = IFS::new(vec![swirl, swirl2]);
+    let swirl_walk = small_ghost.transform(to_the_left).render_ifs(&ifs, 8);
+    render_views(
+        "output",
+        "ghost_triggered",
+        &[View("", 0.0, 0.0, 3.0)],
+        swirl_walk,
+    )?;
+
+    Ok(())
 }
