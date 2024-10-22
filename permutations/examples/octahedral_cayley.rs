@@ -55,15 +55,15 @@ fn make_cayley_table() -> Vec<Vec<String>> {
     let label_order: Vec<&str> = OCTAHEDRAL_GROUP_DATA.iter().map(|(s, _)| *s).collect();
     let forward = make_forward_map();
     let backward = make_reverse_map();
-    
+
     let mut table: Vec<Vec<String>> = Vec::with_capacity(ORDER);
     for a_label in label_order.iter() {
         let a_perm = forward.get(*a_label).unwrap();
         let mut row: Vec<String> = Vec::new();
         for b_label in label_order.iter() {
             let b_perm = forward.get(*b_label).unwrap();
-            let product = Permutation::compose(a_perm.clone(), b_perm.clone());
-             
+            let product = *a_perm * *b_perm;
+
             let product_label = backward.get(&product).unwrap().clone();
             row.push(product_label)
         }
@@ -97,18 +97,17 @@ mod test {
         if unique_values.len() < values.len() {
             return false;
         }
-    
+
         true
     }
-    
-    
+
     fn is_latin_square(table: &Vec<Vec<String>>) -> bool {
         for row in table {
             if !all_values_unique(row) {
-                return false
+                return false;
             }
         }
-    
+
         true
     }
 

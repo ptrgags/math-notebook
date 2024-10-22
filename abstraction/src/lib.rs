@@ -114,7 +114,7 @@ macro_rules! test_inverse {
         }
     };
     ($t:ty, [$(($label:ident, $a:expr)),*]) => {
-        mod identity_law {
+        mod inverse_law {
             use super::*;
 
             $(test_inverse!($t, $label, $a);)*
