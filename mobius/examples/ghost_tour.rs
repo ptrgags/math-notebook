@@ -2,14 +2,7 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI, TAU};
 
 use abstraction::Group;
 use mobius::{
-    cline::Cline,
-    cline_arc::ClineArc,
-    cline_tile::{ClineArcTile, ClineTile},
-    elliptic,
-    iterated_function_system::IFS,
-    loxodromic, map_triple, rotation, scale,
-    svg_plot::{add_geometry, render_views, style_lines, View},
-    translation, Complex, Mobius,
+    cline::Cline, cline_arc::ClineArc, cline_tile::{ClineArcTile, ClineTile}, elliptic, iterated_function_system::IFS, loxodromic, map_triple, rotation, scale, style::Style, svg_plot::{add_geometry, render_views, style_group, View}, translation, Complex, Mobius
 };
 use svg::node::element::Group as SvgGroup;
 
@@ -97,7 +90,7 @@ impl Ghost {
     }
 
     pub fn render_svg(&self) -> SvgGroup {
-        let mut svg = style_lines("#c5f2fa", "0.25%");
+        let mut svg = style_group(Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25));
         svg = add_geometry(svg, &self.body);
         svg = add_geometry(svg, &self.face);
 
@@ -115,7 +108,7 @@ impl Ghost {
             .map(|(_, xform)| self.face.transform(xform))
             .collect();
 
-        let mut svg = style_lines("#c5f2fa", "0.125%");
+        let mut svg = style_group(Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25));
         svg = add_geometry(svg, &transformed_bodies[..]);
         svg = add_geometry(svg, &transformed_faces[..]);
 

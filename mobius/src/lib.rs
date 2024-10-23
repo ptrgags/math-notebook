@@ -10,6 +10,7 @@ pub mod isogonal;
 pub mod isogonal_primitive;
 mod nearly;
 mod recipes;
+pub mod style;
 pub mod svg_plot;
 
 pub use complex::Complex;

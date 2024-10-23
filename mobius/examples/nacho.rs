@@ -1,12 +1,7 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use mobius::{
-    cline_arc::ClineArc,
-    cline_tile::ClineArcTile,
-    iterated_function_system::{transform_tile, IFS},
-    map_triple, scale,
-    svg_plot::{add_geometry, flip_y, make_card, style_lines},
-    Complex, Mobius,
+    cline_arc::ClineArc, cline_tile::ClineArcTile, iterated_function_system::{transform_tile, IFS}, map_triple, scale, style::Style, svg_plot::{add_geometry, flip_y, make_card, style_group}, Complex, Mobius
 };
 use svg::node::element::Group;
 
@@ -92,14 +87,14 @@ fn main() {
     let tiles_b = transform_tile(&b_only, &tile, min_depth, overlay_depth);
     let tiles_c = transform_tile(&c_only, &tile, min_depth, overlay_depth);
 
-    let overlay_width = "0.5%";
-    let mut geometry_a = style_lines("cyan", overlay_width);
+    let overlay_width = 0.5;
+    let mut geometry_a = style_group(Style::stroke(255, 0, 255).with_width(overlay_width));
     geometry_a = add_geometry(geometry_a, &tiles_a[..]);
 
-    let mut geometry_b = style_lines("red", overlay_width);
+    let mut geometry_b = style_group(Style::stroke(255, 0, 0).with_width(overlay_width));
     geometry_b = add_geometry(geometry_b, &tiles_b[..]);
 
-    let mut geometry_c = style_lines("white", overlay_width);
+    let mut geometry_c = style_group(Style::stroke(255, 255, 255).with_width(overlay_width));
     geometry_c = add_geometry(geometry_c, &tiles_c[..]);
 
     let flipped = flip_y()

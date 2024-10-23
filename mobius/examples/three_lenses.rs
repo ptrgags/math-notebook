@@ -1,12 +1,7 @@
 use std::f64::consts::{FRAC_PI_2, PI};
 
 use mobius::{
-    cline_arc::ClineArc,
-    cline_tile::ClineArcTile,
-    iterated_function_system::{transform_tile, IFS},
-    map_triple,
-    svg_plot::{add_geometry, flip_y, make_card, style_lines},
-    Complex, Mobius,
+    cline_arc::ClineArc, cline_tile::ClineArcTile, iterated_function_system::{transform_tile, IFS}, map_triple, style::{self, Style}, svg_plot::{add_geometry, flip_y, make_card, style_group}, Complex, Mobius
 };
 use svg::node::element::Group;
 
@@ -36,7 +31,7 @@ fn make_xforms() -> Vec<Mobius> {
 
 fn show_individual_xforms(
     xforms: &[Mobius],
-    colors: &[&str],
+    colors: &[Style],
     tile: &ClineArcTile,
     min_depth: usize,
     max_depth: usize,
@@ -44,11 +39,11 @@ fn show_individual_xforms(
     xforms
         .iter()
         .zip(colors.iter())
-        .map(|(xform, color)| {
+        .map(|(xform, style)| {
             let ifs = IFS::new(vec![*xform]);
             let tiles = transform_tile(&ifs, &tile, min_depth, max_depth);
 
-            let mut geometry = style_lines(color, "0.25%");
+            let mut geometry = style_group(*style);
             geometry = add_geometry(geometry, &tiles[..]);
 
             geometry
@@ -69,7 +64,7 @@ fn main() {
     let ifs = IFS::new(xforms.clone());
 
     let tiles = transform_tile(&ifs, &half_circle, 8, 8);
-    let mut geometry = style_lines("red", "0.125%");
+    let mut geometry = style_group(Style::stroke(255, 0, 0).with_width(0.125));
     geometry = add_geometry(geometry, &tiles[..]);
 
     let flipped = flip_y().add(geometry.clone());
@@ -79,8 +74,12 @@ fn main() {
     let zoomed = make_card(Complex::new(0.2, 0.5), 0.5).add(flipped.clone());
     svg::save("output/three_lenses_zoomed.svg", &zoomed).unwrap();
 
-    let colors = ["yellow", "cyan", "white"];
-    let highlight_xforms = show_individual_xforms(&xforms, &colors, &half_circle, 0, 10);
+    let styles = [
+        Style::stroke(255, 255, 0).with_width(0.25),
+        Style::stroke(255, 0, 255).with_width(0.25),
+        Style::stroke(255, 255, 255).with_width(0.25),
+    ];
+    let highlight_xforms = show_individual_xforms(&xforms, &styles, &half_circle, 0, 10);
 
     let flipped = flip_y().add(geometry).add(highlight_xforms);
     let doc = make_card(Complex::new(0.0, 0.0), 1.25).add(flipped);

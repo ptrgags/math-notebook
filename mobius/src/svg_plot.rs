@@ -7,7 +7,7 @@ use svg::{
 };
 
 use crate::{
-    cline::{Cline, GeneralizedCircle}, cline_arc::{ClineArc, ClineArcGeometry}, cline_tile::{ClineArcTile, ClineTile}, geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray}, path_element::Shape, Complex
+    cline::{Cline, GeneralizedCircle}, cline_arc::{ClineArc, ClineArcGeometry}, cline_tile::{ClineArcTile, ClineTile}, geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray}, path_element::Shape, style::Style, Complex
 };
 
 const FAR_AWAY: f64 = 1000.0;
@@ -193,11 +193,25 @@ pub fn add_geometry(group: Group, geometry: impl Into<SvgNodes>) -> Group {
     nodes.into_iter().fold(group, |group, x| group.add(x))
 }
 
-pub fn style_lines(color: &str, width: &str) -> Group {
-    Group::new()
-        .set("stroke", color)
-        .set("stroke-width", width)
-        .set("fill", "none")
+pub fn style_group(style: Style) -> Group {
+    let mut group = Group::new();
+
+    let Style{stroke, fill, width_percent} = style;
+    if let Some(color) = stroke {
+        group = group.set("stroke", color.to_string());
+    }
+
+    if let Some(color) = fill {
+        group = group.set("fill", color.to_string());
+    } else {
+        group = group.set("fill", "none");
+    }
+
+    if let Some(percent) = width_percent {
+        group = group.set("stroke-width", format!("{}%", percent));
+    }
+
+    group
 }
 
 pub fn make_axes() -> Group {
