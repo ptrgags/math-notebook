@@ -10,6 +10,7 @@ pub trait DirectedEdge {
     fn end(&self) -> Complex;
 }
 
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Circle {
     pub center: Complex,
     pub radius: f64,
@@ -23,6 +24,7 @@ impl Circle {
 
 impl Geometry for Circle{}
 
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Line {
     pub unit_normal: Complex,
     pub distance: f64
@@ -30,6 +32,8 @@ pub struct Line {
 
 impl Geometry for Line{}
 
+
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct CircularArc {
     pub circle: Circle,
     pub start_angle: f64,
@@ -47,6 +51,7 @@ impl DirectedEdge for CircularArc{
     }
 }
 
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct LineSegment {
     pub start: Complex,
     pub end: Complex,
@@ -63,6 +68,7 @@ impl DirectedEdge for LineSegment{
     }
 }
 
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Ray {
     pub start: Complex,
     pub unit_dir: Complex
@@ -79,6 +85,7 @@ impl DirectedEdge for Ray {
     }
 }
 
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct DoubleRay(pub Ray, pub Ray);
 
 impl Geometry for DoubleRay{}
@@ -92,4 +99,9 @@ impl DirectedEdge for DoubleRay {
         let Self(_, b) = self;
         b.start
     }
+}
+
+pub enum PolyEdge {
+    Polyline(Vec<Box<dyn DirectedEdge>>),
+    Polygon(Vec<Box<dyn DirectedEdge>>),
 }

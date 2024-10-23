@@ -1,48 +1,30 @@
 use std::{f64::consts::TAU, fmt::Display};
 
 use crate::{
-    cline::{Cline, GeneralizedCircle},
-    Complex, Mobius,
+    cline::{Cline, GeneralizedCircle}, geometry::{Circle, CircularArc, DoubleRay, LineSegment, Ray}, Complex, Mobius
 };
 
 #[derive(Clone, Copy, Debug)]
 pub enum ClineArcGeometry {
-    CircularArc {
-        center: Complex,
-        radius: f64,
-        start_angle: f64,
-        end_angle: f64,
-    },
-    LineSegment {
-        a: Complex,
-        b: Complex,
-    },
-    // Ray from infinity to a point
-    Ray {
-        start: Complex,
-        dir: Complex,
-    },
-    // Line segment through infinity
-    RayPair {
-        a: Complex,
-        b: Complex,
-        // Unit vector
-        // Direction from a -> b. One ray
-        // is b -> infinity in the ab direction
-        // the other is infinity <- a in the-ab direction
-        dir_ab: Complex,
-    },
+    CircularArc(CircularArc),
+    LineSegment(LineSegment),
+    // Line segment that starts at infinity and ends at another point
+    FromInfinity(Ray),
+    // Line segment that starts at a point and ends at infinity
+    ToInfinity(Ray),
+    // Line segment through infinity. The first ray is from start -> inf,
+    // the second ray is from inf -> end
+    ThruInfinity(DoubleRay),
 }
 
 impl Display for ClineArcGeometry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ClineArcGeometry::CircularArc {
-                center,
-                radius,
+            ClineArcGeometry::CircularArc(CircularArc {
+                circle: Circle{center, radius},
                 start_angle,
                 end_angle,
-            } => write!(
+            }) => write!(
                 f,
                 "Arc({}, {:.3}, {:.3}° -> {:.3}°)",
                 center,
@@ -50,9 +32,12 @@ impl Display for ClineArcGeometry {
                 start_angle.to_degrees(),
                 end_angle.to_degrees()
             ),
-            ClineArcGeometry::LineSegment { a, b } => write!(f, "Segment({} -> {})", a, b),
-            ClineArcGeometry::Ray { start, dir } => write!(f, "Ray({} --{}->)", start, dir),
-            ClineArcGeometry::RayPair { a, b, dir_ab } => {
+            ClineArcGeometry::LineSegment (LineSegment{start, end})=> write!(f, "Segment({} -> {})", start, end),
+            ClineArcGeometry::FromInfinity(Ray{ start, unit_dir }) => write!(f, "Ray(inf --{}-> {})", unit_dir, start),
+            ClineArcGeometry::ToInfinity(Ray{ start, unit_dir }) => write!(f, "Ray({} --{}-> inf)", start, unit_dir),
+            ClineArcGeometry::ThruInfinity(DoubleRay(a_inf, b_inf)) => {
+                let Ray{start: a, ..} = a_inf;
+                let Ray{start: b, unit_dir: dir_ab} = b_inf;
                 write!(f, "RayPair(<--{} {}--{}->", a, b, dir_ab)
             }
         }
@@ -106,37 +91,33 @@ impl ClineArc {
 
     pub fn classify(&self) -> ClineArcGeometry {
         match self.cline.classify() {
-            GeneralizedCircle::Line {
-                unit_normal: _,
-                distance: _,
-            } => {
+            GeneralizedCircle::Line(_) => {
                 if let Complex::Infinity = self.a {
                     // ray goes inf -> b -> c
                     // but it looks like inf <- c
                     let to_infinity = (self.b - self.c).normalize().unwrap();
-                    return ClineArcGeometry::Ray {
+                    return ClineArcGeometry::FromInfinity(Ray {
                         start: self.c,
-                        dir: to_infinity,
-                    };
+                        unit_dir: to_infinity,
+                    });
                 }
 
                 if let Complex::Infinity = self.c {
                     // ray goes a -> b -> inf
                     let to_infinity = (self.b - self.a).normalize().unwrap();
-                    return ClineArcGeometry::Ray {
+                    return ClineArcGeometry::ToInfinity(Ray {
                         start: self.a,
-                        dir: to_infinity,
-                    };
+                        unit_dir: to_infinity,
+                    });
                 }
 
                 if let Complex::Infinity = self.b {
                     // ray goes    inf <- a    c -> inf
                     let ac = (self.c - self.a).normalize().unwrap();
-                    return ClineArcGeometry::RayPair {
-                        a: self.a,
-                        b: self.c,
-                        dir_ab: ac,
-                    };
+                    return ClineArcGeometry::ThruInfinity(DoubleRay(
+                        Ray{start: self.a, unit_dir: -ac},
+                        Ray{start: self.c, unit_dir: ac}
+                    ))
                 }
 
                 // All three points are finite so now we we need to check if
@@ -151,20 +132,19 @@ impl ClineArc {
                 let in_order = Complex::dot(self.b - self.a, self.c - self.b) > 0.0;
 
                 if in_order {
-                    ClineArcGeometry::LineSegment {
-                        a: self.a,
-                        b: self.c,
-                    }
+                    ClineArcGeometry::LineSegment(LineSegment{
+                        start: self.a,
+                        end: self.c,
+                    })
                 } else {
                     let ac = (self.c - self.a).normalize().unwrap();
-                    ClineArcGeometry::RayPair {
-                        a: self.a,
-                        b: self.c,
-                        dir_ab: ac,
-                    }
+                    ClineArcGeometry::ThruInfinity(DoubleRay(
+                        Ray{start: self.a, unit_dir: -ac},
+                        Ray{start: self.c, unit_dir: ac}
+                    ))
                 }
             }
-            GeneralizedCircle::Circle { center, radius } => {
+            GeneralizedCircle::Circle(Circle { center, radius }) => {
                 // Determine if the 3 points circulate counterclockwise or
                 // clockwise by forming a triangle ABC and computing
                 // (the magnitude of) the wedge product.
@@ -183,12 +163,11 @@ impl ClineArc {
                 } else {
                     theta_c
                 };
-                ClineArcGeometry::CircularArc {
-                    center,
-                    radius,
+                ClineArcGeometry::CircularArc(CircularArc {
+                    circle: Circle{center, radius},
                     start_angle: theta_a,
                     end_angle,
-                }
+                })
             }
         }
     }

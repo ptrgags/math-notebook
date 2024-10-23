@@ -1,25 +1,25 @@
 use std::fmt::Display;
 
-use crate::{Complex, Mobius};
+use crate::{geometry::{Circle, Line}, Complex, Mobius};
 
 // Simpler data structure for representing clines in human-understandable
 // format.
 #[derive(PartialEq, Debug)]
 pub enum GeneralizedCircle {
-    Circle { center: Complex, radius: f64 },
-    Line { unit_normal: Complex, distance: f64 },
+    Circle(Circle),
+    Line(Line),
 }
 
 impl Display for GeneralizedCircle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GeneralizedCircle::Circle { center, radius } => {
+            GeneralizedCircle::Circle (Circle{ center, radius} ) => {
                 write!(f, "Circle({}, {:.3})", center, radius)
             }
-            GeneralizedCircle::Line {
+            GeneralizedCircle::Line (Line{
                 unit_normal,
                 distance,
-            } => write!(f, "Line({}, {:.3})", unit_normal, distance),
+            }) => write!(f, "Line({}, {:.3})", unit_normal, distance),
         }
     }
 }
@@ -101,10 +101,10 @@ impl Cline {
             let unit_normal = c;
             let distance = d / (-2.0).into();
 
-            GeneralizedCircle::Line {
+            GeneralizedCircle::Line (Line{
                 unit_normal,
                 distance: distance.real(),
-            }
+            })
         } else {
             // Circle z * z.conj() -center.conj() * z - center * z.conj() + (center.norm() - r^2) = 0
             let center = -c;
@@ -113,7 +113,7 @@ impl Cline {
             // center.norm() - D = r^2
             let radius = (center.norm() - d.real()).sqrt();
 
-            GeneralizedCircle::Circle { center, radius }
+            GeneralizedCircle::Circle (Circle{ center, radius })
         }
     }
 
@@ -197,10 +197,10 @@ mod test {
 
         assert_eq!(
             result,
-            GeneralizedCircle::Circle {
+            GeneralizedCircle::Circle(Circle {
                 center: Complex::Zero,
                 radius: 1.0
-            }
+            })
         )
     }
 
@@ -212,10 +212,10 @@ mod test {
 
         assert_eq!(
             result,
-            GeneralizedCircle::Line {
+            GeneralizedCircle::Line (Line{
                 unit_normal: Complex::I,
                 distance: 0.0
-            }
+            })
         )
     }
 
@@ -227,10 +227,10 @@ mod test {
 
         assert_eq!(
             result,
-            GeneralizedCircle::Line {
+            GeneralizedCircle::Line (Line{
                 unit_normal: Complex::ONE,
                 distance: 0.0
-            }
+            })
         )
     }
 }

@@ -1,7 +1,18 @@
-// Point
-// Text
-// Circle
-// LineSegment (no Line, Ray or Double Ray)
-// CircularArc
+use crate::{geometry::{Circle, CircularArc, LineSegment}, Complex};
 
-// Polyline/Polygon (collection of CircularArc/LineSegment, possibly bezier and other paths)
+/// A single directed edge that can be part of a path
+pub enum PathElement {
+    LineSegment(LineSegment),
+    CircularArc(CircularArc),
+    Gap(LineSegment),
+}
+
+pub enum Shape {
+    Point(Complex),
+    //Text(String, Complex),
+    Circle(Circle),
+    LineSegment(LineSegment),
+    CircularArc(CircularArc),
+    //Polyline(Vec<PathElement>),
+    //Polygon(Vec<PathElement>),
+}
