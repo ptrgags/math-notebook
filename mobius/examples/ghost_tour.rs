@@ -1,5 +1,6 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI, TAU};
 
+use abstraction::Group;
 use mobius::{
     cline::Cline,
     cline_arc::ClineArc,
@@ -10,7 +11,7 @@ use mobius::{
     svg_plot::{add_geometry, render_views, style_lines, View},
     translation, Complex, Mobius,
 };
-use svg::node::element::Group;
+use svg::node::element::Group as SvgGroup;
 
 /// Create a ghost-shaped tile as circular arcs and lines. It spans between [-1, 1] horizontally and between
 /// [-1.7, 1] vertically
@@ -95,7 +96,7 @@ impl Ghost {
         }
     }
 
-    pub fn render_svg(&self) -> Group {
+    pub fn render_svg(&self) -> SvgGroup {
         let mut svg = style_lines("#c5f2fa", "0.25%");
         svg = add_geometry(svg, &self.body);
         svg = add_geometry(svg, &self.face);
@@ -103,7 +104,7 @@ impl Ghost {
         svg
     }
 
-    pub fn render_ifs(&self, ifs: &IFS, depth: usize) -> Group {
+    pub fn render_ifs(&self, ifs: &IFS, depth: usize) -> SvgGroup {
         let transformed_bodies: Vec<ClineArcTile> = ifs
             .dfs(depth)
             .map(|(_, xform)| self.body.transform(xform))

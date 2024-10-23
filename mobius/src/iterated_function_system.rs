@@ -1,4 +1,4 @@
-use abstraction::Semigroup;
+use abstraction::{Group, Semigroup};
 
 use crate::{cline_tile::ClineArcTile, Mobius};
 

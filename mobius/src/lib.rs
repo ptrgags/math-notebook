@@ -4,6 +4,7 @@ pub mod cline_tile;
 mod complex;
 pub mod iterated_function_system;
 mod mobius;
+pub mod isogonal;
 mod nearly;
 mod recipes;
 pub mod svg_plot;

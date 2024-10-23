@@ -194,27 +194,15 @@ impl Mobius {
     //      the translation amount
     // 4. Otherwise, recompute S so that S(Q) = 0
 
-    /// The "difference" between left and right transformations.
-    /// This is kind of like a "ratio" of the two transformations
-    /// left * right^-1.
-    pub fn difference(left: Self, right: Self) -> Self {
-        left * right.inverse()
-    }
-
-    /// The sandwich product
-    /// a 🥪 b = aba^(-1)
-    /// also known as "conjugation". The resulting transformation
-    /// does the same thing as b, but adjusted from the perspective of
-    /// applying a
-    pub fn sandwich(bread: Self, filling: Self) -> Self {
-        bread * filling * bread.inverse()
-    }
-
-    /// Commutator product
-    /// [a, b] = aba^(-1)b^(-1)
-    /// which is equal to difference(ab, ba)
-    pub fn commutator(left: Self, right: Self) -> Self {
-        left * right * left.inverse() * right.inverse()
+    /// Take the complex conjugate of each entry. This is used for
+    /// anticonformal mappings, see isogonal.rs
+    pub fn complex_conjugate(&self) -> Self {
+        Self {
+            a: self.a.conj(),
+            b: self.b.conj(),
+            c: self.c.conj(),
+            d: self.d.conj(),
+        }
     }
 }
 
