@@ -49,7 +49,7 @@ impl Group for Isogonal {
     fn inverse(&self) -> Self {
         match self {
             Self::Conformal(m) => Self::Conformal(m.inverse()),
-            // (M flip)^-1 = flip^-1 M^-1 = conj(M)^-1 flip
+            // (M conj)^-1 = conj^-1 M^-1 = conj(M)^-1 conj
             Self::AntiConformal(m) => Self::AntiConformal(m.complex_conjugate().inverse())
         }
     }
