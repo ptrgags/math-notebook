@@ -174,6 +174,12 @@ impl From<&ClineTile> for SvgNodes {
     }
 }
 
+impl From<&[Cline]> for SvgNodes {
+    fn from(clines: &[Cline]) -> Self {
+        SvgNodes(clines.iter().map(|x| svg_cline(x)).collect())
+    }
+}
+
 impl From<&[ClineTile]> for SvgNodes {
     fn from(tiles: &[ClineTile]) -> Self {
         SvgNodes(

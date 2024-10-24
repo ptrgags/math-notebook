@@ -12,6 +12,7 @@ mod nearly;
 mod recipes;
 pub mod style;
 pub mod svg_plot;
+pub mod grid_ifs;
 
 pub use complex::Complex;
 pub use mobius::Mobius;

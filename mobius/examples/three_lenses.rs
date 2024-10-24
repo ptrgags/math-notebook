@@ -1,7 +1,7 @@
 use std::f64::consts::{FRAC_PI_2, PI};
 
 use mobius::{
-    cline_arc::ClineArc, cline_tile::ClineArcTile, iterated_function_system::{transform_tile, IFS}, map_triple, style::{self, Style}, svg_plot::{add_geometry, flip_y, make_card, style_group}, Complex, Mobius
+    cline_arc::ClineArc, cline_tile::ClineArcTile, iterated_function_system::{transform_tile, IFS}, map_triple, style::Style, svg_plot::{add_geometry, flip_y, make_card, style_group}, Complex, Mobius
 };
 use svg::node::element::Group;
 

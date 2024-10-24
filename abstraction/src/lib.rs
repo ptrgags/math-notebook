@@ -1,4 +1,37 @@
-use std::ops::Mul;
+use std::{convert::identity, ops::Mul};
+
+pub struct PowerIterator<S: Semigroup> {
+    element: S,
+    current: S,  
+    power: usize
+}
+
+impl<S: Semigroup> PowerIterator<S> {
+    pub fn new(element: S) -> Self {
+        Self {
+            element,
+            current: S::identity(),
+            power: 0
+        }
+    }
+}
+
+impl<S: Semigroup> Iterator for PowerIterator<S> {
+    type Item = S;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let current = self.current;
+        self.current = self.element * self.current;
+
+        if self.power > 0 && current == S::identity() {
+            // Cycle detected, short-circuit
+            None
+        } else {
+            Some(current)
+        }
+    }
+}
+
 
 /// A semigroup is a set S along with a binary operation (*) such that
 /// - S is closed under *. This is realized as requiring Mul<S, Output=S>
@@ -6,11 +39,19 @@ use std::ops::Mul;
 /// - the binary operation is associative. a(bc) = (ab)c for all a, b, c in S
 ///   This isn't easily representable in a type, so it's up to the
 ///   implementation to make sure this is valid.
-pub trait Semigroup: Copy + Mul<Self, Output = Self> {
+pub trait Semigroup: PartialEq + Copy + Mul<Self, Output = Self> {
     /// The identity element. This must satisfy
     /// T::identity() * element = element
     /// element * T::identity() = element
     fn identity() -> Self;
+
+    /// Iterate over I, a, a^2, a^3, ...
+    /// For elements with finite order, this will stop if the product
+    /// equals Self::identity(). Eg. 
+    /// if a is a 3-cycle permutation, you'd get I, a, a^2, but not a^3 = I
+    fn power_iter(&self) -> PowerIterator<Self> {
+        PowerIterator::new(*self)
+    }
 }
 
 /// A group is a semigroup with the additional requirement that elements
@@ -19,6 +60,13 @@ pub trait Group: Semigroup {
     /// Multiplicative inverse a^-1 such that
     /// a * a^-1 = a^-1 * a = I
     fn inverse(&self) -> Self;
+
+    /// Iterate over I, a^-1, a^-2, ...
+    /// If a has a finite order, this will stop when
+    /// the cycle reaches identity.
+    fn inv_power_iter(&self) -> PowerIterator<Self> {
+        self.inverse().power_iter()
+    }
 
     /// Difference between two transforms
     /// diff(b, a) = ba^-1
