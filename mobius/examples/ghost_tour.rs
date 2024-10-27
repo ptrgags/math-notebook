@@ -6,7 +6,7 @@ use mobius::{
     cline_tile::{ClineArcTile, ClineTile},
     elliptic,
     geometry::{Circle, LineSegment},
-    iterated_function_system::IFS,
+    iterated_function_system::{apply_ifs, IFS},
     loxodromic, map_triple, rotation, scale,
     style::Style,
     svg_plot::{add_geometry, render_views, style_group, View},
@@ -122,15 +122,8 @@ impl Ghost {
     }
 
     pub fn render_ifs(&self, ifs: &IFS, depth: usize) -> SvgGroup {
-        let transformed_bodies: Vec<ClineArcTile> = ifs
-            .dfs(depth)
-            .map(|(_, xform)| self.body.transform(xform))
-            .collect();
-
-        let transformed_faces: Vec<ClineTile> = ifs
-            .dfs(depth)
-            .map(|(_, xform)| self.face.transform(xform))
-            .collect();
+        let transformed_bodies = apply_ifs(ifs, &self.body, 0, depth);
+        let transformed_faces = apply_ifs(ifs, &self.face, 0, depth);
 
         let mut svg = style_group(Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25));
         svg = add_geometry(svg, &transformed_bodies[..]);

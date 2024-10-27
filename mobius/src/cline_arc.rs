@@ -4,7 +4,7 @@ use crate::{
     geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
     isogonal::Isogonal,
     transformable::{Cline, GeneralizedCircle, Transformable},
-    Complex, Mobius,
+    Complex,
 };
 
 #[derive(Clone, Copy, Debug)]

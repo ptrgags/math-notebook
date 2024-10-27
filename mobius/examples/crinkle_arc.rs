@@ -3,7 +3,6 @@ use std::{
     io::Error,
 };
 
-use mobius::transformable::{Cline, Transformable};
 use mobius::{
     cline_arc::{ClineArc, ClineArcGeometry},
     geometry::{Circle, CircularArc},
@@ -13,6 +12,7 @@ use mobius::{
     svg_plot::{add_geometry, render_views, style_group, View},
     Complex, Mobius,
 };
+use mobius::{iterated_function_system::apply_ifs, transformable::Cline};
 use svg::node::element::Group;
 
 /// Compute an orthogonal circle through a and b.
@@ -85,7 +85,7 @@ fn main() -> Result<(), Error> {
 
     let ifs = IFS::new(vec![a, b]);
 
-    let tiles: Vec<ClineArc> = ifs.dfs(8).map(|(_, x)| arc.transform(x)).collect();
+    let tiles = apply_ifs(&ifs, &arc, 0, 8);
 
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.5);
     let mut geometry = style_group(orange_lines);

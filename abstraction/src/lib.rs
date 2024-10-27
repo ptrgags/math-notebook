@@ -1,9 +1,9 @@
-use std::{convert::identity, ops::Mul};
+use std::ops::Mul;
 
 pub struct PowerIterator<S: Semigroup> {
     element: S,
-    current: S,  
-    power: usize
+    current: S,
+    power: usize,
 }
 
 impl<S: Semigroup> PowerIterator<S> {
@@ -11,7 +11,7 @@ impl<S: Semigroup> PowerIterator<S> {
         Self {
             element,
             current: S::identity(),
-            power: 0
+            power: 0,
         }
     }
 }
@@ -32,7 +32,6 @@ impl<S: Semigroup> Iterator for PowerIterator<S> {
     }
 }
 
-
 /// A semigroup is a set S along with a binary operation (*) such that
 /// - S is closed under *. This is realized as requiring Mul<S, Output=S>
 /// - S has an identity element I, such that I * x = x * I = x for all x in S
@@ -47,7 +46,7 @@ pub trait Semigroup: PartialEq + Copy + Mul<Self, Output = Self> {
 
     /// Iterate over I, a, a^2, a^3, ...
     /// For elements with finite order, this will stop if the product
-    /// equals Self::identity(). Eg. 
+    /// equals Self::identity(). Eg.
     /// if a is a 3-cycle permutation, you'd get I, a, a^2, but not a^3 = I
     fn power_iter(&self) -> PowerIterator<Self> {
         PowerIterator::new(*self)
