@@ -84,9 +84,11 @@ fn svg_ray(ray: Ray) -> Box<dyn Node> {
 fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
     let CircularArc {
         circle: Circle { center, radius },
-        start_angle,
-        end_angle,
+        angle_a: start_angle,
+        angle_c: end_angle,
+        ..
     } = arc;
+
     let start = center + Complex::from_polar(radius, start_angle);
     let start_x = start.real();
     let start_y = start.imag();

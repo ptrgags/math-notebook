@@ -52,20 +52,22 @@ fn arc_lerp(circle: Circle, a: Complex, b: Complex, t: f64) -> Complex {
     circle.get_point(lerp_angle)
 }
 
-fn arc_fractal(arc: ClineArc, t: f64) -> (Mobius, Mobius) {
+fn arc_fractal(arc: ClineArc) -> (Mobius, Mobius) {
     let circular_arc = match arc.classify() {
         ClineArcGeometry::CircularArc(arc) => arc,
         _ => panic!("arc must be a circular arc"),
     };
     let CircularArc {
         circle,
-        start_angle,
-        end_angle,
+        angle_a,
+        angle_b,
+        angle_c,
     } = circular_arc;
-    let mid_angle = t * (start_angle + end_angle);
-    let a = circle.get_point(start_angle);
-    let b = circle.get_point(mid_angle);
-    let c = circle.get_point(end_angle);
+    let t = ((angle_b - angle_a) / (angle_c - angle_a)).abs();
+
+    let a = circle.get_point(angle_a);
+    let b = circle.get_point(angle_b);
+    let c = circle.get_point(angle_c);
 
     let circle_ab = get_orthog_circle(circle, a, b);
     let circle_bc = get_orthog_circle(circle, b, c);
@@ -81,7 +83,7 @@ fn arc_fractal(arc: ClineArc, t: f64) -> (Mobius, Mobius) {
 
 fn main() -> Result<(), Error> {
     let arc = ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, PI / 4.0, PI / 2.0);
-    let (a, b) = arc_fractal(arc, 0.5);
+    let (a, b) = arc_fractal(arc);
 
     let ifs = IFS::new(vec![a, b]);
 
@@ -99,7 +101,7 @@ fn main() -> Result<(), Error> {
 
     let group = Group::new().add(geometry).add(more_geometry);
 
-    render_views("output", "crinkle_arc", &[View("", 0.0, 0.0, 1.1)], group)?;
+    render_views("output", "crinkle_arc", &[View("", 0.5, 0.5, 0.51)], group)?;
 
     Ok(())
 }

@@ -23,18 +23,7 @@ pub enum ClineArcGeometry {
 impl Display for ClineArcGeometry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ClineArcGeometry::CircularArc(CircularArc {
-                circle: Circle { center, radius },
-                start_angle,
-                end_angle,
-            }) => write!(
-                f,
-                "Arc({}, {:.3}, {:.3}° -> {:.3}°)",
-                center,
-                radius,
-                start_angle.to_degrees(),
-                end_angle.to_degrees()
-            ),
+            ClineArcGeometry::CircularArc(arc) => arc.fmt(f),
             ClineArcGeometry::LineSegment(LineSegment { start, end }) => {
                 write!(f, "Segment({} -> {})", start, end)
             }
@@ -192,10 +181,14 @@ impl ClineArc {
                 } else {
                     theta_c
                 };
+
+                let theta_b = (self.b - center).arg().unwrap();
+
                 ClineArcGeometry::CircularArc(CircularArc {
                     circle: Circle { center, radius },
-                    start_angle: theta_a,
-                    end_angle,
+                    angle_a: theta_a,
+                    angle_b: theta_b,
+                    angle_c: end_angle,
                 })
             }
         }
