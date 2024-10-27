@@ -4,6 +4,7 @@ use std::{
 };
 
 use mobius::{
+    cline::Cline,
     cline_arc::{ClineArc, ClineArcGeometry},
     geometry::{Circle, CircularArc},
     iterated_function_system::IFS,
@@ -12,6 +13,7 @@ use mobius::{
     svg_plot::{add_geometry, render_views, style_group, View},
     Complex, Mobius,
 };
+use svg::node::element::Group;
 
 /// Compute an orthogonal circle through a and b.
 /// I've done this before for another project, see my explainer here:
@@ -78,13 +80,13 @@ fn arc_fractal(arc: ClineArc, t: f64) -> (Mobius, Mobius) {
 }
 
 fn main() -> Result<(), Error> {
-    let arc = ClineArc::from_circle_and_angles(Complex::Zero, 1.0, 0.0, PI / 4.0, PI / 2.0);
+    let arc = ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, PI / 4.0, PI / 2.0);
     let (a, b) = arc_fractal(arc, 0.5);
 
     let ifs = IFS::new(vec![a, b]);
 
     let tiles: Vec<ClineArc> = ifs
-        .dfs(5)
+        .dfs(8)
         .map(|(_, x)| ClineArc::transform(x, arc))
         .collect();
 
@@ -92,12 +94,15 @@ fn main() -> Result<(), Error> {
     let mut geometry = style_group(orange_lines);
     geometry = add_geometry(geometry, &tiles[..]);
 
-    render_views(
-        "output",
-        "crinkle_arc",
-        &[View("", 0.0, 0.0, 1.1)],
-        geometry,
-    )?;
+    let orthog_circle = get_orthog_circle(Circle::unit_circle(), Complex::ONE, Complex::I);
+    let circle_cline: Cline = orthog_circle.into();
+    let yellow_lines = Style::stroke(255, 255, 0).with_width(0.5);
+    let mut more_geometry = style_group(yellow_lines);
+    more_geometry = add_geometry(more_geometry, [circle_cline].as_slice());
+
+    let group = Group::new().add(geometry).add(more_geometry);
+
+    render_views("output", "crinkle_arc", &[View("", 0.0, 0.0, 1.1)], group)?;
 
     Ok(())
 }

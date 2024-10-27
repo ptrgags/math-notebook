@@ -2,7 +2,16 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI, TAU};
 
 use abstraction::Group;
 use mobius::{
-    cline::Cline, cline_arc::ClineArc, cline_tile::{ClineArcTile, ClineTile}, elliptic, iterated_function_system::IFS, loxodromic, map_triple, rotation, scale, style::Style, svg_plot::{add_geometry, render_views, style_group, View}, translation, Complex, Mobius
+    cline::Cline,
+    cline_arc::ClineArc,
+    cline_tile::{ClineArcTile, ClineTile},
+    elliptic,
+    geometry::{Circle, LineSegment},
+    iterated_function_system::IFS,
+    loxodromic, map_triple, rotation, scale,
+    style::Style,
+    svg_plot::{add_geometry, render_views, style_group, View},
+    translation, Complex, Mobius,
 };
 use svg::node::element::Group as SvgGroup;
 
@@ -14,56 +23,71 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
     const BOTTOM_CIRCLE_RADIUS: f64 = 1.0 / 5.0;
     let body = ClineArcTile::new(vec![
         // top of ghost head is a semi-circle
-        ClineArc::from_circle_and_angles(Complex::Zero, 1.0, 0.0, FRAC_PI_2, PI),
+        ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, FRAC_PI_2, PI),
         // Left side
-        ClineArc::line_segment(-Complex::ONE, Complex::new(-1.0, -SIDE_HEIGHT)),
+        ClineArc::from_line_segment(LineSegment::new(
+            -Complex::ONE,
+            Complex::new(-1.0, -SIDE_HEIGHT),
+        ))
+        .unwrap(),
         // Five semi-circles for the bottom
         ClineArc::from_circle_and_angles(
-            Complex::new(-2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-            BOTTOM_CIRCLE_RADIUS,
+            Circle::new(
+                Complex::new(-2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
+                BOTTOM_CIRCLE_RADIUS,
+            ),
             PI,
             3.0 * FRAC_PI_2,
             TAU,
         ),
         ClineArc::from_circle_and_angles(
-            Complex::new(-1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-            BOTTOM_CIRCLE_RADIUS,
+            Circle::new(
+                Complex::new(-1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
+                BOTTOM_CIRCLE_RADIUS,
+            ),
             PI,
             FRAC_PI_2,
             0.0,
         ),
         ClineArc::from_circle_and_angles(
-            Complex::new(0.0, -SIDE_HEIGHT),
-            BOTTOM_CIRCLE_RADIUS,
+            Circle::new(Complex::new(0.0, -SIDE_HEIGHT), BOTTOM_CIRCLE_RADIUS),
             PI,
             3.0 * FRAC_PI_2,
             TAU,
         ),
         ClineArc::from_circle_and_angles(
-            Complex::new(1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-            BOTTOM_CIRCLE_RADIUS,
+            Circle::new(
+                Complex::new(1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
+                BOTTOM_CIRCLE_RADIUS,
+            ),
             PI,
             FRAC_PI_2,
             0.0,
         ),
         ClineArc::from_circle_and_angles(
-            Complex::new(2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-            BOTTOM_CIRCLE_RADIUS,
+            Circle::new(
+                Complex::new(2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
+                BOTTOM_CIRCLE_RADIUS,
+            ),
             PI,
             3.0 * FRAC_PI_2,
             TAU,
         ),
         // Right side
-        ClineArc::line_segment(Complex::new(1.0, -SIDE_HEIGHT), Complex::ONE),
+        ClineArc::from_line_segment(LineSegment::new(
+            Complex::new(1.0, -SIDE_HEIGHT),
+            Complex::ONE,
+        ))
+        .unwrap(),
     ]);
 
     let eyes_and_mouth = ClineTile::new(vec![
         // Left eye
-        Cline::circle(Complex::new(-0.5, 0.0), 0.25),
+        Circle::new(Complex::new(-0.5, 0.0), 0.25).into(),
         // Right eye
-        Cline::circle(Complex::new(0.5, 0.0), 0.25),
+        Circle::new(Complex::new(0.5, 0.0), 0.25).into(),
         // Mouth, a little smaller
-        Cline::circle(Complex::new(0.0, -0.5), 0.125),
+        Circle::new(Complex::new(0.0, -0.5), 0.125).into(),
     ]);
 
     (body, eyes_and_mouth)

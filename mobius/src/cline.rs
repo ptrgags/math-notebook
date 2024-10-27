@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use crate::{geometry::{Circle, Line}, Complex, Mobius};
+use crate::{
+    geometry::{Circle, Line},
+    Complex, Mobius,
+};
 
 // Simpler data structure for representing clines in human-understandable
 // format.
@@ -13,10 +16,8 @@ pub enum GeneralizedCircle {
 impl Display for GeneralizedCircle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GeneralizedCircle::Circle (Circle{ center, radius} ) => {
-                write!(f, "Circle({}, {:.3})", center, radius)
-            }
-            GeneralizedCircle::Line (Line{
+            GeneralizedCircle::Circle(circle) => circle.fmt(f),
+            GeneralizedCircle::Line(Line {
                 unit_normal,
                 distance,
             }) => write!(f, "Line({}, {:.3})", unit_normal, distance),
@@ -47,50 +48,16 @@ pub struct Cline {
 }
 
 impl Cline {
-    pub fn circle(center: Complex, radius: f64) -> Self {
-        let d = center.norm() - radius * radius;
-
-        Self {
-            a: Complex::ONE,
-            b: -center.conj(),
-            c: -center,
-            d: d.into(),
-        }
-    }
-
-    pub fn line(normal: Complex, distance: f64) -> Result<Self, String> {
-        match normal.normalize() {
-            // A line can be expressed as the implicit equation
-            // dot(n, z) = d
-            // Re(n.conj() * z) = d
-            // 1/2 (n.conj() * z + n * z.conj()) = d
-            // n.conj() * z + n * z.conj() = 2 d
-            //
-            // so we have:
-            // A = 0
-            // B = n.conj()
-            // C = n
-            // D = -2d
-            Some(unit_normal) => Ok(Self {
-                a: Complex::Zero,
-                b: unit_normal.conj(),
-                c: unit_normal,
-                d: (-2.0 * distance).into(),
-            }),
-            None => Err(String::from("normal must not be zero or infinity")),
-        }
-    }
-
     pub fn unit_circle() -> Self {
-        Self::circle(Complex::Zero, 1.0)
+        Circle::unit_circle().into()
     }
 
     pub fn real_axis() -> Self {
-        Self::line(Complex::I, 0.0).unwrap()
+        Line::real_axis().into()
     }
 
     pub fn imag_axis() -> Self {
-        Self::line(Complex::ONE, 0.0).unwrap()
+        Line::imag_axis().into()
     }
 
     pub fn classify(&self) -> GeneralizedCircle {
@@ -101,7 +68,7 @@ impl Cline {
             let unit_normal = c;
             let distance = d / (-2.0).into();
 
-            GeneralizedCircle::Line (Line{
+            GeneralizedCircle::Line(Line {
                 unit_normal,
                 distance: distance.real(),
             })
@@ -113,7 +80,7 @@ impl Cline {
             // center.norm() - D = r^2
             let radius = (center.norm() - d.real()).sqrt();
 
-            GeneralizedCircle::Circle (Circle{ center, radius })
+            GeneralizedCircle::Circle(Circle { center, radius })
         }
     }
 
@@ -185,13 +152,54 @@ impl Cline {
     }
 }
 
+impl From<Circle> for Cline {
+    fn from(value: Circle) -> Self {
+        let Circle { center, radius } = value;
+        let d = center.norm() - radius * radius;
+
+        Self {
+            a: Complex::ONE,
+            b: -center.conj(),
+            c: -center,
+            d: d.into(),
+        }
+    }
+}
+
+impl From<Line> for Cline {
+    fn from(value: Line) -> Self {
+        let Line {
+            unit_normal,
+            distance,
+        } = value;
+
+        // A line can be expressed as the implicit equation
+        // dot(n, z) = d
+        // Re(n.conj() * z) = d
+        // 1/2 (n.conj() * z + n * z.conj()) = d
+        // n.conj() * z + n * z.conj() = 2 d
+        //
+        // so we have:
+        // A = 0
+        // B = n.conj()
+        // C = n
+        // D = -2d
+        Self {
+            a: Complex::Zero,
+            b: unit_normal.conj(),
+            c: unit_normal,
+            d: (-2.0 * distance).into(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     pub fn classify_identifies_unit_circle() {
-        let unit_circle = Cline::circle(Complex::Zero, 1.0);
+        let unit_circle = Cline::unit_circle();
 
         let result = unit_circle.classify();
 
@@ -206,13 +214,13 @@ mod test {
 
     #[test]
     pub fn classify_identifies_real_axis() {
-        let real_axis = Cline::line(Complex::I, 0.0).unwrap();
+        let real_axis = Cline::real_axis();
 
         let result = real_axis.classify();
 
         assert_eq!(
             result,
-            GeneralizedCircle::Line (Line{
+            GeneralizedCircle::Line(Line {
                 unit_normal: Complex::I,
                 distance: 0.0
             })
@@ -221,13 +229,13 @@ mod test {
 
     #[test]
     pub fn classify_identifies_imaginary_axis() {
-        let imag_axis = Cline::line(Complex::ONE, 0.0).unwrap();
+        let imag_axis = Cline::imag_axis();
 
         let result = imag_axis.classify();
 
         assert_eq!(
             result,
-            GeneralizedCircle::Line (Line{
+            GeneralizedCircle::Line(Line {
                 unit_normal: Complex::ONE,
                 distance: 0.0
             })

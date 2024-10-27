@@ -1,7 +1,14 @@
 use std::f64::consts::{FRAC_PI_2, PI};
 
 use mobius::{
-    cline_arc::ClineArc, cline_tile::ClineArcTile, iterated_function_system::{transform_tile, IFS}, map_triple, style::Style, svg_plot::{add_geometry, flip_y, make_card, style_group}, Complex, Mobius
+    cline_arc::ClineArc,
+    cline_tile::ClineArcTile,
+    geometry::{Circle, LineSegment},
+    iterated_function_system::{transform_tile, IFS},
+    map_triple,
+    style::Style,
+    svg_plot::{add_geometry, flip_y, make_card, style_group},
+    Complex, Mobius,
 };
 use svg::node::element::Group;
 
@@ -55,8 +62,8 @@ fn main() {
     let xforms = make_xforms();
 
     let half_circle = ClineArcTile::new(vec![
-        ClineArc::line_segment(-Complex::ONE, Complex::ONE),
-        ClineArc::from_circle_and_angles(Complex::Zero, 1.0, 0.0, FRAC_PI_2, PI),
+        ClineArc::from_line_segment(LineSegment::new(-Complex::ONE, Complex::ONE)).unwrap(),
+        ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, FRAC_PI_2, PI),
     ]);
 
     //let rotate_90 = rotation(FRAC_PI_2).unwrap();

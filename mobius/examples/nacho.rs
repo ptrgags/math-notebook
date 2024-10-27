@@ -1,7 +1,14 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use mobius::{
-    cline_arc::ClineArc, cline_tile::ClineArcTile, iterated_function_system::{transform_tile, IFS}, map_triple, scale, style::Style, svg_plot::{add_geometry, flip_y, make_card, style_group}, Complex, Mobius
+    cline_arc::ClineArc,
+    cline_tile::ClineArcTile,
+    geometry::{Circle, LineSegment},
+    iterated_function_system::{transform_tile, IFS},
+    map_triple, scale,
+    style::Style,
+    svg_plot::{add_geometry, flip_y, make_card, style_group},
+    Complex, Mobius,
 };
 use svg::node::element::Group;
 
@@ -54,9 +61,9 @@ fn main() {
     let modified_sierpinski = IFS::new(xforms.clone());
 
     let tile = ClineArcTile::new(vec![
-        ClineArc::line_segment(Complex::Zero, Complex::ONE),
-        ClineArc::from_circle_and_angles(Complex::Zero, 1.0, 0.0, FRAC_PI_4, FRAC_PI_2),
-        ClineArc::line_segment(Complex::I, Complex::Zero),
+        ClineArc::from_line_segment(LineSegment::new(Complex::Zero, Complex::ONE)).unwrap(),
+        ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, FRAC_PI_4, FRAC_PI_2),
+        ClineArc::from_line_segment(LineSegment::new(Complex::I, Complex::Zero)).unwrap(),
     ]);
 
     let sierpinski_tiles: Vec<ClineArcTile> = modified_sierpinski

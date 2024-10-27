@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::Complex;
 
 /// A geometry primitive
@@ -17,6 +19,17 @@ pub struct Circle {
 }
 
 impl Circle {
+    pub fn unit_circle() -> Self {
+        Self {
+            center: Complex::Zero,
+            radius: 1.0,
+        }
+    }
+
+    pub fn new(center: Complex, radius: f64) -> Self {
+        Self { center, radius }
+    }
+
     pub fn get_point(&self, theta: f64) -> Complex {
         self.center + Complex::from_polar(self.radius, theta)
     }
@@ -28,10 +41,44 @@ impl Circle {
 
 impl Geometry for Circle {}
 
+impl Display for Circle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Circle({}, {:.3})", self.center, self.radius)
+    }
+}
+
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Line {
     pub unit_normal: Complex,
     pub distance: f64,
+}
+
+impl Line {
+    /// Create a line from a normal and distance offset
+    /// This will automatically normalize the normal
+    pub fn new(normal: Complex, distance: f64) -> Result<Self, String> {
+        match normal.normalize() {
+            Some(unit_normal) => Ok(Self {
+                unit_normal,
+                distance,
+            }),
+            None => Err(String::from("Normal must be finite and non-zero")),
+        }
+    }
+
+    pub fn real_axis() -> Self {
+        Self {
+            unit_normal: Complex::I,
+            distance: 0.0,
+        }
+    }
+
+    pub fn imag_axis() -> Self {
+        Self {
+            unit_normal: Complex::ONE,
+            distance: 0.0,
+        }
+    }
 }
 
 impl Geometry for Line {}
@@ -58,6 +105,12 @@ impl DirectedEdge for CircularArc {
 pub struct LineSegment {
     pub start: Complex,
     pub end: Complex,
+}
+
+impl LineSegment {
+    pub fn new(start: Complex, end: Complex) -> Self {
+        Self { start, end }
+    }
 }
 
 impl Geometry for LineSegment {}

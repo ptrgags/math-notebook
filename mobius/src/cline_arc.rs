@@ -2,7 +2,7 @@ use std::{f64::consts::TAU, fmt::Display};
 
 use crate::{
     cline::{Cline, GeneralizedCircle},
-    geometry::{Circle, CircularArc, DoubleRay, LineSegment, Ray},
+    geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
     Complex, Mobius,
 };
 
@@ -65,39 +65,44 @@ pub struct ClineArc {
 
 impl ClineArc {
     pub fn from_circle_and_angles(
-        center: Complex,
-        radius: f64,
+        circle: Circle,
         theta_a: f64,
         theta_b: f64,
         theta_c: f64,
     ) -> Self {
-        let circle = Cline::circle(center, radius);
+        let Circle { center, radius } = circle;
         let a = center + Complex::from_polar(radius, theta_a);
         let b = center + Complex::from_polar(radius, theta_b);
         let c = center + Complex::from_polar(radius, theta_c);
         Self {
-            cline: circle,
+            cline: circle.into(),
             a,
             b,
             c,
         }
     }
 
-    pub fn line_segment(start: Complex, end: Complex) -> Self {
+    pub fn from_line_segment(segment: LineSegment) -> Result<Self, String> {
+        let LineSegment { start, end } = segment;
+
+        if start == end {
+            return Err(String::from("Start and end must be distinct points"));
+        }
+
         let unit_tangent = (end - start).normalize().unwrap();
         let unit_normal = Complex::I * unit_tangent;
 
         let distance = Complex::dot(unit_normal, start);
-        let line = Cline::line(unit_normal, distance).unwrap();
+        let line = Line::new(unit_normal, distance)?;
 
         let midpoint = (start + end) * (0.5).into();
 
-        Self {
-            cline: line,
+        Ok(Self {
+            cline: line.into(),
             a: start,
             b: midpoint,
             c: end,
-        }
+        })
     }
 
     pub fn classify(&self) -> ClineArcGeometry {
