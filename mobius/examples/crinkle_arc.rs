@@ -1,0 +1,103 @@
+use std::{
+    f64::consts::{PI, TAU},
+    io::Error,
+};
+
+use mobius::{
+    cline_arc::{ClineArc, ClineArcGeometry},
+    geometry::{Circle, CircularArc},
+    iterated_function_system::IFS,
+    map_triple,
+    style::Style,
+    svg_plot::{add_geometry, render_views, style_group, View},
+    Complex, Mobius,
+};
+
+/// Compute an orthogonal circle through a and b.
+/// I've done this before for another project, see my explainer here:
+/// https://github.com/ptrgags/p5-sketchbook/tree/main/HyperbolicConnections#method-2-kite-analysis
+/// as well as the code
+/// https://github.com/ptrgags/p5-sketchbook/blob/458e47383ed8492cff3cc0bce4bded666b0672bc/HyperbolicConnections/boundaries.js#L35
+fn get_orthog_circle(circle: Circle, a: Complex, b: Complex) -> Circle {
+    let q = (a - b).mag();
+    let p = (4.0 / (4.0 - q * q)).sqrt();
+    let orthog_radius = 0.5 * p * q;
+
+    let angle_a = circle.get_angle(a).unwrap();
+    let angle_b = circle.get_angle(b).unwrap();
+
+    let angle_bisector = 0.5 * (angle_a + angle_b);
+    let angle_bisector = if (angle_b - angle_a) % TAU > PI {
+        (angle_bisector + PI) % TAU
+    } else {
+        angle_bisector
+    };
+
+    let orthog_center = Complex::from_polar(p, angle_bisector);
+
+    Circle {
+        center: orthog_center,
+        radius: orthog_radius,
+    }
+}
+
+fn arc_lerp(circle: Circle, a: Complex, b: Complex, t: f64) -> Complex {
+    let angle_a = circle.get_angle(a).unwrap();
+    let angle_b = circle.get_angle(b).unwrap();
+
+    let lerp_angle = (1.0 - t) * angle_a + t * angle_b;
+
+    circle.get_point(lerp_angle)
+}
+
+fn arc_fractal(arc: ClineArc, t: f64) -> (Mobius, Mobius) {
+    let circular_arc = match arc.classify() {
+        ClineArcGeometry::CircularArc(arc) => arc,
+        _ => panic!("arc must be a circular arc"),
+    };
+    let CircularArc {
+        circle,
+        start_angle,
+        end_angle,
+    } = circular_arc;
+    let mid_angle = t * (start_angle + end_angle);
+    let a = circle.get_point(start_angle);
+    let b = circle.get_point(mid_angle);
+    let c = circle.get_point(end_angle);
+
+    let circle_ab = get_orthog_circle(circle, a, b);
+    let circle_bc = get_orthog_circle(circle, b, c);
+
+    let d = arc_lerp(circle_ab, b, a, t);
+    let e = arc_lerp(circle_bc, c, b, t);
+
+    let xform_bda = map_triple((a, b, c), (b, d, a)).unwrap();
+    let xform_ceb = map_triple((a, b, c), (c, e, b)).unwrap();
+
+    (xform_bda, xform_ceb)
+}
+
+fn main() -> Result<(), Error> {
+    let arc = ClineArc::from_circle_and_angles(Complex::Zero, 1.0, 0.0, PI / 4.0, PI / 2.0);
+    let (a, b) = arc_fractal(arc, 0.5);
+
+    let ifs = IFS::new(vec![a, b]);
+
+    let tiles: Vec<ClineArc> = ifs
+        .dfs(5)
+        .map(|(_, x)| ClineArc::transform(x, arc))
+        .collect();
+
+    let orange_lines = Style::stroke(255, 127, 0).with_width(0.5);
+    let mut geometry = style_group(orange_lines);
+    geometry = add_geometry(geometry, &tiles[..]);
+
+    render_views(
+        "output",
+        "crinkle_arc",
+        &[View("", 0.0, 0.0, 1.1)],
+        geometry,
+    )?;
+
+    Ok(())
+}

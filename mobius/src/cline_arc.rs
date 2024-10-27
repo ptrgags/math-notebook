@@ -1,7 +1,9 @@
 use std::{f64::consts::TAU, fmt::Display};
 
 use crate::{
-    cline::{Cline, GeneralizedCircle}, geometry::{Circle, CircularArc, DoubleRay, LineSegment, Ray}, Complex, Mobius
+    cline::{Cline, GeneralizedCircle},
+    geometry::{Circle, CircularArc, DoubleRay, LineSegment, Ray},
+    Complex, Mobius,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -21,7 +23,7 @@ impl Display for ClineArcGeometry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ClineArcGeometry::CircularArc(CircularArc {
-                circle: Circle{center, radius},
+                circle: Circle { center, radius },
                 start_angle,
                 end_angle,
             }) => write!(
@@ -32,12 +34,21 @@ impl Display for ClineArcGeometry {
                 start_angle.to_degrees(),
                 end_angle.to_degrees()
             ),
-            ClineArcGeometry::LineSegment (LineSegment{start, end})=> write!(f, "Segment({} -> {})", start, end),
-            ClineArcGeometry::FromInfinity(Ray{ start, unit_dir }) => write!(f, "Ray(inf --{}-> {})", unit_dir, start),
-            ClineArcGeometry::ToInfinity(Ray{ start, unit_dir }) => write!(f, "Ray({} --{}-> inf)", start, unit_dir),
+            ClineArcGeometry::LineSegment(LineSegment { start, end }) => {
+                write!(f, "Segment({} -> {})", start, end)
+            }
+            ClineArcGeometry::FromInfinity(Ray { start, unit_dir }) => {
+                write!(f, "Ray(inf --{}-> {})", unit_dir, start)
+            }
+            ClineArcGeometry::ToInfinity(Ray { start, unit_dir }) => {
+                write!(f, "Ray({} --{}-> inf)", start, unit_dir)
+            }
             ClineArcGeometry::ThruInfinity(DoubleRay(a_inf, b_inf)) => {
-                let Ray{start: a, ..} = a_inf;
-                let Ray{start: b, unit_dir: dir_ab} = b_inf;
+                let Ray { start: a, .. } = a_inf;
+                let Ray {
+                    start: b,
+                    unit_dir: dir_ab,
+                } = b_inf;
                 write!(f, "RayPair(<--{} {}--{}->", a, b, dir_ab)
             }
         }
@@ -115,9 +126,15 @@ impl ClineArc {
                     // ray goes    inf <- a    c -> inf
                     let ac = (self.c - self.a).normalize().unwrap();
                     return ClineArcGeometry::ThruInfinity(DoubleRay(
-                        Ray{start: self.a, unit_dir: -ac},
-                        Ray{start: self.c, unit_dir: ac}
-                    ))
+                        Ray {
+                            start: self.a,
+                            unit_dir: -ac,
+                        },
+                        Ray {
+                            start: self.c,
+                            unit_dir: ac,
+                        },
+                    ));
                 }
 
                 // All three points are finite so now we we need to check if
@@ -132,15 +149,21 @@ impl ClineArc {
                 let in_order = Complex::dot(self.b - self.a, self.c - self.b) > 0.0;
 
                 if in_order {
-                    ClineArcGeometry::LineSegment(LineSegment{
+                    ClineArcGeometry::LineSegment(LineSegment {
                         start: self.a,
                         end: self.c,
                     })
                 } else {
                     let ac = (self.c - self.a).normalize().unwrap();
                     ClineArcGeometry::ThruInfinity(DoubleRay(
-                        Ray{start: self.a, unit_dir: -ac},
-                        Ray{start: self.c, unit_dir: ac}
+                        Ray {
+                            start: self.a,
+                            unit_dir: -ac,
+                        },
+                        Ray {
+                            start: self.c,
+                            unit_dir: ac,
+                        },
                     ))
                 }
             }
@@ -164,7 +187,7 @@ impl ClineArc {
                     theta_c
                 };
                 ClineArcGeometry::CircularArc(CircularArc {
-                    circle: Circle{center, radius},
+                    circle: Circle { center, radius },
                     start_angle: theta_a,
                     end_angle,
                 })

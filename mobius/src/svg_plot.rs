@@ -7,7 +7,13 @@ use svg::{
 };
 
 use crate::{
-    cline::{Cline, GeneralizedCircle}, cline_arc::{ClineArc, ClineArcGeometry}, cline_tile::{ClineArcTile, ClineTile}, geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray}, path_element::Shape, style::Style, Complex
+    cline::{Cline, GeneralizedCircle},
+    cline_arc::{ClineArc, ClineArcGeometry},
+    cline_tile::{ClineArcTile, ClineTile},
+    geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
+    path_element::Shape,
+    style::Style,
+    Complex,
 };
 
 const FAR_AWAY: f64 = 1000.0;
@@ -15,7 +21,7 @@ const FAR_AWAY: f64 = 1000.0;
 pub fn svg_cline(cline: &Cline) -> Box<dyn Node> {
     match cline.classify() {
         GeneralizedCircle::Circle(circle) => svg_circle(circle),
-        GeneralizedCircle::Line(line) => svg_line(line)
+        GeneralizedCircle::Line(line) => svg_line(line),
     }
 }
 
@@ -23,9 +29,9 @@ fn svg_cline_arc(cline_arc: &ClineArc) -> Box<dyn Node> {
     match cline_arc.classify() {
         ClineArcGeometry::CircularArc(arc) => svg_circular_arc(arc),
         ClineArcGeometry::LineSegment(segment) => svg_line_segment(segment),
-        ClineArcGeometry::FromInfinity(ray)=> svg_ray(ray),
-        ClineArcGeometry::ToInfinity(ray)=> svg_ray(ray),
-        ClineArcGeometry::ThruInfinity(DoubleRay(ray_a, ray_b))=> {
+        ClineArcGeometry::FromInfinity(ray) => svg_ray(ray),
+        ClineArcGeometry::ToInfinity(ray) => svg_ray(ray),
+        ClineArcGeometry::ThruInfinity(DoubleRay(ray_a, ray_b)) => {
             Box::new(Group::new().add(svg_ray(ray_a)).add(svg_ray(ray_b)))
         }
     }
@@ -34,15 +40,20 @@ fn svg_cline_arc(cline_arc: &ClineArc) -> Box<dyn Node> {
 pub struct SvgNode(Box<dyn Node>);
 
 fn svg_circle(circle: Circle) -> Box<dyn Node> {
-    let Circle{center, radius}= circle;
-    Box::new(SvgCircle::new()
-        .set("cx", center.real())
-        .set("cy", center.imag())
-        .set("r", radius))
+    let Circle { center, radius } = circle;
+    Box::new(
+        SvgCircle::new()
+            .set("cx", center.real())
+            .set("cy", center.imag())
+            .set("r", radius),
+    )
 }
 
 fn svg_line(line: Line) -> Box<dyn Node> {
-    let Line{unit_normal, distance} = line;
+    let Line {
+        unit_normal,
+        distance,
+    } = line;
     let far_away: Complex = FAR_AWAY.into();
     let tangent = Complex::I * unit_normal;
     let center: Complex = unit_normal * distance.into();
@@ -58,20 +69,23 @@ fn svg_line(line: Line) -> Box<dyn Node> {
 }
 
 fn svg_ray(ray: Ray) -> Box<dyn Node> {
-    let Ray{start, unit_dir} = ray;
+    let Ray { start, unit_dir } = ray;
     let end = unit_dir * FAR_AWAY.into();
 
-    Box::new(SvgLine::new()
-        .set("x1", start.real())
-        .set("y1", start.imag())
-        .set("x2", end.real())
-        .set("y2", end.imag()))
+    Box::new(
+        SvgLine::new()
+            .set("x1", start.real())
+            .set("y1", start.imag())
+            .set("x2", end.real())
+            .set("y2", end.imag()),
+    )
 }
 
 fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
-    let CircularArc{
-        circle: Circle{center, radius},
-        start_angle,end_angle
+    let CircularArc {
+        circle: Circle { center, radius },
+        start_angle,
+        end_angle,
     } = arc;
     let start = center + Complex::from_polar(radius, start_angle);
     let start_x = start.real();
@@ -99,20 +113,24 @@ fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
 }
 
 fn svg_line_segment(line: LineSegment) -> Box<dyn Node> {
-    let LineSegment{start, end} = line;
-    Box::new(SvgLine::new()
-        .set("x1", start.real())
-        .set("y1", start.imag())
-        .set("x2", end.real())
-        .set("y2", end.imag()))
+    let LineSegment { start, end } = line;
+    Box::new(
+        SvgLine::new()
+            .set("x1", start.real())
+            .set("y1", start.imag())
+            .set("x2", end.real())
+            .set("y2", end.imag()),
+    )
 }
 
 fn svg_point(z: Complex) -> Box<dyn Node> {
     const POINT_RADIUS: &str = "0.25%";
-    Box::new(SvgCircle::new()
-        .set("cx", z.real())
-        .set("cy", z.imag())
-        .set("r", POINT_RADIUS))
+    Box::new(
+        SvgCircle::new()
+            .set("cx", z.real())
+            .set("cy", z.imag())
+            .set("r", POINT_RADIUS),
+    )
 }
 
 impl From<Shape> for SvgNode {
@@ -128,8 +146,6 @@ impl From<Shape> for SvgNode {
         }
     }
 }
-
-
 
 pub struct SvgNodes(Vec<Box<dyn Node>>);
 
@@ -180,6 +196,12 @@ impl From<&[Cline]> for SvgNodes {
     }
 }
 
+impl From<&[ClineArc]> for SvgNodes {
+    fn from(arcs: &[ClineArc]) -> Self {
+        SvgNodes(arcs.iter().map(|x| svg_cline_arc(x)).collect())
+    }
+}
+
 impl From<&[ClineTile]> for SvgNodes {
     fn from(tiles: &[ClineTile]) -> Self {
         SvgNodes(
@@ -202,7 +224,11 @@ pub fn add_geometry(group: Group, geometry: impl Into<SvgNodes>) -> Group {
 pub fn style_group(style: Style) -> Group {
     let mut group = Group::new();
 
-    let Style{stroke, fill, width_percent} = style;
+    let Style {
+        stroke,
+        fill,
+        width_percent,
+    } = style;
     if let Some(color) = stroke {
         group = group.set("stroke", color.to_string());
     }
