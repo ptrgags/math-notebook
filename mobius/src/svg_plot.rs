@@ -7,36 +7,13 @@ use svg::{
 };
 
 use crate::{
-    cline_arc::{ClineArc, ClineArcGeometry},
-    cline_tile::{ClineArcTile, ClineTile},
-    geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
-    path_element::Shape,
+    cline_tile::ClineTile,
+    geometry::{Circle, CircularArc, LineSegment},
+    renderable::{RenderPrimitive, Renderable},
     style::Style,
-    transformable::{Cline, GeneralizedCircle},
+    transformable::Cline,
     Complex,
 };
-
-const FAR_AWAY: f64 = 1000.0;
-
-pub fn svg_cline(cline: &Cline) -> Box<dyn Node> {
-    match cline.classify() {
-        GeneralizedCircle::Circle(circle) => svg_circle(circle),
-        GeneralizedCircle::Line(line) => svg_line(line),
-    }
-}
-
-fn svg_cline_arc(cline_arc: &ClineArc) -> Box<dyn Node> {
-    match cline_arc.classify() {
-        ClineArcGeometry::CircularArc(arc) => svg_circular_arc(arc),
-        ClineArcGeometry::LineSegment(segment) => svg_line_segment(segment),
-        ClineArcGeometry::FromInfinity(ray) => svg_ray(ray),
-        ClineArcGeometry::ToInfinity(ray) => svg_ray(ray),
-        ClineArcGeometry::ThruInfinity(DoubleRay(ray_a, ray_b)) => {
-            Box::new(Group::new().add(svg_ray(ray_a)).add(svg_ray(ray_b)))
-        }
-    }
-}
-
 pub struct SvgNode(Box<dyn Node>);
 
 fn svg_circle(circle: Circle) -> Box<dyn Node> {
@@ -46,38 +23,6 @@ fn svg_circle(circle: Circle) -> Box<dyn Node> {
             .set("cx", center.real())
             .set("cy", center.imag())
             .set("r", radius),
-    )
-}
-
-fn svg_line(line: Line) -> Box<dyn Node> {
-    let Line {
-        unit_normal,
-        distance,
-    } = line;
-    let far_away: Complex = FAR_AWAY.into();
-    let tangent = Complex::I * unit_normal;
-    let center: Complex = unit_normal * distance.into();
-    let start: Complex = center + tangent * far_away.into();
-    let end: Complex = center - tangent * far_away.into();
-    Box::new(
-        SvgLine::new()
-            .set("x1", start.real())
-            .set("y1", start.imag())
-            .set("x2", end.real())
-            .set("y2", end.imag()),
-    )
-}
-
-fn svg_ray(ray: Ray) -> Box<dyn Node> {
-    let Ray { start, unit_dir } = ray;
-    let end = unit_dir * FAR_AWAY.into();
-
-    Box::new(
-        SvgLine::new()
-            .set("x1", start.real())
-            .set("y1", start.imag())
-            .set("x2", end.real())
-            .set("y2", end.imag()),
     )
 }
 
@@ -135,16 +80,13 @@ fn svg_point(z: Complex) -> Box<dyn Node> {
     )
 }
 
-impl From<Shape> for SvgNode {
-    fn from(value: Shape) -> Self {
+impl From<RenderPrimitive> for SvgNode {
+    fn from(value: RenderPrimitive) -> Self {
         match value {
-            Shape::Point(z) => SvgNode(svg_point(z)),
-            //Shape::Text(label, complex) => todo!(),
-            Shape::Circle(circle) => SvgNode(svg_circle(circle)),
-            Shape::LineSegment(line_segment) => SvgNode(svg_line_segment(line_segment)),
-            Shape::CircularArc(circular_arc) => SvgNode(svg_circular_arc(circular_arc)),
-            //Shape::Polyline(vec) => todo!(),
-            //Shape::Polygon(vec) => todo!(),
+            RenderPrimitive::Point(z) => SvgNode(svg_point(z)),
+            RenderPrimitive::Circle(circle) => SvgNode(svg_circle(circle)),
+            RenderPrimitive::LineSegment(line_segment) => SvgNode(svg_line_segment(line_segment)),
+            RenderPrimitive::CircularArc(circular_arc) => SvgNode(svg_circular_arc(circular_arc)),
         }
     }
 }
@@ -166,48 +108,22 @@ impl From<Vec<SvgNode>> for SvgNodes {
     }
 }
 
-impl From<&ClineArcTile> for SvgNodes {
-    fn from(tile: &ClineArcTile) -> Self {
-        SvgNodes(tile.get_arcs().iter().map(|x| svg_cline_arc(x)).collect())
+impl<T: Renderable> From<&T> for SvgNodes {
+    fn from(value: &T) -> Self {
+        let nodes: Vec<SvgNode> = value
+            .bake_geometry()
+            .iter()
+            .map(|x| SvgNode::from(*x))
+            .collect();
+
+        nodes.into()
     }
 }
 
-impl From<&[ClineArcTile]> for SvgNodes {
-    fn from(tiles: &[ClineArcTile]) -> Self {
+impl<T: Renderable> From<&[T]> for SvgNodes {
+    fn from(value: &[T]) -> Self {
         SvgNodes(
-            tiles
-                .iter()
-                .flat_map(|x| {
-                    let SvgNodes(nodes) = x.into();
-                    nodes
-                })
-                .collect(),
-        )
-    }
-}
-
-impl From<&ClineTile> for SvgNodes {
-    fn from(tile: &ClineTile) -> Self {
-        SvgNodes(tile.get_clines().iter().map(|x| svg_cline(x)).collect())
-    }
-}
-
-impl From<&[Cline]> for SvgNodes {
-    fn from(clines: &[Cline]) -> Self {
-        SvgNodes(clines.iter().map(|x| svg_cline(x)).collect())
-    }
-}
-
-impl From<&[ClineArc]> for SvgNodes {
-    fn from(arcs: &[ClineArc]) -> Self {
-        SvgNodes(arcs.iter().map(|x| svg_cline_arc(x)).collect())
-    }
-}
-
-impl From<&[ClineTile]> for SvgNodes {
-    fn from(tiles: &[ClineTile]) -> Self {
-        SvgNodes(
-            tiles
+            value
                 .iter()
                 .flat_map(|x| {
                     let SvgNodes(nodes) = x.into();
@@ -249,10 +165,16 @@ pub fn style_group(style: Style) -> Group {
 }
 
 pub fn make_axes() -> Group {
-    Group::new()
-        .add(svg_cline(&Cline::unit_circle()))
-        .add(svg_cline(&Cline::real_axis()))
-        .add(svg_cline(&Cline::imag_axis()))
+    let tile = ClineTile::new(vec![
+        Cline::unit_circle(),
+        Cline::real_axis(),
+        Cline::imag_axis(),
+    ]);
+
+    let mut axes = Group::new();
+    axes = add_geometry(axes, &tile);
+
+    axes
 }
 
 pub fn flip_y() -> Group {

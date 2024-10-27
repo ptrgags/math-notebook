@@ -3,6 +3,7 @@ use std::{f64::consts::TAU, fmt::Display};
 use crate::{
     geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
     isogonal::Isogonal,
+    renderable::{RenderPrimitive, Renderable},
     transformable::{Cline, GeneralizedCircle, Transformable},
     Complex,
 };
@@ -205,5 +206,32 @@ impl Transformable<Isogonal> for ClineArc {
             b: xform * self.b,
             c: xform * self.c,
         }
+    }
+}
+
+impl Renderable for ClineArc {
+    fn bake_geometry(&self) -> Vec<RenderPrimitive> {
+        let mut result = Vec::new();
+
+        let (first, maybe_second) = match self.classify() {
+            ClineArcGeometry::CircularArc(arc) => (RenderPrimitive::CircularArc(arc), None),
+            ClineArcGeometry::LineSegment(line_segment) => {
+                (RenderPrimitive::LineSegment(line_segment), None)
+            }
+            ClineArcGeometry::FromInfinity(ray) => (RenderPrimitive::make_ray(ray), None),
+            ClineArcGeometry::ToInfinity(ray) => (RenderPrimitive::make_ray(ray), None),
+            ClineArcGeometry::ThruInfinity(DoubleRay(start, end)) => {
+                let first_ray = RenderPrimitive::make_ray(start);
+                let second_ray = RenderPrimitive::make_ray(end);
+                (first_ray, Some(second_ray))
+            }
+        };
+
+        result.push(first);
+        if let Some(x) = maybe_second {
+            result.push(x);
+        }
+
+        result
     }
 }

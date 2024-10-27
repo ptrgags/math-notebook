@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::{
     cline_arc::ClineArc,
     isogonal::Isogonal,
+    renderable::{RenderPrimitive, Renderable},
     transformable::{Cline, Transformable},
 };
 
@@ -26,6 +27,12 @@ impl Transformable<Isogonal> for ClineTile {
         let clines: Vec<Cline> = self.clines.iter().map(|x| x.transform(xform)).collect();
 
         Self { clines }
+    }
+}
+
+impl Renderable for ClineTile {
+    fn bake_geometry(&self) -> Vec<RenderPrimitive> {
+        self.clines.iter().flat_map(|x| x.bake_geometry()).collect()
     }
 }
 
@@ -57,5 +64,11 @@ impl Transformable<Isogonal> for ClineArcTile {
     fn transform(&self, xform: Isogonal) -> Self {
         let arcs = self.arcs.iter().map(|x| x.transform(xform)).collect();
         Self { arcs }
+    }
+}
+
+impl Renderable for ClineArcTile {
+    fn bake_geometry(&self) -> Vec<RenderPrimitive> {
+        self.arcs.iter().flat_map(|x| x.bake_geometry()).collect()
     }
 }

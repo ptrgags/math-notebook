@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::{
     geometry::{Circle, Line},
     isogonal::Isogonal,
+    renderable::{RenderPrimitive, Renderable},
     Complex, Mobius,
 };
 
@@ -170,22 +171,6 @@ impl Cline {
     }
 }
 
-impl Transformable<Isogonal> for Cline {
-    fn transform(&self, xform: Isogonal) -> Self {
-        match xform {
-            Isogonal::Conformal(mobius) => Self::transform(mobius, *self),
-            // If you swap z and z.conj() in the implicit equation for the cline,
-            // the only thing that changes is B and C swap (i.e. transpose the matrix).
-            // Since B and C are complex conjugates, and A and D are real, the transpose
-            // is equal to the complex conjugate of the matrix
-            //
-            Isogonal::AntiConformal(mobius) => {
-                Self::transform(mobius.complex_conjugate(), *self).complex_conjugate()
-            }
-        }
-    }
-}
-
 impl From<Circle> for Cline {
     fn from(value: Circle) -> Self {
         let Circle { center, radius } = value;
@@ -224,6 +209,33 @@ impl From<Line> for Cline {
             c: unit_normal,
             d: (-2.0 * distance).into(),
         }
+    }
+}
+
+impl Transformable<Isogonal> for Cline {
+    fn transform(&self, xform: Isogonal) -> Self {
+        match xform {
+            Isogonal::Conformal(mobius) => Self::transform(mobius, *self),
+            // If you swap z and z.conj() in the implicit equation for the cline,
+            // the only thing that changes is B and C swap (i.e. transpose the matrix).
+            // Since B and C are complex conjugates, and A and D are real, the transpose
+            // is equal to the complex conjugate of the matrix
+            //
+            Isogonal::AntiConformal(mobius) => {
+                Self::transform(mobius.complex_conjugate(), *self).complex_conjugate()
+            }
+        }
+    }
+}
+
+impl Renderable for Cline {
+    fn bake_geometry(&self) -> Vec<RenderPrimitive> {
+        let primitive = match self.classify() {
+            GeneralizedCircle::Circle(circle) => RenderPrimitive::Circle(circle),
+            GeneralizedCircle::Line(line) => RenderPrimitive::make_line(line),
+        };
+
+        vec![primitive]
     }
 }
 

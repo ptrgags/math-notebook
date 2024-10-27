@@ -1,7 +1,9 @@
 pub mod cline;
+pub mod collection;
 
 use crate::{isogonal::Isogonal, Mobius};
 pub use cline::*;
+pub use collection::*;
 
 pub trait Transformable<T> {
     fn transform(&self, xform: T) -> Self;
