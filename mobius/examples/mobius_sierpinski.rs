@@ -3,7 +3,7 @@ use core::f64;
 use mobius::{
     cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
-    geometry::{Circle, LineSegment},
+    geometry::{Circle, CircularArc, LineSegment},
     scale,
     svg_plot::{add_geometry, flip_y, make_axes, make_card},
     transformable::{Cline, Transformable},
@@ -155,12 +155,13 @@ fn main() {
 
     let tile = ClineArcTile::new(vec![
         ClineArc::from_line_segment(LineSegment::new(Complex::Zero, Complex::ONE)).unwrap(),
-        ClineArc::from_circle_and_angles(
+        CircularArc::new(
             Circle::unit_circle(),
             0.0,
             f64::consts::FRAC_PI_4,
             f64::consts::FRAC_PI_2,
-        ),
+        )
+        .into(),
         ClineArc::from_line_segment(LineSegment::new(Complex::I, Complex::Zero)).unwrap(),
     ]);
 

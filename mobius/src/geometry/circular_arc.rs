@@ -13,6 +13,17 @@ pub struct CircularArc {
     pub angle_c: f64,
 }
 
+impl CircularArc {
+    pub fn new(circle: Circle, angle_a: f64, angle_b: f64, angle_c: f64) -> Self {
+        Self {
+            circle,
+            angle_a,
+            angle_b,
+            angle_c,
+        }
+    }
+}
+
 impl Geometry for CircularArc {}
 impl DirectedEdge for CircularArc {
     fn start(&self) -> Complex {

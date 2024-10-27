@@ -54,24 +54,6 @@ pub struct ClineArc {
 }
 
 impl ClineArc {
-    pub fn from_circle_and_angles(
-        circle: Circle,
-        theta_a: f64,
-        theta_b: f64,
-        theta_c: f64,
-    ) -> Self {
-        let Circle { center, radius } = circle;
-        let a = center + Complex::from_polar(radius, theta_a);
-        let b = center + Complex::from_polar(radius, theta_b);
-        let c = center + Complex::from_polar(radius, theta_c);
-        Self {
-            cline: circle.into(),
-            a,
-            b,
-            c,
-        }
-    }
-
     pub fn from_line_segment(segment: LineSegment) -> Result<Self, String> {
         let LineSegment { start, end } = segment;
 
@@ -191,6 +173,49 @@ impl ClineArc {
                     angle_c: end_angle,
                 })
             }
+        }
+    }
+}
+
+impl From<CircularArc> for ClineArc {
+    fn from(value: CircularArc) -> Self {
+        let CircularArc {
+            circle,
+            angle_a,
+            angle_b,
+            angle_c,
+        } = value;
+
+        let Circle { center, radius } = circle;
+        let a = center + Complex::from_polar(radius, angle_a);
+        let b = center + Complex::from_polar(radius, angle_b);
+        let c = center + Complex::from_polar(radius, angle_c);
+        Self {
+            cline: circle.into(),
+            a,
+            b,
+            c,
+        }
+    }
+}
+
+impl From<LineSegment> for ClineArc {
+    fn from(value: LineSegment) -> Self {
+        let LineSegment { start, end } = value;
+
+        let unit_tangent = (end - start).normalize().unwrap();
+        let unit_normal = Complex::I * unit_tangent;
+
+        let distance = Complex::dot(unit_normal, start);
+        let line = Line::new(unit_normal, distance).unwrap();
+
+        let midpoint = (start + end) * (0.5).into();
+
+        Self {
+            cline: line.into(),
+            a: start,
+            b: midpoint,
+            c: end,
         }
     }
 }

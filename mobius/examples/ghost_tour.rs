@@ -5,7 +5,7 @@ use mobius::{
     cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
     elliptic,
-    geometry::{Circle, LineSegment},
+    geometry::{Circle, CircularArc, LineSegment},
     iterated_function_system::{apply_ifs, IFS},
     loxodromic, map_triple, rotation, scale,
     style::Style,
@@ -23,7 +23,7 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
     const BOTTOM_CIRCLE_RADIUS: f64 = 1.0 / 5.0;
     let body = ClineArcTile::new(vec![
         // top of ghost head is a semi-circle
-        ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, FRAC_PI_2, PI),
+        CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_2, PI).into(),
         // Left side
         ClineArc::from_line_segment(LineSegment::new(
             -Complex::ONE,
@@ -31,7 +31,7 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
         ))
         .unwrap(),
         // Five semi-circles for the bottom
-        ClineArc::from_circle_and_angles(
+        CircularArc::new(
             Circle::new(
                 Complex::new(-2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
                 BOTTOM_CIRCLE_RADIUS,
@@ -39,8 +39,9 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
             PI,
             3.0 * FRAC_PI_2,
             TAU,
-        ),
-        ClineArc::from_circle_and_angles(
+        )
+        .into(),
+        CircularArc::new(
             Circle::new(
                 Complex::new(-1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
                 BOTTOM_CIRCLE_RADIUS,
@@ -48,14 +49,16 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
             PI,
             FRAC_PI_2,
             0.0,
-        ),
-        ClineArc::from_circle_and_angles(
+        )
+        .into(),
+        CircularArc::new(
             Circle::new(Complex::new(0.0, -SIDE_HEIGHT), BOTTOM_CIRCLE_RADIUS),
             PI,
             3.0 * FRAC_PI_2,
             TAU,
-        ),
-        ClineArc::from_circle_and_angles(
+        )
+        .into(),
+        CircularArc::new(
             Circle::new(
                 Complex::new(1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
                 BOTTOM_CIRCLE_RADIUS,
@@ -63,8 +66,9 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
             PI,
             FRAC_PI_2,
             0.0,
-        ),
-        ClineArc::from_circle_and_angles(
+        )
+        .into(),
+        CircularArc::new(
             Circle::new(
                 Complex::new(2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
                 BOTTOM_CIRCLE_RADIUS,
@@ -72,7 +76,8 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
             PI,
             3.0 * FRAC_PI_2,
             TAU,
-        ),
+        )
+        .into(),
         // Right side
         ClineArc::from_line_segment(LineSegment::new(
             Complex::new(1.0, -SIDE_HEIGHT),

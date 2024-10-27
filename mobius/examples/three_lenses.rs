@@ -3,7 +3,7 @@ use std::f64::consts::{FRAC_PI_2, PI};
 use mobius::{
     cline_arc::ClineArc,
     cline_tile::ClineArcTile,
-    geometry::{Circle, LineSegment},
+    geometry::{Circle, CircularArc, LineSegment},
     iterated_function_system::{apply_ifs, IFS},
     map_triple,
     style::Style,
@@ -63,7 +63,7 @@ fn main() {
 
     let half_circle = ClineArcTile::new(vec![
         ClineArc::from_line_segment(LineSegment::new(-Complex::ONE, Complex::ONE)).unwrap(),
-        ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, FRAC_PI_2, PI),
+        CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_2, PI).into(),
     ]);
 
     //let rotate_90 = rotation(FRAC_PI_2).unwrap();

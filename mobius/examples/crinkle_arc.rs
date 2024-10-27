@@ -52,17 +52,13 @@ fn arc_lerp(circle: Circle, a: Complex, b: Complex, t: f64) -> Complex {
     circle.get_point(lerp_angle)
 }
 
-fn arc_fractal(arc: ClineArc) -> (Mobius, Mobius) {
-    let circular_arc = match arc.classify() {
-        ClineArcGeometry::CircularArc(arc) => arc,
-        _ => panic!("arc must be a circular arc"),
-    };
+fn arc_fractal(arc: CircularArc) -> (Mobius, Mobius) {
     let CircularArc {
         circle,
         angle_a,
         angle_b,
         angle_c,
-    } = circular_arc;
+    } = arc;
     let t = ((angle_b - angle_a) / (angle_c - angle_a)).abs();
 
     let a = circle.get_point(angle_a);
@@ -82,12 +78,14 @@ fn arc_fractal(arc: ClineArc) -> (Mobius, Mobius) {
 }
 
 fn main() -> Result<(), Error> {
-    let arc = ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, PI / 4.0, PI / 2.0);
+    let arc = CircularArc::new(Circle::unit_circle(), 0.0, PI / 4.0, PI / 2.0);
     let (a, b) = arc_fractal(arc);
+
+    let tile: ClineArc = arc.into();
 
     let ifs = IFS::new(vec![a, b]);
 
-    let tiles = apply_ifs(&ifs, &arc, 0, 8);
+    let tiles = apply_ifs(&ifs, &tile, 0, 8);
 
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.5);
     let mut geometry = style_group(orange_lines);

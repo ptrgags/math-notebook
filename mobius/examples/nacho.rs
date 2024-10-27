@@ -6,7 +6,7 @@ use std::{
 use mobius::{
     cline_arc::ClineArc,
     cline_tile::ClineArcTile,
-    geometry::{Circle, LineSegment},
+    geometry::{Circle, CircularArc, LineSegment},
     iterated_function_system::{apply_ifs, IFS},
     map_triple, scale,
     style::Style,
@@ -65,7 +65,7 @@ fn main() -> Result<(), Error> {
 
     let tile = ClineArcTile::new(vec![
         ClineArc::from_line_segment(LineSegment::new(Complex::Zero, Complex::ONE)).unwrap(),
-        ClineArc::from_circle_and_angles(Circle::unit_circle(), 0.0, FRAC_PI_4, FRAC_PI_2),
+        CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_4, FRAC_PI_2).into(),
         ClineArc::from_line_segment(LineSegment::new(Complex::I, Complex::Zero)).unwrap(),
     ]);
 
