@@ -3,10 +3,10 @@ use std::io::Error;
 
 use abstraction::{Group, Semigroup};
 use mobius::{
-    cline::Cline,
     elliptic, hyperbolic,
     style::Style,
     svg_plot::{add_geometry, render_views, style_group, View},
+    transformable::{Cline, Transformable},
 };
 use svg::node::element::Group as SvgGroup;
 
@@ -19,7 +19,7 @@ fn main() -> Result<(), Error> {
 
     let h_clines: Vec<Cline> = h_powers
         .chain(h_inv_powers)
-        .map(|x| Cline::transform(x, center_line))
+        .map(|x| center_line.transform(x))
         .collect();
 
     let mut parallels = style_group(Style::stroke(255, 255, 0).with_width(0.25));
@@ -30,7 +30,7 @@ fn main() -> Result<(), Error> {
 
     let real_axis = Cline::real_axis();
 
-    let e_clines: Vec<Cline> = e_powers.map(|x| Cline::transform(x, real_axis)).collect();
+    let e_clines: Vec<Cline> = e_powers.map(|x| real_axis.transform(x)).collect();
 
     let mut meridians = style_group(Style::stroke(255, 0, 0).with_width(0.25));
     meridians = add_geometry(meridians, &e_clines[..]);

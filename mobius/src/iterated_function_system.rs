@@ -1,6 +1,6 @@
 use abstraction::{Group, Semigroup};
 
-use crate::{cline_tile::ClineArcTile, Mobius};
+use crate::{transformable::Transformable, Mobius};
 
 /// Iterated Function System. This is still in a prototype stage
 pub struct IFS {
@@ -70,14 +70,14 @@ impl<'a> Iterator for IFSDepthFirstIterator<'a> {
     }
 }
 
-pub fn transform_tile(
+pub fn apply_ifs<T: Transformable<Mobius>>(
     ifs: &IFS,
-    tile: &ClineArcTile,
+    primitive: &T,
     min_depth: usize,
     max_depth: usize,
-) -> Vec<ClineArcTile> {
+) -> Vec<T> {
     ifs.dfs(max_depth)
         .filter(|(depth, _)| *depth >= min_depth)
-        .map(|(_, xform)| tile.transform(xform))
+        .map(|(_, xform)| primitive.transform(xform))
         .collect()
 }

@@ -1,8 +1,9 @@
 use std::{f64::consts::TAU, fmt::Display};
 
 use crate::{
-    cline::{Cline, GeneralizedCircle},
     geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
+    isogonal::Isogonal,
+    transformable::{Cline, GeneralizedCircle, Transformable},
     Complex, Mobius,
 };
 
@@ -199,13 +200,15 @@ impl ClineArc {
             }
         }
     }
+}
 
-    pub fn transform(mobius: Mobius, arc: ClineArc) -> Self {
+impl Transformable<Isogonal> for ClineArc {
+    fn transform(&self, xform: Isogonal) -> Self {
         Self {
-            cline: Cline::transform(mobius, arc.cline),
-            a: mobius * arc.a,
-            b: mobius * arc.b,
-            c: mobius * arc.c,
+            cline: self.cline.transform(xform),
+            a: xform * self.a,
+            b: xform * self.b,
+            c: xform * self.c,
         }
     }
 }

@@ -1,12 +1,12 @@
 use core::f64;
 
 use mobius::{
-    cline::Cline,
     cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
     geometry::{Circle, LineSegment},
     scale,
     svg_plot::{add_geometry, flip_y, make_axes, make_card},
+    transformable::{Cline, Transformable},
     Complex, Mobius,
 };
 use svg::{

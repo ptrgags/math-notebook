@@ -3,8 +3,8 @@ use std::{
     io::Error,
 };
 
+use mobius::transformable::{Cline, Transformable};
 use mobius::{
-    cline::Cline,
     cline_arc::{ClineArc, ClineArcGeometry},
     geometry::{Circle, CircularArc},
     iterated_function_system::IFS,
@@ -85,10 +85,7 @@ fn main() -> Result<(), Error> {
 
     let ifs = IFS::new(vec![a, b]);
 
-    let tiles: Vec<ClineArc> = ifs
-        .dfs(8)
-        .map(|(_, x)| ClineArc::transform(x, arc))
-        .collect();
+    let tiles: Vec<ClineArc> = ifs.dfs(8).map(|(_, x)| arc.transform(x)).collect();
 
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.5);
     let mut geometry = style_group(orange_lines);

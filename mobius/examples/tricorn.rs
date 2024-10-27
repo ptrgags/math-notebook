@@ -7,6 +7,7 @@ use mobius::{
     geometry::{Circle, LineSegment},
     map_triple, scale,
     svg_plot::{add_geometry, flip_y, make_axes, make_card},
+    transformable::Transformable,
     Complex, Mobius,
 };
 use svg::node::element::Group;

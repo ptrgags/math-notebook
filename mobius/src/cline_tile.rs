@@ -1,6 +1,10 @@
 use std::fmt::Display;
 
-use crate::{cline::Cline, cline_arc::ClineArc, Mobius};
+use crate::{
+    cline_arc::ClineArc,
+    isogonal::Isogonal,
+    transformable::{Cline, Transformable},
+};
 
 #[derive(Clone)]
 pub struct ClineTile {
@@ -12,20 +16,16 @@ impl ClineTile {
         Self { clines }
     }
 
-    pub fn transform(&self, xform: Mobius) -> Self {
-        let transformed = self
-            .clines
-            .iter()
-            .map(|x| Cline::transform(xform, *x))
-            .collect();
-
-        Self {
-            clines: transformed,
-        }
-    }
-
     pub fn get_clines(&self) -> &[Cline] {
         &self.clines
+    }
+}
+
+impl Transformable<Isogonal> for ClineTile {
+    fn transform(&self, xform: Isogonal) -> Self {
+        let clines: Vec<Cline> = self.clines.iter().map(|x| x.transform(xform)).collect();
+
+        Self { clines }
     }
 }
 
@@ -48,17 +48,14 @@ impl ClineArcTile {
         Self { arcs }
     }
 
-    pub fn transform(&self, xform: Mobius) -> Self {
-        let transformed: Vec<ClineArc> = self
-            .arcs
-            .iter()
-            .map(|x| ClineArc::transform(xform, *x))
-            .collect();
-
-        Self { arcs: transformed }
-    }
-
     pub fn get_arcs(&self) -> &[ClineArc] {
         &self.arcs
+    }
+}
+
+impl Transformable<Isogonal> for ClineArcTile {
+    fn transform(&self, xform: Isogonal) -> Self {
+        let arcs = self.arcs.iter().map(|x| x.transform(xform)).collect();
+        Self { arcs }
     }
 }

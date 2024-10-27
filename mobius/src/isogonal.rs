@@ -2,7 +2,7 @@ use std::ops::Mul;
 
 use abstraction::{Group, Semigroup};
 
-use crate::Mobius;
+use crate::{Complex, Mobius};
 
 /// An isogonal (angle-preserving but not necessarily orientation preserving)
 /// map realized as either a Mobius transformation M or a mirror (complex conjugation)
@@ -14,7 +14,7 @@ pub enum Isogonal {
     /// M * conj. The complex conjugate is an anti-conformal
     /// mappinig, means it preserves angle magnitudes, but flips the
     /// direction.
-    AntiConformal(Mobius)
+    AntiConformal(Mobius),
 }
 
 impl From<Mobius> for Isogonal {
@@ -32,9 +32,26 @@ impl Mul for Isogonal {
             // a * (b * conj) = a * b * conj
             (Self::Conformal(a), Self::AntiConformal(b)) => Self::AntiConformal(a * b),
             // (a * conj) * b = a * conj(b) * conj
-            (Self::AntiConformal(a), Self::Conformal(b)) => Self::AntiConformal(a * b.complex_conjugate()),
-            // (a * conj) * (b * conj) = (a * conj(b) * conj * conj) = (a * conj(b)) 
-            (Self::AntiConformal(a), Self::AntiConformal(b)) => Self::Conformal(a * b.complex_conjugate()),
+            (Self::AntiConformal(a), Self::Conformal(b)) => {
+                Self::AntiConformal(a * b.complex_conjugate())
+            }
+            // (a * conj) * (b * conj) = (a * conj(b) * conj * conj) = (a * conj(b))
+            (Self::AntiConformal(a), Self::AntiConformal(b)) => {
+                Self::Conformal(a * b.complex_conjugate())
+            }
+        }
+    }
+}
+
+impl Mul<Complex> for Isogonal {
+    type Output = Complex;
+
+    fn mul(self, rhs: Complex) -> Self::Output {
+        match self {
+            Self::Conformal(m) => m * rhs,
+            // The transformation is m * conj, so conjugate first then
+            // apply the matrix
+            Self::AntiConformal(m) => m * rhs.conj(),
         }
     }
 }
@@ -50,7 +67,7 @@ impl Group for Isogonal {
         match self {
             Self::Conformal(m) => Self::Conformal(m.inverse()),
             // (M conj)^-1 = conj^-1 M^-1 = conj(M)^-1 conj
-            Self::AntiConformal(m) => Self::AntiConformal(m.complex_conjugate().inverse())
+            Self::AntiConformal(m) => Self::AntiConformal(m.complex_conjugate().inverse()),
         }
     }
 }
@@ -64,43 +81,50 @@ mod test {
     test_identity!(
         Isogonal,
         [
-            (conformal_map, Mobius {
-                a: (2.0).into(),
-                b: Complex::Zero,
-                c: Complex::Zero,
-                d: (0.5).into()
-            }.into()),
-            (anticonformal_map, Isogonal::AntiConformal(Mobius {
-                a: Complex::ONE,
-                b: Complex::Zero,
-                c: Complex::new(3.0, 4.0),
-                d: Complex::ONE,
-            },))
+            (
+                conformal_map,
+                Isogonal::from(Mobius {
+                    a: (2.0).into(),
+                    b: Complex::Zero,
+                    c: Complex::Zero,
+                    d: (0.5).into()
+                })
+            ),
+            (
+                anticonformal_map,
+                Isogonal::AntiConformal(Mobius {
+                    a: Complex::ONE,
+                    b: Complex::Zero,
+                    c: Complex::new(3.0, 4.0),
+                    d: Complex::ONE,
+                },)
+            )
         ]
     );
 
     test_associativity!(
         Isogonal,
-        [
-            (three_arbitrary_xforms, Isogonal::Conformal(Mobius {
+        [(
+            three_arbitrary_xforms,
+            Isogonal::Conformal(Mobius {
                 a: Complex::ONE,
                 b: Complex::Zero,
                 c: Complex::new(3.0, 4.0),
                 d: Complex::ONE,
             }),
-            Mobius {
+            Isogonal::from(Mobius {
                 a: (2.0).into(),
                 b: Complex::Zero,
                 c: Complex::Zero,
                 d: (0.5).into(),
-            }.into(),
+            }),
             Isogonal::AntiConformal(Mobius {
                 a: Complex::ONE,
                 b: Complex::new(3.0, 4.0),
                 c: Complex::Zero,
                 d: Complex::ONE,
-            }))
-        ]
+            })
+        )]
     );
 
     test_group!(
@@ -113,13 +137,15 @@ mod test {
                     b: Complex::Zero,
                     c: Complex::new(3.0, 4.0),
                     d: Complex::ONE,
-                }.into(),
+                }
+                .into(),
                 Mobius {
                     a: (2.0).into(),
                     b: Complex::Zero,
                     c: Complex::Zero,
                     d: (0.5).into(),
-                }.into()
+                }
+                .into()
             ),
             (
                 conformal_anticonformal,
@@ -128,7 +154,8 @@ mod test {
                     b: Complex::Zero,
                     c: Complex::new(3.0, 4.0),
                     d: Complex::ONE,
-                }.into(),
+                }
+                .into(),
                 Isogonal::AntiConformal(Mobius {
                     a: (2.0).into(),
                     b: Complex::Zero,
@@ -149,7 +176,8 @@ mod test {
                     b: (5.0).into(),
                     c: Complex::Zero,
                     d: Complex::ONE,
-                }.into()
+                }
+                .into()
             ),
             (
                 anticonformal_anticonformal,

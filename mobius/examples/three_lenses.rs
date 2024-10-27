@@ -4,7 +4,7 @@ use mobius::{
     cline_arc::ClineArc,
     cline_tile::ClineArcTile,
     geometry::{Circle, LineSegment},
-    iterated_function_system::{transform_tile, IFS},
+    iterated_function_system::{apply_ifs, IFS},
     map_triple,
     style::Style,
     svg_plot::{add_geometry, flip_y, make_card, style_group},
@@ -48,7 +48,7 @@ fn show_individual_xforms(
         .zip(colors.iter())
         .map(|(xform, style)| {
             let ifs = IFS::new(vec![*xform]);
-            let tiles = transform_tile(&ifs, &tile, min_depth, max_depth);
+            let tiles = apply_ifs(&ifs, tile, min_depth, max_depth);
 
             let mut geometry = style_group(*style);
             geometry = add_geometry(geometry, &tiles[..]);
@@ -70,7 +70,7 @@ fn main() {
     //let ifs = IFS::sandwich(rotate_90, &IFS::new(xforms));
     let ifs = IFS::new(xforms.clone());
 
-    let tiles = transform_tile(&ifs, &half_circle, 8, 8);
+    let tiles = apply_ifs(&ifs, &half_circle, 8, 8);
     let mut geometry = style_group(Style::stroke(255, 0, 0).with_width(0.125));
     geometry = add_geometry(geometry, &tiles[..]);
 

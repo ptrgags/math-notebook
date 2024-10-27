@@ -2,8 +2,11 @@ use std::fmt::Display;
 
 use crate::{
     geometry::{Circle, Line},
+    isogonal::Isogonal,
     Complex, Mobius,
 };
+
+use super::Transformable;
 
 // Simpler data structure for representing clines in human-understandable
 // format.
@@ -84,7 +87,22 @@ impl Cline {
         }
     }
 
-    pub fn transform(xform: Mobius, cline: Cline) -> Self {
+    pub fn complex_conjugate(&self) -> Self {
+        // computing the complex conjugate of the matrix is just the transpose!
+        //
+        // conj(M) = conj([A        B]) = [A B.conj()] = M^T
+        //                [B.conj() D]    [B        D]
+        //
+        // (this is because A and D are real, and B and C are complex conjugates)
+        Self {
+            a: self.a,
+            b: self.c,
+            c: self.b,
+            d: self.d,
+        }
+    }
+
+    fn transform(xform: Mobius, cline: Cline) -> Self {
         // According to the Wikipedia article, the implicit equation
         // can be written 0 = z^T C conj(z)
         //
@@ -147,6 +165,22 @@ impl Cline {
                 b: b / length,
                 c: c / length,
                 d: d / length,
+            }
+        }
+    }
+}
+
+impl Transformable<Isogonal> for Cline {
+    fn transform(&self, xform: Isogonal) -> Self {
+        match xform {
+            Isogonal::Conformal(mobius) => Self::transform(mobius, *self),
+            // If you swap z and z.conj() in the implicit equation for the cline,
+            // the only thing that changes is B and C swap (i.e. transpose the matrix).
+            // Since B and C are complex conjugates, and A and D are real, the transpose
+            // is equal to the complex conjugate of the matrix
+            //
+            Isogonal::AntiConformal(mobius) => {
+                Self::transform(mobius.complex_conjugate(), *self).complex_conjugate()
             }
         }
     }
