@@ -7,11 +7,10 @@ use svg::{
 };
 
 use crate::{
-    cline_tile::ClineTile,
     geometry::{Circle, CircularArc, LineSegment},
     renderable::{RenderPrimitive, Renderable},
     style::Style,
-    transformable::Cline,
+    transformable::{Cline, ClineTile},
     Complex,
 };
 pub struct SvgNode(Box<dyn Node>);

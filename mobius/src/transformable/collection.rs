@@ -1,10 +1,15 @@
 use std::fmt::Display;
 
-use crate::isogonal::Isogonal;
+use crate::{
+    cline_arc::ClineArc,
+    isogonal::Isogonal,
+    renderable::{RenderPrimitive, Renderable},
+};
 
-use super::Transformable;
+use super::{Cline, Transformable};
 
 /// A generic collection of transformable primitives of the same type
+#[derive(Clone)]
 pub struct Collection<T: Transformable<Isogonal>> {
     primitives: Vec<T>,
 }
@@ -35,3 +40,15 @@ impl<T: Display + Transformable<Isogonal>> Display for Collection<T> {
         Ok(())
     }
 }
+
+impl<T: Renderable + Transformable<Isogonal>> Renderable for Collection<T> {
+    fn bake_geometry(&self) -> Vec<RenderPrimitive> {
+        self.primitives
+            .iter()
+            .flat_map(|x| x.bake_geometry())
+            .collect()
+    }
+}
+
+pub type ClineTile = Collection<Cline>;
+pub type ClineArcTile = Collection<ClineArc>;

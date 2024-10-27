@@ -2,14 +2,13 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI, TAU};
 
 use abstraction::Group;
 use mobius::{
-    cline_tile::{ClineArcTile, ClineTile},
     elliptic,
     geometry::{Circle, CircularArc, LineSegment},
     iterated_function_system::{apply_ifs, IFS},
     loxodromic, map_triple, rotation, scale,
     style::Style,
     svg_plot::{add_geometry, render_views, style_group, View},
-    transformable::Transformable,
+    transformable::{ClineArcTile, ClineTile, Transformable},
     translation, Complex, Mobius,
 };
 use svg::node::element::Group as SvgGroup;

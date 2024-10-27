@@ -4,12 +4,12 @@ use std::{
 };
 
 use mobius::{
-    cline_tile::ClineArcTile,
     geometry::{Circle, CircularArc, LineSegment},
     iterated_function_system::{apply_ifs, IFS},
     map_triple, scale,
     style::Style,
     svg_plot::{add_geometry, render_views, style_group, View},
+    transformable::ClineArcTile,
     Complex, Mobius,
 };
 use svg::node::element::Group;

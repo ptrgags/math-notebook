@@ -2,11 +2,10 @@ use core::f64;
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, TAU};
 
 use mobius::{
-    cline_tile::ClineArcTile,
     geometry::{Circle, CircularArc, LineSegment},
     map_triple, scale,
     svg_plot::{add_geometry, flip_y, make_axes, make_card},
-    transformable::Transformable,
+    transformable::{ClineArcTile, Transformable},
     Complex, Mobius,
 };
 use svg::node::element::Group;
