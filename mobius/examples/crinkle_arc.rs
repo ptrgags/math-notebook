@@ -4,7 +4,7 @@ use std::{
 };
 
 use mobius::{
-    cline_arc::{ClineArc, ClineArcGeometry},
+    cline_arc::ClineArc,
     geometry::{Circle, CircularArc},
     iterated_function_system::IFS,
     map_triple,

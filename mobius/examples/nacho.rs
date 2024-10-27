@@ -4,13 +4,12 @@ use std::{
 };
 
 use mobius::{
-    cline_arc::ClineArc,
     cline_tile::ClineArcTile,
     geometry::{Circle, CircularArc, LineSegment},
     iterated_function_system::{apply_ifs, IFS},
     map_triple, scale,
     style::Style,
-    svg_plot::{add_geometry, flip_y, make_card, render_views, style_group, View},
+    svg_plot::{add_geometry, render_views, style_group, View},
     Complex, Mobius,
 };
 use svg::node::element::Group;
@@ -64,9 +63,9 @@ fn main() -> Result<(), Error> {
     let modified_sierpinski = IFS::new(xforms.clone());
 
     let tile = ClineArcTile::new(vec![
-        ClineArc::from_line_segment(LineSegment::new(Complex::Zero, Complex::ONE)).unwrap(),
+        LineSegment::new(Complex::Zero, Complex::ONE).into(),
         CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_4, FRAC_PI_2).into(),
-        ClineArc::from_line_segment(LineSegment::new(Complex::I, Complex::Zero)).unwrap(),
+        LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
     let sierpinski_tiles = apply_ifs(&modified_sierpinski, &tile, 0, 6);

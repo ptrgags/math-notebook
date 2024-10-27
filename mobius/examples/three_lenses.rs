@@ -1,7 +1,6 @@
 use std::f64::consts::{FRAC_PI_2, PI};
 
 use mobius::{
-    cline_arc::ClineArc,
     cline_tile::ClineArcTile,
     geometry::{Circle, CircularArc, LineSegment},
     iterated_function_system::{apply_ifs, IFS},
@@ -62,7 +61,7 @@ fn main() {
     let xforms = make_xforms();
 
     let half_circle = ClineArcTile::new(vec![
-        ClineArc::from_line_segment(LineSegment::new(-Complex::ONE, Complex::ONE)).unwrap(),
+        LineSegment::new(-Complex::ONE, Complex::ONE).into(),
         CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_2, PI).into(),
     ]);
 

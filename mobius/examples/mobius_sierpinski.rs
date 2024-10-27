@@ -1,7 +1,6 @@
 use core::f64;
 
 use mobius::{
-    cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
     geometry::{Circle, CircularArc, LineSegment},
     scale,
@@ -154,7 +153,7 @@ fn main() {
     // ----------------------
 
     let tile = ClineArcTile::new(vec![
-        ClineArc::from_line_segment(LineSegment::new(Complex::Zero, Complex::ONE)).unwrap(),
+        LineSegment::new(Complex::Zero, Complex::ONE).into(),
         CircularArc::new(
             Circle::unit_circle(),
             0.0,
@@ -162,7 +161,7 @@ fn main() {
             f64::consts::FRAC_PI_2,
         )
         .into(),
-        ClineArc::from_line_segment(LineSegment::new(Complex::I, Complex::Zero)).unwrap(),
+        LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
     let tiles_level1 = apply_xforms(&xforms, &tile);

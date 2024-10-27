@@ -54,29 +54,6 @@ pub struct ClineArc {
 }
 
 impl ClineArc {
-    pub fn from_line_segment(segment: LineSegment) -> Result<Self, String> {
-        let LineSegment { start, end } = segment;
-
-        if start == end {
-            return Err(String::from("Start and end must be distinct points"));
-        }
-
-        let unit_tangent = (end - start).normalize().unwrap();
-        let unit_normal = Complex::I * unit_tangent;
-
-        let distance = Complex::dot(unit_normal, start);
-        let line = Line::new(unit_normal, distance)?;
-
-        let midpoint = (start + end) * (0.5).into();
-
-        Ok(Self {
-            cline: line.into(),
-            a: start,
-            b: midpoint,
-            c: end,
-        })
-    }
-
     pub fn classify(&self) -> ClineArcGeometry {
         match self.cline.classify() {
             GeneralizedCircle::Line(_) => {

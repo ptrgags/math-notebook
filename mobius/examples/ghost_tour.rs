@@ -2,7 +2,6 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI, TAU};
 
 use abstraction::Group;
 use mobius::{
-    cline_arc::ClineArc,
     cline_tile::{ClineArcTile, ClineTile},
     elliptic,
     geometry::{Circle, CircularArc, LineSegment},
@@ -25,11 +24,7 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
         // top of ghost head is a semi-circle
         CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_2, PI).into(),
         // Left side
-        ClineArc::from_line_segment(LineSegment::new(
-            -Complex::ONE,
-            Complex::new(-1.0, -SIDE_HEIGHT),
-        ))
-        .unwrap(),
+        LineSegment::new(-Complex::ONE, Complex::new(-1.0, -SIDE_HEIGHT)).into(),
         // Five semi-circles for the bottom
         CircularArc::new(
             Circle::new(
@@ -79,11 +74,7 @@ pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
         )
         .into(),
         // Right side
-        ClineArc::from_line_segment(LineSegment::new(
-            Complex::new(1.0, -SIDE_HEIGHT),
-            Complex::ONE,
-        ))
-        .unwrap(),
+        LineSegment::new(Complex::new(1.0, -SIDE_HEIGHT), Complex::ONE).into(),
     ]);
 
     let eyes_and_mouth = ClineTile::new(vec![

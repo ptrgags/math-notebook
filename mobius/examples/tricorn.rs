@@ -2,7 +2,6 @@ use core::f64;
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, TAU};
 
 use mobius::{
-    cline_arc::ClineArc,
     cline_tile::ClineArcTile,
     geometry::{Circle, CircularArc, LineSegment},
     map_triple, scale,
@@ -63,7 +62,7 @@ fn main() {
     // ----------------------
 
     let tile = ClineArcTile::new(vec![
-        ClineArc::from_line_segment(LineSegment::new(Complex::Zero, Complex::ONE)).unwrap(),
+        LineSegment::new(Complex::Zero, Complex::ONE).into(),
         CircularArc::new(
             Circle::unit_circle(),
             0.0,
@@ -71,7 +70,7 @@ fn main() {
             f64::consts::FRAC_PI_2,
         )
         .into(),
-        ClineArc::from_line_segment(LineSegment::new(Complex::I, Complex::Zero)).unwrap(),
+        LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
     let tiles_level1 = apply_xforms(&xforms, &tile);
@@ -99,9 +98,9 @@ fn main() {
     // --
 
     let another_tile = ClineArcTile::new(vec![
-        ClineArc::from_line_segment(LineSegment::new(Complex::Zero, -Complex::I)).unwrap(),
+        LineSegment::new(Complex::Zero, -Complex::I).into(),
         CircularArc::new(Circle::unit_circle(), 3.0 * FRAC_PI_2, 7.0 * FRAC_PI_4, TAU).into(),
-        ClineArc::from_line_segment(LineSegment::new(Complex::ONE, Complex::Zero)).unwrap(),
+        LineSegment::new(Complex::ONE, Complex::Zero).into(),
     ]);
 
     let tiles_level1 = apply_xforms(&xforms, &another_tile);
