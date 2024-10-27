@@ -1,4 +1,7 @@
-use crate::{geometry::{Circle, CircularArc, LineSegment}, Complex};
+use crate::{
+    geometry::{Circle, CircularArc, LineSegment},
+    Complex,
+};
 
 /// A single directed edge that can be part of a path
 pub enum PathElement {
