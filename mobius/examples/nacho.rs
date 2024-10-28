@@ -4,13 +4,7 @@ use std::{
 };
 
 use mobius::{
-    geometry::{Circle, CircularArc, LineSegment},
-    iterated_function_system::{apply_ifs, IFS},
-    map_triple, scale,
-    style::Style,
-    svg_plot::{add_geometry, render_views, style_group, View},
-    transformable::ClineArcTile,
-    Complex, Mobius,
+    geometry::{Circle, CircularArc, LineSegment}, iterated_function_system::{apply_ifs, IFS}, map_triple, rendering::Style, scale, svg_plot::{render_views, style_geometry, View}, transformable::ClineArcTile, Complex, Mobius
 };
 use svg::node::element::Group;
 
@@ -69,12 +63,7 @@ fn main() -> Result<(), Error> {
     ]);
 
     let sierpinski_tiles = apply_ifs(&modified_sierpinski, &tile, 0, 6);
-
-    let mut geometry = Group::new()
-        .set("stroke", "orange")
-        .set("stroke-width", "0.125%")
-        .set("fill", "none");
-    geometry = add_geometry(geometry, &sierpinski_tiles[..]);
+    let geometry = style_geometry(Style::stroke(255, 127, 0).with_width(0.125), &sierpinski_tiles[..]);
 
     render_views(
         "output",
@@ -94,14 +83,9 @@ fn main() -> Result<(), Error> {
     let tiles_c = apply_ifs(&c_only, &tile, min_depth, overlay_depth);
 
     let overlay_width = 0.5;
-    let mut geometry_a = style_group(Style::stroke(255, 0, 255).with_width(overlay_width));
-    geometry_a = add_geometry(geometry_a, &tiles_a[..]);
-
-    let mut geometry_b = style_group(Style::stroke(255, 0, 0).with_width(overlay_width));
-    geometry_b = add_geometry(geometry_b, &tiles_b[..]);
-
-    let mut geometry_c = style_group(Style::stroke(255, 255, 255).with_width(overlay_width));
-    geometry_c = add_geometry(geometry_c, &tiles_c[..]);
+    let geometry_a = style_geometry(Style::stroke(255, 0, 255).with_width(overlay_width), &tiles_a[..]);
+    let geometry_b = style_geometry(Style::stroke(255, 0, 0).with_width(overlay_width), &tiles_b[..]);
+    let geometry_c = style_geometry(Style::stroke(255, 255, 255).with_width(overlay_width),  &tiles_c[..]);
 
     let grouped = Group::new()
         .add(geometry)

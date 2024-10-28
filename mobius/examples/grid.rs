@@ -3,10 +3,7 @@ use std::io::Error;
 
 use abstraction::{Group, Semigroup};
 use mobius::{
-    elliptic, hyperbolic,
-    style::Style,
-    svg_plot::{add_geometry, render_views, style_group, View},
-    transformable::{Cline, Transformable},
+    elliptic, hyperbolic, rendering::Style, svg_plot::{add_geometry, render_views, style_geometry, style_group, View}, transformable::{Cline, Transformable}
 };
 use svg::node::element::Group as SvgGroup;
 
@@ -22,8 +19,7 @@ fn main() -> Result<(), Error> {
         .map(|x| center_line.transform(x))
         .collect();
 
-    let mut parallels = style_group(Style::stroke(255, 255, 0).with_width(0.25));
-    parallels = add_geometry(parallels, &h_clines[..]);
+    let parallels = style_geometry(Style::stroke(255, 255, 0).with_width(0.25), &h_clines[..]);
 
     let e = elliptic(f64::consts::PI / 8.0).unwrap();
     let e_powers = e.power_iter().take(16);
@@ -32,9 +28,7 @@ fn main() -> Result<(), Error> {
 
     let e_clines: Vec<Cline> = e_powers.map(|x| real_axis.transform(x)).collect();
 
-    let mut meridians = style_group(Style::stroke(255, 0, 0).with_width(0.25));
-    meridians = add_geometry(meridians, &e_clines[..]);
-
+    let meridians = style_geometry(Style::stroke(255, 0, 0).with_width(0.25), &e_clines[..]);
     let geometry = SvgGroup::new().add(parallels).add(meridians);
 
     render_views(

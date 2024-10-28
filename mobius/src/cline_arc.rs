@@ -3,7 +3,7 @@ use std::{f64::consts::TAU, fmt::Display};
 use crate::{
     geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
     isogonal::Isogonal,
-    renderable::{RenderPrimitive, Renderable},
+    rendering::{RenderPrimitive, Renderable},
     transformable::{Cline, GeneralizedCircle, Transformable},
     Complex,
 };

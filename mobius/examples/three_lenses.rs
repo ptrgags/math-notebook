@@ -1,13 +1,7 @@
 use std::f64::consts::{FRAC_PI_2, PI};
 
 use mobius::{
-    geometry::{Circle, CircularArc, LineSegment},
-    iterated_function_system::{apply_ifs, IFS},
-    map_triple,
-    style::Style,
-    svg_plot::{add_geometry, flip_y, make_card, style_group},
-    transformable::ClineArcTile,
-    Complex, Mobius,
+    geometry::{Circle, CircularArc, LineSegment}, iterated_function_system::{apply_ifs, IFS}, map_triple, rendering::Style, svg_plot::{add_geometry, flip_y, make_card, style_geometry, style_group}, transformable::ClineArcTile, Complex, Mobius
 };
 use svg::node::element::Group;
 
@@ -48,11 +42,7 @@ fn show_individual_xforms(
         .map(|(xform, style)| {
             let ifs = IFS::new(vec![*xform]);
             let tiles = apply_ifs(&ifs, tile, min_depth, max_depth);
-
-            let mut geometry = style_group(*style);
-            geometry = add_geometry(geometry, &tiles[..]);
-
-            geometry
+            style_geometry(*style, &tiles[..])
         })
         .fold(Group::new(), |group, x| group.add(x))
 }
@@ -70,8 +60,7 @@ fn main() {
     let ifs = IFS::new(xforms.clone());
 
     let tiles = apply_ifs(&ifs, &half_circle, 8, 8);
-    let mut geometry = style_group(Style::stroke(255, 0, 0).with_width(0.125));
-    geometry = add_geometry(geometry, &tiles[..]);
+    let geometry = style_geometry(Style::stroke(255, 0, 0).with_width(0.125), &tiles[..]);
 
     let flipped = flip_y().add(geometry.clone());
     let doc = make_card(Complex::new(0.0, 0.0), 1.25).add(flipped.clone());

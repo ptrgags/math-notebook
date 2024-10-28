@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::{
     cline_arc::ClineArc,
     isogonal::Isogonal,
-    renderable::{RenderPrimitive, Renderable},
+    rendering::{RenderPrimitive, Renderable},
 };
 
 use super::{Cline, Transformable};

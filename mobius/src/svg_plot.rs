@@ -8,8 +8,7 @@ use svg::{
 
 use crate::{
     geometry::{Circle, CircularArc, LineSegment},
-    renderable::{RenderPrimitive, Renderable},
-    style::Style,
+    rendering::{RenderPrimitive, Renderable, Style},
     transformable::{Cline, ClineTile},
     Complex,
 };
@@ -161,6 +160,13 @@ pub fn style_group(style: Style) -> Group {
     }
 
     group
+}
+
+pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
+    let mut svg = style_group(style);
+    svg = add_geometry(svg, geometry);
+
+    svg
 }
 
 pub fn make_axes() -> Group {

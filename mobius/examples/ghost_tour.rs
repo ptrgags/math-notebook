@@ -1,142 +1,20 @@
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI, TAU};
+use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 use abstraction::Group;
 use mobius::{
-    elliptic,
-    geometry::{Circle, CircularArc, LineSegment},
-    iterated_function_system::{apply_ifs, IFS},
-    loxodromic, map_triple, rotation, scale,
-    style::Style,
-    svg_plot::{add_geometry, render_views, style_group, View},
-    transformable::{ClineArcTile, ClineTile, Transformable},
-    translation, Complex, Mobius,
+    elliptic, iterated_function_system::{apply_ifs, IFS}, loxodromic, map_triple, motifs::ghost, rendering::Style, rotation, scale, svg_plot::{render_views, style_geometry, View}, transformable::Transformable, translation, Complex, Mobius
 };
-use svg::node::element::Group as SvgGroup;
-
-/// Create a ghost-shaped tile as circular arcs and lines. It spans between [-1, 1] horizontally and between
-/// [-1.7, 1] vertically
-pub fn make_ghost_parts() -> (ClineArcTile, ClineTile) {
-    const SIDE_HEIGHT: f64 = 1.5;
-    const CIRCLE_SPACING: f64 = 2.0 / 5.0;
-    const BOTTOM_CIRCLE_RADIUS: f64 = 1.0 / 5.0;
-    let body = ClineArcTile::new(vec![
-        // top of ghost head is a semi-circle
-        CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_2, PI).into(),
-        // Left side
-        LineSegment::new(-Complex::ONE, Complex::new(-1.0, -SIDE_HEIGHT)).into(),
-        // Five semi-circles for the bottom
-        CircularArc::new(
-            Circle::new(
-                Complex::new(-2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-                BOTTOM_CIRCLE_RADIUS,
-            ),
-            PI,
-            3.0 * FRAC_PI_2,
-            TAU,
-        )
-        .into(),
-        CircularArc::new(
-            Circle::new(
-                Complex::new(-1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-                BOTTOM_CIRCLE_RADIUS,
-            ),
-            PI,
-            FRAC_PI_2,
-            0.0,
-        )
-        .into(),
-        CircularArc::new(
-            Circle::new(Complex::new(0.0, -SIDE_HEIGHT), BOTTOM_CIRCLE_RADIUS),
-            PI,
-            3.0 * FRAC_PI_2,
-            TAU,
-        )
-        .into(),
-        CircularArc::new(
-            Circle::new(
-                Complex::new(1.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-                BOTTOM_CIRCLE_RADIUS,
-            ),
-            PI,
-            FRAC_PI_2,
-            0.0,
-        )
-        .into(),
-        CircularArc::new(
-            Circle::new(
-                Complex::new(2.0 * CIRCLE_SPACING, -SIDE_HEIGHT),
-                BOTTOM_CIRCLE_RADIUS,
-            ),
-            PI,
-            3.0 * FRAC_PI_2,
-            TAU,
-        )
-        .into(),
-        // Right side
-        LineSegment::new(Complex::new(1.0, -SIDE_HEIGHT), Complex::ONE).into(),
-    ]);
-
-    let eyes_and_mouth = ClineTile::new(vec![
-        // Left eye
-        Circle::new(Complex::new(-0.5, 0.0), 0.25).into(),
-        // Right eye
-        Circle::new(Complex::new(0.5, 0.0), 0.25).into(),
-        // Mouth, a little smaller
-        Circle::new(Complex::new(0.0, -0.5), 0.125).into(),
-    ]);
-
-    (body, eyes_and_mouth)
-}
-
-struct Ghost {
-    // Arcs and line segments representing the ghost's ethereal body
-    body: ClineArcTile,
-    // Spooky facial details realized as circles
-    face: ClineTile,
-}
-
-impl Ghost {
-    pub fn new() -> Self {
-        let (body, face) = make_ghost_parts();
-        Self { body, face }
-    }
-
-    pub fn transform(&self, mobius: Mobius) -> Self {
-        Self {
-            body: self.body.transform(mobius),
-            face: self.face.transform(mobius),
-        }
-    }
-
-    pub fn render_svg(&self) -> SvgGroup {
-        let mut svg = style_group(Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25));
-        svg = add_geometry(svg, &self.body);
-        svg = add_geometry(svg, &self.face);
-
-        svg
-    }
-
-    pub fn render_ifs(&self, ifs: &IFS, depth: usize) -> SvgGroup {
-        let transformed_bodies = apply_ifs(ifs, &self.body, 0, depth);
-        let transformed_faces = apply_ifs(ifs, &self.face, 0, depth);
-
-        let mut svg = style_group(Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25));
-        svg = add_geometry(svg, &transformed_bodies[..]);
-        svg = add_geometry(svg, &transformed_faces[..]);
-
-        svg
-    }
-}
 
 pub fn main() -> Result<(), std::io::Error> {
-    let ghost = Ghost::new();
+    let ghost = ghost();
+    let ghost_style = Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25);
 
     // Show the ghost by themself -----------------------------------
     render_views(
         "output",
         "ghosty",
         &[View("", 0.0, -0.5, 2.5)],
-        ghost.render_svg(),
+        style_geometry(ghost_style, &ghost)
     )?;
 
     // Oh no! the ghost fell down the drain! ----------------------
@@ -146,13 +24,13 @@ pub fn main() -> Result<(), std::io::Error> {
     let spiral_in = rotation(-FRAC_PI_3).unwrap() * scale(0.6).unwrap();
     let drain = Mobius::sandwich(translate3, spiral_in);
     let ifs = IFS::new(vec![drain]);
-    let down_the_drain = ghost.render_ifs(&ifs, 20);
+    let down_the_drain = apply_ifs(&ifs, &ghost, 0, 20);
 
     render_views(
         "output",
         "ghost_down_drain",
         &[View("", 1.5, 0.0, 2.5)],
-        down_the_drain,
+        style_geometry(ghost_style, &down_the_drain[..]),
     )?;
 
     // Caught between parabolic transforms that have fixed points at -1 and
@@ -172,22 +50,17 @@ pub fn main() -> Result<(), std::io::Error> {
         (Complex::ONE, Complex::I, -Complex::ONE),
     )
     .unwrap();
-    // Sanity check
-    println!("{:?}", left_parabolic.classify());
-    println!("{:?}", right_parabolic.classify());
+
     let ifs = IFS::new(vec![
         left_parabolic,
-        //left_parabolic.inverse(),
         right_parabolic,
-        //right_parabolic.inverse(),
     ]);
-    let parabolic_walk = small_ghost.render_ifs(&ifs, 6);
-
+    let parabolic_walk = apply_ifs(&ifs, &small_ghost, 0, 6);
     render_views(
         "output",
         "ghost_parabolic",
         &[View("", 0.0, 0.5, 0.9), View("zoom_in", -0.5, 0.6, 0.2)],
-        parabolic_walk,
+        style_geometry(ghost_style, &parabolic_walk[..]),
     )?;
 
     // A loxodromic double spiral. Though instead of going from -1 to 1,
@@ -196,12 +69,12 @@ pub fn main() -> Result<(), std::io::Error> {
     let rotate90 = rotation(FRAC_PI_2).unwrap();
     let vertical_spiral = Mobius::sandwich(rotate90, double_spiral);
     let ifs = IFS::new(vec![vertical_spiral, vertical_spiral.inverse()]);
-    let double_spiral_walk = small_ghost.render_ifs(&ifs, 10);
+    let double_spiral_walk = apply_ifs(&ifs, &small_ghost, 0, 10);
     render_views(
         "output",
         "ghost_double_spiral",
         &[View("", 0.0, 0.0, 1.0), View("sink", -0.125, 0.75, 0.5)],
-        double_spiral_walk,
+        style_geometry(ghost_style, &double_spiral_walk[..])
     )?;
 
     // Two 90 degree elliptic rotations 90 degrees apart. This is isomorphic
@@ -209,27 +82,27 @@ pub fn main() -> Result<(), std::io::Error> {
     let swirl = elliptic(FRAC_PI_2).unwrap();
     let swirl2 = Mobius::sandwich(rotate90, swirl);
     let to_the_left = translation(Complex::new(-0.5, 0.0)).unwrap();
+    let shifted_ghost = small_ghost.transform(to_the_left);
     let ifs = IFS::new(vec![swirl, swirl2]);
-    let swirl_walk = small_ghost.transform(to_the_left).render_ifs(&ifs, 8);
+    let swirl_walk = apply_ifs(&ifs, &shifted_ghost, 0, 8);
     render_views(
         "output",
         "ghost_octahedral",
         &[View("", 0.0, 0.0, 3.0)],
-        swirl_walk,
+        style_geometry(ghost_style, &swirl_walk[..])
     )?;
 
     // But now if we make the rotation slightly different, things don't
     // quite line up. I find the result amusing.
     let swirl = elliptic(PI / 2.01).unwrap();
     let swirl2 = Mobius::sandwich(rotate90, swirl);
-    let to_the_left = translation(Complex::new(-0.5, 0.0)).unwrap();
     let ifs = IFS::new(vec![swirl, swirl2]);
-    let swirl_walk = small_ghost.transform(to_the_left).render_ifs(&ifs, 8);
+    let swirl_walk = apply_ifs(&ifs, &shifted_ghost, 0, 8);
     render_views(
         "output",
         "ghost_triggered",
         &[View("", 0.0, 0.0, 3.0)],
-        swirl_walk,
+        style_geometry(ghost_style, &swirl_walk[..])
     )?;
 
     Ok(())

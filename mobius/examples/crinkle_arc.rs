@@ -4,13 +4,7 @@ use std::{
 };
 
 use mobius::{
-    cline_arc::ClineArc,
-    geometry::{Circle, CircularArc},
-    iterated_function_system::IFS,
-    map_triple,
-    style::Style,
-    svg_plot::{add_geometry, render_views, style_group, View},
-    Complex, Mobius,
+    cline_arc::ClineArc, geometry::{Circle, CircularArc}, iterated_function_system::IFS, map_triple, rendering::Style, svg_plot::{add_geometry, render_views, style_geometry, style_group, View}, Complex, Mobius
 };
 use mobius::{iterated_function_system::apply_ifs, transformable::Cline};
 use svg::node::element::Group;
@@ -86,16 +80,13 @@ fn main() -> Result<(), Error> {
     let ifs = IFS::new(vec![a, b]);
 
     let tiles = apply_ifs(&ifs, &tile, 0, 8);
-
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.5);
-    let mut geometry = style_group(orange_lines);
-    geometry = add_geometry(geometry, &tiles[..]);
+    let geometry = style_geometry(orange_lines, &tiles[..]);
 
     let orthog_circle = get_orthog_circle(Circle::unit_circle(), Complex::ONE, Complex::I);
     let circle_cline: Cline = orthog_circle.into();
     let yellow_lines = Style::stroke(255, 255, 0).with_width(0.5);
-    let mut more_geometry = style_group(yellow_lines);
-    more_geometry = add_geometry(more_geometry, [circle_cline].as_slice());
+    let more_geometry = style_geometry(yellow_lines, &circle_cline);
 
     let group = Group::new().add(geometry).add(more_geometry);
 

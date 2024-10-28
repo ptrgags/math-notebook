@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::{
     geometry::{Circle, Line},
     isogonal::Isogonal,
-    renderable::{RenderPrimitive, Renderable},
+    rendering::{RenderPrimitive, Renderable},
     Complex, Mobius,
 };
 
