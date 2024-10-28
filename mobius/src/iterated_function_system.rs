@@ -16,7 +16,7 @@ impl IFS {
         self.xforms[index]
     }
 
-    pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, Mobius> {
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = &Mobius> {
         self.xforms.iter()
     }
 

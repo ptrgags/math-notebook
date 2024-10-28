@@ -20,8 +20,8 @@ impl<S: Semigroup> Iterator for PowerIterator<S> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let current = self.current;
-        self.current = self.element * self.current;
+        let current = self.current.clone();
+        self.current = self.element.clone() * self.current.clone();
 
         if self.power > 0 && current == S::identity() {
             // Cycle detected, short-circuit
@@ -38,18 +38,31 @@ impl<S: Semigroup> Iterator for PowerIterator<S> {
 /// - the binary operation is associative. a(bc) = (ab)c for all a, b, c in S
 ///   This isn't easily representable in a type, so it's up to the
 ///   implementation to make sure this is valid.
-pub trait Semigroup: PartialEq + Copy + Mul<Self, Output = Self> {
+pub trait Semigroup: PartialEq + Clone + Mul<Self, Output = Self> {
     /// The identity element. This must satisfy
     /// T::identity() * element = element
     /// element * T::identity() = element
     fn identity() -> Self;
+
+    /// Raise an element to a specific power
+    fn pow(&self, exponent: usize) -> Self {
+        if exponent == 0 {
+            Self::identity()
+        } else if exponent % 2 == 0 {
+            let half = self.pow(exponent / 2);
+            half.clone() * half
+        } else {
+            let smaller_half = self.pow((exponent - 1) / 2);
+            self.clone() * smaller_half.clone() * smaller_half
+        }
+    }
 
     /// Iterate over I, a, a^2, a^3, ...
     /// For elements with finite order, this will stop if the product
     /// equals Self::identity(). Eg.
     /// if a is a 3-cycle permutation, you'd get I, a, a^2, but not a^3 = I
     fn power_iter(&self) -> PowerIterator<Self> {
-        PowerIterator::new(*self)
+        PowerIterator::new(self.clone())
     }
 }
 
@@ -59,6 +72,16 @@ pub trait Group: Semigroup {
     /// Multiplicative inverse a^-1 such that
     /// a * a^-1 = a^-1 * a = I
     fn inverse(&self) -> Self;
+
+    /// Raise the element to a power. If the exponent is negative, use the
+    /// inverse element instead.
+    fn pow(&self, exponent: isize) -> Self {
+        if exponent < 0 {
+            Semigroup::pow(&self.inverse(), -exponent as usize)
+        } else {
+            Semigroup::pow(self, exponent as usize)
+        }
+    }
 
     /// Iterate over I, a^-1, a^-2, ...
     /// If a has a finite order, this will stop when
@@ -76,12 +99,12 @@ pub trait Group: Semigroup {
     /// Sandwich product (aka conjugate) aba^(-1).
     /// This transforms b to do the same thing from the perspective of a
     fn sandwich(bread: Self, filling: Self) -> Self {
-        bread * filling * bread.inverse()
+        bread.clone() * filling * bread.inverse()
     }
 
     /// commutator [a, b] = diff(ab, ba) = ab(ba)^-1 = aba^(-1)b^(-1)
     fn commutator(a: Self, b: Self) -> Self {
-        a * b * a.inverse() * b.inverse()
+        a.clone() * b.clone() * a.inverse() * b.inverse()
     }
 }
 

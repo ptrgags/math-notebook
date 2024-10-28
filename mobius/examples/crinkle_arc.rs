@@ -4,7 +4,13 @@ use std::{
 };
 
 use mobius::{
-    cline_arc::ClineArc, geometry::{Circle, CircularArc}, iterated_function_system::IFS, map_triple, rendering::Style, svg_plot::{add_geometry, render_views, style_geometry, style_group, View}, Complex, Mobius
+    cline_arc::ClineArc,
+    geometry::{Circle, CircularArc},
+    iterated_function_system::IFS,
+    map_triple,
+    rendering::Style,
+    svg_plot::{render_views, style_geometry, View},
+    Complex, Mobius,
 };
 use mobius::{iterated_function_system::apply_ifs, transformable::Cline};
 use svg::node::element::Group;

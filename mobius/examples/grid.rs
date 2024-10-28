@@ -3,7 +3,10 @@ use std::io::Error;
 
 use abstraction::{Group, Semigroup};
 use mobius::{
-    elliptic, hyperbolic, rendering::Style, svg_plot::{add_geometry, render_views, style_geometry, style_group, View}, transformable::{Cline, Transformable}
+    elliptic, hyperbolic,
+    rendering::Style,
+    svg_plot::{render_views, style_geometry, View},
+    transformable::{Cline, Transformable},
 };
 use svg::node::element::Group as SvgGroup;
 
