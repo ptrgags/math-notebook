@@ -1,6 +1,9 @@
 use abstraction::{Group, Semigroup};
 
-use crate::address::{FractalAddress, Symbol};
+use crate::{
+    address::{FractalAddress, Symbol},
+    transformable::Transformable,
+};
 
 /// Iterated function system for a group. The depth-first-search iterator
 /// for this IFS avoids backtracking.
@@ -54,6 +57,24 @@ impl<G: Group> GroupIFS<G> {
 
     pub fn dfs(&self, max_depth: usize) -> GroupDFSIterator<G> {
         GroupDFSIterator::new(self, max_depth)
+    }
+
+    pub fn apply<T: Transformable<G>>(
+        &self,
+        primitive: &T,
+        min_depth: usize,
+        max_depth: usize,
+    ) -> Vec<T> {
+        self.dfs(max_depth)
+            .inspect(|(address, _)| println!("{}", address))
+            .filter_map(|(address, xform)| {
+                if address.len() >= min_depth {
+                    Some(primitive.transform(xform))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 }
 

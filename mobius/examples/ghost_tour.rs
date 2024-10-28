@@ -2,7 +2,16 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 use abstraction::Group;
 use mobius::{
-    elliptic, iterated_function_system::{apply_ifs, IFS}, loxodromic, map_triple, motifs::ghost, rendering::Style, rotation, scale, svg_plot::{render_views, style_geometry, View}, transformable::Transformable, translation, Complex, Mobius
+    algorithms::GroupIFS,
+    elliptic,
+    iterated_function_system::{apply_ifs, IFS},
+    loxodromic, map_triple,
+    motifs::ghost,
+    rendering::Style,
+    rotation, scale,
+    svg_plot::{render_views, style_geometry, View},
+    transformable::Transformable,
+    translation, Complex, Mobius,
 };
 
 pub fn main() -> Result<(), std::io::Error> {
@@ -14,7 +23,7 @@ pub fn main() -> Result<(), std::io::Error> {
         "output",
         "ghosty",
         &[View("", 0.0, -0.5, 2.5)],
-        style_geometry(ghost_style, &ghost)
+        style_geometry(ghost_style, &ghost),
     )?;
 
     // Oh no! the ghost fell down the drain! ----------------------
@@ -51,11 +60,8 @@ pub fn main() -> Result<(), std::io::Error> {
     )
     .unwrap();
 
-    let ifs = IFS::new(vec![
-        left_parabolic,
-        right_parabolic,
-    ]);
-    let parabolic_walk = apply_ifs(&ifs, &small_ghost, 0, 6);
+    let parabolic_ifs = GroupIFS::new(vec![left_parabolic, right_parabolic]);
+    let parabolic_walk = parabolic_ifs.apply(&small_ghost, 0, 2);
     render_views(
         "output",
         "ghost_parabolic",
@@ -74,7 +80,7 @@ pub fn main() -> Result<(), std::io::Error> {
         "output",
         "ghost_double_spiral",
         &[View("", 0.0, 0.0, 1.0), View("sink", -0.125, 0.75, 0.5)],
-        style_geometry(ghost_style, &double_spiral_walk[..])
+        style_geometry(ghost_style, &double_spiral_walk[..]),
     )?;
 
     // Two 90 degree elliptic rotations 90 degrees apart. This is isomorphic
@@ -89,7 +95,7 @@ pub fn main() -> Result<(), std::io::Error> {
         "output",
         "ghost_octahedral",
         &[View("", 0.0, 0.0, 3.0)],
-        style_geometry(ghost_style, &swirl_walk[..])
+        style_geometry(ghost_style, &swirl_walk[..]),
     )?;
 
     // But now if we make the rotation slightly different, things don't
@@ -102,7 +108,7 @@ pub fn main() -> Result<(), std::io::Error> {
         "output",
         "ghost_triggered",
         &[View("", 0.0, 0.0, 3.0)],
-        style_geometry(ghost_style, &swirl_walk[..])
+        style_geometry(ghost_style, &swirl_walk[..]),
     )?;
 
     Ok(())

@@ -118,8 +118,8 @@ macro_rules! test_identity {
             let x = $x;
             let i = <$t>::identity();
 
-            let left = i * x;
-            let right = x * i;
+            let left = i.clone() * x.clone();
+            let right = x.clone() * i;
 
             assert_eq!(left, right);
             assert_eq!(left, x);
@@ -130,7 +130,7 @@ macro_rules! test_identity {
         fn identity_is_idempotent() {
             let i = <$t>::identity();
 
-            let result = i * i;
+            let result = i.clone() * i.clone();
 
             assert_eq!(result, i);
         }
@@ -152,7 +152,7 @@ macro_rules! test_associativity {
             let b = $b;
             let c = $c;
 
-            let ab_c = (a * b) * c;
+            let ab_c = (a.clone() * b.clone()) * c.clone();
             let a_bc = a * (b * c);
 
             assert_eq!(ab_c, a_bc);
@@ -176,7 +176,7 @@ macro_rules! test_inverse {
             let a_inv = $a.inverse();
             let identity = <$t>::identity();
 
-            let a_a_inv = a * a_inv;
+            let a_a_inv = a.clone() * a_inv.clone();
             let a_inv_a = a_inv * a;
 
             assert_eq!(a_a_inv, a_inv_a);

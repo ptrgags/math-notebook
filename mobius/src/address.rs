@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Mul};
 
-use abstraction::Semigroup;
+use abstraction::{Group, Semigroup};
 
 /// Fractal adddress symbol, using the "uppercase is inverse" notation
 /// a la _Indra's Pearls_.
@@ -13,11 +13,37 @@ pub enum Symbol {
 }
 
 impl Symbol {
+    pub fn inverse(&self) -> Self {
+        match self {
+            Self::Forward(i) => Self::Inverse(*i),
+            Self::Inverse(i) => Self::Forward(*i),
+        }
+    }
+
     pub fn is_inverse_pair(a: Symbol, b: Symbol) -> bool {
         match (a, b) {
             (Symbol::Forward(a), Symbol::Inverse(b)) if a == b => true,
             (Symbol::Inverse(a), Symbol::Forward(b)) if a == b => true,
             _ => false,
+        }
+    }
+}
+
+impl TryFrom<char> for Symbol {
+    type Error = String;
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        let ord_value = value as isize;
+        let ord_a = 'a' as isize;
+        let ord_z = 'z' as isize;
+        let ord_a_inv = 'A' as isize;
+        let ord_z_inv = 'Z' as isize;
+        if ord_a <= ord_value && ord_value <= ord_z {
+            Ok(Self::Forward((ord_value - ord_a) as usize))
+        } else if ord_a_inv <= ord_value && ord_value <= ord_z_inv {
+            Ok(Self::Inverse((ord_value - ord_a_inv) as usize))
+        } else {
+            Err(format!("Invalid fractal address symbol {}", value))
         }
     }
 }
@@ -37,7 +63,7 @@ impl Display for Symbol {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct FractalAddress {
     symbols: Vec<Symbol>,
 }
@@ -69,25 +95,28 @@ impl From<Symbol> for FractalAddress {
     }
 }
 
+impl TryFrom<&str> for FractalAddress {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let mut symbols = Vec::new();
+        for c in value.chars() {
+            let symbol: Symbol = c.try_into()?;
+            symbols.push(symbol);
+        }
+
+        Ok(Self { symbols })
+    }
+}
+
 impl Mul for FractalAddress {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        let n = self.symbols.len().min(rhs.symbols.len());
-
-        let mut index = 0;
-        for i in 0..n {
-            if !Symbol::is_inverse_pair(self.symbols[n - 1 - i], rhs.symbols[i]) {
-                break;
-            }
-
-            index += 1;
-        }
-
-        let capacity = self.symbols.len() + rhs.symbols.len() - 2 * index;
-        let mut symbols = Vec::with_capacity(capacity);
-        symbols.extend_from_slice(&self.symbols[..(n - 1 - index)]);
-        symbols.extend_from_slice(&rhs.symbols[index..]);
+        // TODO: cancel out symbols at the join
+        let mut symbols = Vec::with_capacity(self.symbols.len() + rhs.symbols.len());
+        symbols.extend_from_slice(&self.symbols[..]);
+        symbols.extend_from_slice(&rhs.symbols[..]);
         Self { symbols }
     }
 }
@@ -111,9 +140,49 @@ impl Semigroup for FractalAddress {
     }
 }
 
+impl Group for FractalAddress {
+    fn inverse(&self) -> Self {
+        let symbols = self.symbols.iter().rev().map(|x| x.inverse()).collect();
+        Self { symbols }
+    }
+}
+
 impl Display for FractalAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let formatted: Vec<String> = self.symbols.iter().map(|x| x.to_string()).collect();
         write!(f, "{}", formatted.join(""))
     }
+}
+
+#[cfg(test)]
+mod test {
+    use abstraction::{test_associativity, test_identity, test_inverse};
+
+    use super::*;
+
+    test_identity!(
+        FractalAddress,
+        [
+            (single_symbol, FractalAddress::try_from("c").unwrap()),
+            (a_few_symbols, FractalAddress::try_from("abb").unwrap())
+        ]
+    );
+
+    test_associativity!(
+        FractalAddress,
+        [(
+            three_arbitrary_addresses,
+            FractalAddress::try_from("aabA").unwrap(),
+            FractalAddress::try_from("aBbA").unwrap(),
+            FractalAddress::try_from("abAA").unwrap()
+        )]
+    );
+
+    test_inverse!(
+        FractalAddress,
+        [
+            (single_symbol, FractalAddress::try_from("a").unwrap()),
+            (many_symbols, FractalAddress::try_from("aBc").unwrap())
+        ]
+    );
 }
