@@ -235,3 +235,9 @@ impl Renderable for ClineArc {
         result
     }
 }
+
+impl Display for ClineArc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.classify().fmt(f)
+    }
+}

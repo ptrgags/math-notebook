@@ -1,5 +1,7 @@
 use abstraction::Group;
 
+use crate::transformable::Transformable;
+
 /// Descriptor (g, start_power, end_power) for an "axis", i.e. a single group
 /// element raised to a sequence of powers from [start_power, end_power)
 pub type AxisDescriptor<G> = (G, isize, isize);
@@ -46,6 +48,31 @@ impl<G: Group> GridIFS<G> {
 
     pub fn iter(&self) -> GridIFSIterator<G> {
         GridIFSIterator::new(self)
+    }
+
+    pub fn conjugate(&self, transform: G) -> Self {
+        let axes: Vec<Axis<G>> = self
+            .axes
+            .iter()
+            .map(
+                |Axis {
+                     xform,
+                     start,
+                     iters,
+                 }| Axis {
+                    xform: G::sandwich(transform.clone(), xform.clone()),
+                    start: G::sandwich(transform.clone(), start.clone()),
+                    iters: *iters,
+                },
+            )
+            .collect();
+        Self { axes }
+    }
+
+    pub fn apply<T: Transformable<G>>(&self, primitive: &T) -> Vec<T> {
+        self.iter()
+            .map(|(_, xform)| primitive.transform(xform))
+            .collect()
     }
 }
 

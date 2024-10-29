@@ -15,8 +15,7 @@ use mobius::{
 };
 
 pub fn main() -> Result<(), std::io::Error> {
-    let ghost = ghost();
-    let ghost_style = Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25);
+    let (ghost, ghost_style) = ghost();
 
     // Show the ghost by themself -----------------------------------
     render_views(

@@ -9,7 +9,7 @@ use svg::{
 use crate::{
     geometry::{Circle, CircularArc, LineSegment},
     rendering::{RenderPrimitive, Renderable, Style},
-    transformable::{Cline, ClineTile},
+    transformable::{Cline, ClineTile, Motif},
     Complex,
 };
 pub struct SvgNode(Box<dyn Node>);
@@ -167,6 +167,28 @@ pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
     svg = add_geometry(svg, geometry);
 
     svg
+}
+
+pub fn style_motif(motif: &Motif, styles: &[Style]) -> Group {
+    let groups: Vec<Group> = motif
+        .iter()
+        .map(|(tile, style_id)| style_geometry(styles[*style_id], tile))
+        .collect();
+    union(groups)
+}
+
+pub fn style_motifs(motifs: &[Motif], styles: &[Style]) -> Group {
+    let groups: Vec<Group> = motifs
+        .iter()
+        .map(|motif| style_motif(motif, styles))
+        .collect();
+    union(groups)
+}
+
+pub fn union(groups: Vec<Group>) -> Group {
+    groups
+        .into_iter()
+        .fold(Group::new(), |group, x| group.add(x))
 }
 
 pub fn make_axes() -> Group {
