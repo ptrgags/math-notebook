@@ -180,6 +180,34 @@ pub fn map_triple(input: PointTriple, output: PointTriple) -> Result<Mobius, Str
     Ok(output_to_standard.inverse() * input_to_standard)
 }
 
+/// Based on Indra's Pearls Chapter 7
+pub fn gasket_group() -> (Mobius, Mobius) {
+    // Parabolic transformation with
+    let a = Mobius::new(
+        Complex::ONE,
+        Complex::Zero,
+        Complex::new(0.0, -2.0),
+        Complex::ONE,
+    )
+    .unwrap();
+    let b = Mobius::new(
+        Complex::new(1.0, -1.0),
+        Complex::ONE,
+        Complex::ONE,
+        Complex::new(1.0, 1.0),
+    )
+    .unwrap();
+
+    (a, b)
+}
+
+pub fn gasket_strip() -> (Mobius, Mobius) {
+    let a = Mobius::new((2.0).into(), -Complex::I, -Complex::I, Complex::Zero).unwrap();
+    let b = translation((2.0).into()).unwrap();
+
+    (a, b)
+}
+
 #[cfg(test)]
 mod test {
 

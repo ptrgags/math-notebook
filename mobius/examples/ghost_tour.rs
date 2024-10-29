@@ -3,14 +3,15 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 use abstraction::Group;
 use mobius::{
     algorithms::{GridIFS, GroupIFS},
-    elliptic,
+    elliptic, gasket_group,
+    geometry::Circle,
     iterated_function_system::{apply_ifs, IFS},
     loxodromic, map_triple,
     motifs::ghost,
     rendering::Style,
     rotation, scale,
-    svg_plot::{render_views, style_geometry, View},
-    transformable::Transformable,
+    svg_plot::{render_views, style_geometry, union, View},
+    transformable::{ClineTile, Transformable},
     translation, Complex, Mobius,
 };
 
