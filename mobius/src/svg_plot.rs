@@ -254,7 +254,7 @@ pub fn render_views<P: AsRef<path::Path>>(
         let flipped = flip_y().add(geometry.clone());
         let doc = make_card(Complex::new(*x, *y), *half_width).add(flipped);
 
-        let separator = if prefix.is_empty() { "" } else { "_" };
+        let separator = if label.is_empty() { "" } else { "_" };
         let filename = format!("{}{}{}.svg", prefix, separator, label);
         let path = output_dir.as_ref().join(path::Path::new(&filename));
         svg::save(path, &doc)?

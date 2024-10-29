@@ -2,7 +2,7 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 use abstraction::Group;
 use mobius::{
-    algorithms::GroupIFS,
+    algorithms::{GridIFS, GroupIFS},
     elliptic,
     iterated_function_system::{apply_ifs, IFS},
     loxodromic, map_triple,
@@ -59,13 +59,24 @@ pub fn main() -> Result<(), std::io::Error> {
     )
     .unwrap();
 
+    println!("{}", Mobius::commutator(left_parabolic, right_parabolic));
+
     let parabolic_ifs = GroupIFS::new(vec![left_parabolic, right_parabolic]);
-    let parabolic_walk = parabolic_ifs.apply(&small_ghost, 0, 2);
+    let parabolic_walk = parabolic_ifs.apply(&small_ghost, 0, 5);
     render_views(
         "output",
         "ghost_parabolic",
-        &[View("", 0.0, 0.5, 0.9), View("zoom_in", -0.5, 0.6, 0.2)],
+        &[View("", 0.0, 0.0, 0.9), View("zoom_in", -0.5, 0.1, 0.2)],
         style_geometry(ghost_style, &parabolic_walk[..]),
+    )?;
+
+    let parabolic_grid = GridIFS::new(vec![(left_parabolic, -20, 20), (right_parabolic, -20, 20)]);
+    let parabolic_grid_walk = parabolic_grid.apply(&small_ghost);
+    render_views(
+        "output",
+        "ghost_parabolic_grid",
+        &[View("", 0.0, 0.0, 1.1)],
+        style_geometry(ghost_style, &parabolic_grid_walk[..]),
     )?;
 
     // A loxodromic double spiral. Though instead of going from -1 to 1,
