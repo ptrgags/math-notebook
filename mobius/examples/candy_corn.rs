@@ -76,7 +76,7 @@ pub fn main() -> Result<(), Error> {
         "output",
         "candy_corn_warpedpaper",
         &[View("", -2.5, 3.0, 4.0)],
-        union(vec![unit_circle, curved_svg]),
+        union(vec![/*unit_circle, */ curved_svg]),
     )?;
 
     // Candy-corner hyperbolic tiling, based on tiling {3, 7}
