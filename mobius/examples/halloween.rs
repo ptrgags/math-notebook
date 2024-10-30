@@ -8,7 +8,7 @@ use mobius::{
     algorithms::{GridIFS, SemigroupIFS},
     cline_arc::ClineArc,
     geometry::LineSegment,
-    hyperbolic, inversion,
+    hyperbolic,
     motifs::{bone, skull, witch_hat},
     rendering::Style,
     rotation, scale,

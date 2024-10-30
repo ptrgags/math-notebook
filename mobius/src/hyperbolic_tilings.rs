@@ -122,7 +122,10 @@ pub fn bisector_vertex_subgroup(p: usize, q: usize) -> Result<(Isogonal, Isogona
     Ok((eq, conj))
 }
 
-pub fn get_fundamental_region(p: usize, q: usize) -> Result<ClineArcTile, String> {
+pub fn get_fundamental_region(
+    p: usize,
+    q: usize,
+) -> Result<(ClineArcTile, (Complex, Complex, Complex)), String> {
     let (conj, r_conj, e2_conj) = reflection_group(p, q)?;
 
     // tile center
@@ -144,9 +147,12 @@ pub fn get_fundamental_region(p: usize, q: usize) -> Result<ClineArcTile, String
     let edge = CircularArc::new(edge_circle, PI, angle_midpoint, suppliment);
     let angle_bisector = LineSegment::new(vertex, center);
 
-    Ok(ClineArcTile::new(vec![
-        edge_bisector.into(),
-        edge.into(),
-        angle_bisector.into(),
-    ]))
+    Ok((
+        ClineArcTile::new(vec![
+            edge_bisector.into(),
+            edge.into(),
+            angle_bisector.into(),
+        ]),
+        (center, edge_midpoint, vertex),
+    ))
 }

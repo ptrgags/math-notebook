@@ -8,7 +8,7 @@ use mobius::{
     algorithms::{GridIFS, SemigroupIFS},
     geometry::Circle,
     hyperbolic,
-    hyperbolic_tilings::{get_fundamental_region, reflection_group},
+    hyperbolic_tilings::{corner_rotation_group, get_fundamental_region, reflection_group},
     motifs::candy_corn,
     rendering::Style,
     rotation, scale,
@@ -89,7 +89,8 @@ pub fn main() -> Result<(), Error> {
     let tiny_corn = corn.transform(shift * shrink);
     let ifs = SemigroupIFS::new(vec![conj, r_conj, e2_conj]);
     let candy_corners = ifs.apply(&tiny_corn, 0, 7);
-    let fundamental_triangle = get_fundamental_region(3, 7).unwrap();
+    let (fundamental_triangle, (center, edge_midpoint, vertex)) =
+        get_fundamental_region(3, 7).unwrap();
     let tiles = ifs.apply(&fundamental_triangle, 0, 5);
     let yellow_lines = Style::stroke(255, 0, 255).with_width(0.5);
 
@@ -101,6 +102,20 @@ pub fn main() -> Result<(), Error> {
             style_motifs(&candy_corners, &styles),
             style_geometry(yellow_lines, &tiles[..]),
         ]),
+    )?;
+
+    let (r, e2, eq) = corner_rotation_group(3, 7).unwrap();
+    let shift = translation(vertex * Complex::from(0.4)).unwrap();
+    let shrink = scale(dist_to_edge * 0.8).unwrap();
+    let rot60 = rotation(FRAC_PI_3).unwrap();
+    let tiny_corn = corn.transform(shift * rot60 * shrink);
+    let ifs = SemigroupIFS::new(vec![r, e2, eq]);
+    let candy_corners = ifs.apply(&tiny_corn, 0, 7);
+    render_views(
+        "output",
+        "candy_corners_take2",
+        &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
+        union(vec![style_motifs(&candy_corners, &styles)]),
     )?;
 
     Ok(())
