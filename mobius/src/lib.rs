@@ -13,6 +13,8 @@ pub mod rendering;
 pub mod svg_plot;
 pub mod transformable;
 
+pub mod hyperbolic_tilings;
+
 pub use complex::Complex;
 pub use mobius::Mobius;
 pub use recipes::*;

@@ -17,6 +17,13 @@ pub enum Isogonal {
     AntiConformal(Mobius),
 }
 
+impl Isogonal {
+    /// Get the transform I * conj(z) = z.conj()
+    pub fn conj() -> Self {
+        Self::AntiConformal(Mobius::identity())
+    }
+}
+
 impl From<Mobius> for Isogonal {
     fn from(value: Mobius) -> Self {
         Self::Conformal(value)
