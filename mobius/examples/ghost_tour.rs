@@ -2,16 +2,12 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 use abstraction::Group;
 use mobius::{
-    algorithms::{GridIFS, GroupIFS},
-    elliptic, gasket_group,
-    geometry::Circle,
-    iterated_function_system::{apply_ifs, IFS},
-    loxodromic, map_triple,
+    algorithms::{GridIFS, GroupIFS, SemigroupIFS},
+    elliptic, loxodromic, map_triple,
     motifs::ghost,
-    rendering::Style,
     rotation, scale,
-    svg_plot::{render_views, style_geometry, union, View},
-    transformable::{ClineTile, Transformable},
+    svg_plot::{render_views, style_geometry, View},
+    transformable::Transformable,
     translation, Complex, Mobius,
 };
 
@@ -32,8 +28,8 @@ pub fn main() -> Result<(), std::io::Error> {
     let translate3 = translation(3.0.into()).unwrap();
     let spiral_in = rotation(-FRAC_PI_3).unwrap() * scale(0.6).unwrap();
     let drain = Mobius::sandwich(translate3, spiral_in);
-    let ifs = IFS::new(vec![drain]);
-    let down_the_drain = apply_ifs(&ifs, &ghost, 0, 20);
+    let ifs = SemigroupIFS::new(vec![drain]);
+    let down_the_drain = ifs.apply(&ghost, 0, 20);
 
     render_views(
         "output",
@@ -85,8 +81,8 @@ pub fn main() -> Result<(), std::io::Error> {
     let double_spiral = loxodromic(Complex::new(1.5, 1.1)).unwrap();
     let rotate90 = rotation(FRAC_PI_2).unwrap();
     let vertical_spiral = Mobius::sandwich(rotate90, double_spiral);
-    let ifs = IFS::new(vec![vertical_spiral, vertical_spiral.inverse()]);
-    let double_spiral_walk = apply_ifs(&ifs, &small_ghost, 0, 10);
+    let ifs = SemigroupIFS::new(vec![vertical_spiral, vertical_spiral.inverse()]);
+    let double_spiral_walk = ifs.apply(&small_ghost, 0, 10);
     render_views(
         "output",
         "ghost_double_spiral",
@@ -100,8 +96,8 @@ pub fn main() -> Result<(), std::io::Error> {
     let swirl2 = Mobius::sandwich(rotate90, swirl);
     let to_the_left = translation(Complex::new(-0.5, 0.0)).unwrap();
     let shifted_ghost = small_ghost.transform(to_the_left);
-    let ifs = IFS::new(vec![swirl, swirl2]);
-    let swirl_walk = apply_ifs(&ifs, &shifted_ghost, 0, 8);
+    let ifs = SemigroupIFS::new(vec![swirl, swirl2]);
+    let swirl_walk = ifs.apply(&shifted_ghost, 0, 8);
     render_views(
         "output",
         "ghost_octahedral",
@@ -113,8 +109,8 @@ pub fn main() -> Result<(), std::io::Error> {
     // quite line up. I find the result amusing.
     let swirl = elliptic(PI / 2.01).unwrap();
     let swirl2 = Mobius::sandwich(rotate90, swirl);
-    let ifs = IFS::new(vec![swirl, swirl2]);
-    let swirl_walk = apply_ifs(&ifs, &shifted_ghost, 0, 8);
+    let ifs = SemigroupIFS::new(vec![swirl, swirl2]);
+    let swirl_walk = ifs.apply(&shifted_ghost, 0, 8);
     render_views(
         "output",
         "ghost_triggered",

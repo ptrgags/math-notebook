@@ -4,7 +4,14 @@ use std::{
 };
 
 use mobius::{
-    geometry::{Circle, CircularArc, LineSegment}, iterated_function_system::{apply_ifs, IFS}, map_triple, rendering::Style, scale, svg_plot::{render_views, style_geometry, View}, transformable::ClineArcTile, Complex, Mobius
+    algorithms::SemigroupIFS,
+    geometry::{Circle, CircularArc, LineSegment},
+    map_triple,
+    rendering::Style,
+    scale,
+    svg_plot::{render_views, style_geometry, View},
+    transformable::ClineArcTile,
+    Complex, Mobius,
 };
 use svg::node::element::Group;
 
@@ -54,7 +61,7 @@ fn compute_xforms() -> Vec<Mobius> {
 
 fn main() -> Result<(), Error> {
     let xforms = compute_xforms();
-    let modified_sierpinski = IFS::new(xforms.clone());
+    let modified_sierpinski = SemigroupIFS::new(xforms.clone());
 
     let tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, Complex::ONE).into(),
@@ -62,8 +69,11 @@ fn main() -> Result<(), Error> {
         LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
-    let sierpinski_tiles = apply_ifs(&modified_sierpinski, &tile, 0, 6);
-    let geometry = style_geometry(Style::stroke(255, 127, 0).with_width(0.125), &sierpinski_tiles[..]);
+    let sierpinski_tiles = modified_sierpinski.apply(&tile, 0, 6);
+    let geometry = style_geometry(
+        Style::stroke(255, 127, 0).with_width(0.125),
+        &sierpinski_tiles[..],
+    );
 
     render_views(
         "output",
@@ -72,20 +82,29 @@ fn main() -> Result<(), Error> {
         geometry.clone(),
     )?;
 
-    let a_only = IFS::new(vec![xforms[0]]);
-    let b_only = IFS::new(vec![xforms[1]]);
-    let c_only = IFS::new(vec![xforms[2]]);
+    let a_only = SemigroupIFS::new(vec![xforms[0]]);
+    let b_only = SemigroupIFS::new(vec![xforms[1]]);
+    let c_only = SemigroupIFS::new(vec![xforms[2]]);
 
     let min_depth = 1;
     let overlay_depth = 3;
-    let tiles_a = apply_ifs(&a_only, &tile, min_depth, overlay_depth);
-    let tiles_b = apply_ifs(&b_only, &tile, min_depth, overlay_depth);
-    let tiles_c = apply_ifs(&c_only, &tile, min_depth, overlay_depth);
+    let tiles_a = a_only.apply(&tile, min_depth, overlay_depth);
+    let tiles_b = b_only.apply(&tile, min_depth, overlay_depth);
+    let tiles_c = c_only.apply(&tile, min_depth, overlay_depth);
 
     let overlay_width = 0.5;
-    let geometry_a = style_geometry(Style::stroke(255, 0, 255).with_width(overlay_width), &tiles_a[..]);
-    let geometry_b = style_geometry(Style::stroke(255, 0, 0).with_width(overlay_width), &tiles_b[..]);
-    let geometry_c = style_geometry(Style::stroke(255, 255, 255).with_width(overlay_width),  &tiles_c[..]);
+    let geometry_a = style_geometry(
+        Style::stroke(255, 0, 255).with_width(overlay_width),
+        &tiles_a[..],
+    );
+    let geometry_b = style_geometry(
+        Style::stroke(255, 0, 0).with_width(overlay_width),
+        &tiles_b[..],
+    );
+    let geometry_c = style_geometry(
+        Style::stroke(255, 255, 255).with_width(overlay_width),
+        &tiles_c[..],
+    );
 
     let grouped = Group::new()
         .add(geometry)

@@ -1,8 +1,8 @@
 use std::f64::consts::{FRAC_PI_2, PI};
 
 use mobius::{
+    algorithms::SemigroupIFS,
     geometry::{Circle, CircularArc, LineSegment},
-    iterated_function_system::{apply_ifs, IFS},
     map_triple,
     rendering::Style,
     svg_plot::{flip_y, make_card, style_geometry},
@@ -46,8 +46,8 @@ fn show_individual_xforms(
         .iter()
         .zip(colors.iter())
         .map(|(xform, style)| {
-            let ifs = IFS::new(vec![*xform]);
-            let tiles = apply_ifs(&ifs, tile, min_depth, max_depth);
+            let ifs = SemigroupIFS::new(vec![*xform]);
+            let tiles = ifs.apply(tile, min_depth, max_depth);
             style_geometry(*style, &tiles[..])
         })
         .fold(Group::new(), |group, x| group.add(x))
@@ -63,9 +63,9 @@ fn main() {
 
     //let rotate_90 = rotation(FRAC_PI_2).unwrap();
     //let ifs = IFS::sandwich(rotate_90, &IFS::new(xforms));
-    let ifs = IFS::new(xforms.clone());
+    let ifs = SemigroupIFS::new(xforms.clone());
 
-    let tiles = apply_ifs(&ifs, &half_circle, 8, 8);
+    let tiles = ifs.apply(&half_circle, 8, 8);
     let geometry = style_geometry(Style::stroke(255, 0, 0).with_width(0.125), &tiles[..]);
 
     let flipped = flip_y().add(geometry.clone());
