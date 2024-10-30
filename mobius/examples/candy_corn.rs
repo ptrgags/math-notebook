@@ -5,8 +5,10 @@ use std::{
 
 use abstraction::Group;
 use mobius::{
-    algorithms::GridIFS,
+    algorithms::{GridIFS, SemigroupIFS},
+    geometry::Circle,
     hyperbolic,
+    hyperbolic_tilings::{get_fundamental_region, reflection_group},
     motifs::candy_corn,
     rendering::Style,
     rotation, scale,
@@ -32,8 +34,8 @@ pub fn main() -> Result<(), Error> {
     let shift_left = translation((-2.0).into()).unwrap();
     let shifted = corn.transform(shift_left);
     let rotate6 = rotation(FRAC_PI_3).unwrap();
-    let scale = scale(3.0).unwrap();
-    let grid = GridIFS::new(vec![(rotate6, 0, 6), (scale, 0, 3)]);
+    let expand = scale(3.0).unwrap();
+    let grid = GridIFS::new(vec![(rotate6, 0, 6), (expand, 0, 3)]);
     let mandala = grid.apply(&shifted);
     render_views(
         "output",
@@ -70,12 +72,35 @@ pub fn main() -> Result<(), Error> {
         Style::stroke(255, 255, 255).with_width(0.5),
         &ClineTile::new(vec![Cline::unit_circle()]),
     );
-
     render_views(
         "output",
         "candy_corn_warpedpaper",
         &[View("", -2.5, 3.0, 4.0)],
         union(vec![unit_circle, curved_svg]),
+    )?;
+
+    // Candy-corner hyperbolic tiling, based on tiling {3, 7}
+    let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();
+    let dist_to_edge = 0.5 * (e2_conj * Complex::Zero).real();
+    println!("{}", dist_to_edge);
+    let shrink = scale(dist_to_edge * 0.3).unwrap();
+    let rot2 = rotation(PI).unwrap();
+    let shift = translation(Complex::new(0.51 * dist_to_edge, 0.05)).unwrap();
+    let tiny_corn = corn.transform(shift * shrink);
+    let ifs = SemigroupIFS::new(vec![conj, r_conj, e2_conj]);
+    let candy_corners = ifs.apply(&tiny_corn, 0, 7);
+    let fundamental_triangle = get_fundamental_region(3, 7).unwrap();
+    let tiles = ifs.apply(&fundamental_triangle, 0, 5);
+    let yellow_lines = Style::stroke(255, 0, 255).with_width(0.5);
+
+    render_views(
+        "output",
+        "candy_corners",
+        &[View("", 0.0, 0.0, 0.5)],
+        union(vec![
+            style_motifs(&candy_corners, &styles),
+            style_geometry(yellow_lines, &tiles[..]),
+        ]),
     )?;
 
     Ok(())

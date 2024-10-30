@@ -1,35 +1,18 @@
-use std::f64::consts::PI;
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 use abstraction::Group;
 
-use crate::{isogonal::Isogonal, rotation, Complex, Mobius};
+use crate::{
+    geometry::{Circle, CircularArc, LineSegment},
+    isogonal::Isogonal,
+    rotation,
+    transformable::ClineArcTile,
+    Complex, Mobius,
+};
 
-pub fn reflection_group(p: usize, q: usize) -> Result<(Isogonal, Isogonal, Isogonal), String> {
-    if p < 3 {
-        return Err(String::from("p must be at least 3"));
-    }
-
-    if q < 3 {
-        return Err(String::from("q must be at least 3"));
-    }
-
-    if (p - 2) * (q - 2) > 4 {
-        return Err(String::from(
-            "To make a hyperbolic tiling, (p - 2)(q - 2) must be greater than 4",
-        ));
-    }
-
+fn compute_edge_circle(p: usize, q: usize) -> Circle {
     let angle_p = PI / (p as f64);
     let angle_q = PI / (q as f64);
-
-    // First mirror: flip over the real line
-    let conj = Isogonal::conj();
-
-    // Second mirror: R * conj
-    // where R is a rotation around the origin by pi/p
-    // This is
-    let rot_p = rotation(angle_p).unwrap();
-    let r_conj = Isogonal::from(rot_p) * conj;
 
     // Third mirror: circle invert in a circle with the following properties:
     // 1. The circle is centered on the real line
@@ -46,6 +29,38 @@ pub fn reflection_group(p: usize, q: usize) -> Result<(Isogonal, Isogonal, Isogo
     let center = cos_q * k;
     let radius = sin_p * k;
 
+    Circle::new(Complex::from(center), radius)
+}
+
+pub fn reflection_group(p: usize, q: usize) -> Result<(Isogonal, Isogonal, Isogonal), String> {
+    if p < 3 {
+        return Err(String::from("p must be at least 3"));
+    }
+
+    if q < 3 {
+        return Err(String::from("q must be at least 3"));
+    }
+
+    if (p - 2) * (q - 2) <= 4 {
+        return Err(String::from(
+            "To make a hyperbolic tiling, (p - 2)(q - 2) must be greater than 4",
+        ));
+    }
+
+    // First mirror: flip over the real line
+    // this mirror is the edge bisector of the polygon
+    let conj = Isogonal::conj();
+
+    // Second mirror: R * conj
+    // where R is a rotation around the origin by pi/p
+    // This mirror goes through the vertices of the polygon
+    let rot_p = rotation(TAU / (p as f64)).unwrap();
+    let r_conj = Isogonal::from(rot_p) * conj;
+
+    // Third mirror is in an orthogonal circle that defines the edge
+    // of the polygon
+    let Circle { center, radius } = compute_edge_circle(p, q);
+
     // The circle inversion is (translate(center) * scale(radius)) sandwich (unit_circle_inversion)
     // which surprisingly simplifies nicely to:
     //
@@ -53,11 +68,11 @@ pub fn reflection_group(p: usize, q: usize) -> Result<(Isogonal, Isogonal, Isogo
     //             [1            -center        ]
     //
     // I call it E2 because it's an elliptic 2-fold rotation.
-    let e2 = Mobius::new(
-        center.into(),
-        (radius * radius - center * center).into(),
+    let e2 = Mobius::from_unnormalized(
+        center,
+        (radius * radius - center.norm()).into(),
         Complex::ONE,
-        (-center).into(),
+        -center,
     )
     .unwrap();
     let e2_conj = Isogonal::from(e2) * conj;
@@ -105,4 +120,33 @@ pub fn bisector_vertex_subgroup(p: usize, q: usize) -> Result<(Isogonal, Isogona
     let eq = e2 * r.inverse();
 
     Ok((eq, conj))
+}
+
+pub fn get_fundamental_region(p: usize, q: usize) -> Result<ClineArcTile, String> {
+    let (conj, r_conj, e2_conj) = reflection_group(p, q)?;
+
+    // tile center
+    let center = Complex::Zero;
+
+    // Compute the midpoint of the edge. Start at the center of the circular
+    // mirror and walk left until we reach its surface
+    let edge_circle = compute_edge_circle(p, q);
+    let edge_midpoint = edge_circle.center - edge_circle.radius.into();
+
+    // angle from the center of the circle to the vertex of the tile
+    // determined by looking at the geometry.
+    let angle_to_vertex = FRAC_PI_2 - PI / (p as f64) - PI / (q as f64);
+    let suppliment = PI - angle_to_vertex;
+    let vertex = edge_circle.center + Complex::from_polar(edge_circle.radius, suppliment);
+
+    let edge_bisector = LineSegment::new(center, edge_midpoint);
+    let angle_midpoint = (suppliment + PI) / 2.0;
+    let edge = CircularArc::new(edge_circle, PI, angle_midpoint, suppliment);
+    let angle_bisector = LineSegment::new(vertex, center);
+
+    Ok(ClineArcTile::new(vec![
+        edge_bisector.into(),
+        edge.into(),
+        angle_bisector.into(),
+    ]))
 }

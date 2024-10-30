@@ -193,7 +193,7 @@ pub fn bone(length: f64) -> ClineArcTile {
 
     let arc_top_left = CircularArc::new(circle_top_left, 0.0, FRAC_PI_2, 3.0 * FRAC_PI_2);
     let arc_top_right = CircularArc::new(circle_top_right, -FRAC_PI_2, FRAC_PI_2, PI);
-    let arc_bottom_left = CircularArc::new(circle_bottom_left, FRAC_PI_2, PI, 3.0 * FRAC_PI_2);
+    let arc_bottom_left = CircularArc::new(circle_bottom_left, FRAC_PI_2, PI, TAU);
     let arc_bottom_right = CircularArc::new(circle_bottom_right, -PI, -FRAC_PI_2, FRAC_PI_2);
 
     let left_side = LineSegment::new(
@@ -202,7 +202,7 @@ pub fn bone(length: f64) -> ClineArcTile {
     );
     let right_side = LineSegment::new(
         center_bottom_right + Complex::I,
-        center_top_left - Complex::I,
+        center_top_right - Complex::I,
     );
 
     // the bone line's connected to the bone arc
@@ -252,19 +252,10 @@ pub fn witch_hat() -> Motif {
     let circle_band_top = Circle::new(Complex::new(0.0, 2.0), SQRT_2);
     let circle_band_bottom = Circle::new(Complex::I, SQRT_2);
 
-    let arc_band_top = CircularArc::new(
-        circle_band_top,
-        -FRAC_PI_4,
-        -3.0 * FRAC_PI_2,
-        -3.0 * FRAC_PI_4,
-    );
+    let arc_band_top = CircularArc::new(circle_band_top, -FRAC_PI_4, -FRAC_PI_2, -3.0 * FRAC_PI_4);
     let band_left = LineSegment::new(Complex::new(-1.0, 1.0), -Complex::ONE);
-    let arc_band_bottom = CircularArc::new(
-        circle_band_bottom,
-        -3.0 * FRAC_PI_4,
-        -3.0 * FRAC_PI_2,
-        -FRAC_PI_4,
-    );
+    let arc_band_bottom =
+        CircularArc::new(circle_band_bottom, -3.0 * FRAC_PI_4, -FRAC_PI_2, -FRAC_PI_4);
     let band_right = LineSegment::new(Complex::ONE, Complex::new(1.0, 1.0));
 
     let band = ClineArcTile::new(vec![
@@ -295,7 +286,7 @@ pub fn skull() -> ClineArcTile {
     let bottom_offset = -Complex::I;
     let teeth_bottom = LineSegment::new(
         teeth_left + bottom_offset,
-        teeth_left + Complex::from(4.0) * teeth_spacing,
+        teeth_left + Complex::from(4.0) * teeth_spacing + bottom_offset,
     );
     let teeth_verticals: Vec<LineSegment> = (0..5)
         .map(|i| {
@@ -304,8 +295,8 @@ pub fn skull() -> ClineArcTile {
         })
         .collect();
 
-    const EYE_RADIUS: f64 = 0.75;
-    const EYE_X: f64 = 1.0;
+    const EYE_RADIUS: f64 = 0.6;
+    const EYE_X: f64 = 0.8;
     const EYE_Y: f64 = 1.0 / 3.0;
     let left_eye = Circle::new(Complex::new(-EYE_X, EYE_Y), EYE_RADIUS);
     let right_eye = Circle::new(Complex::new(EYE_X, EYE_Y), EYE_RADIUS);

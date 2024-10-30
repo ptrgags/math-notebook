@@ -62,8 +62,6 @@ impl Mobius {
     /// This enforces that a, b, c, d are all Zero or Finite and
     /// that the determinant is 1  
     pub fn new(a: Complex, b: Complex, c: Complex, d: Complex) -> Result<Self, String> {
-        let det = a * d - b * c;
-
         if a == Complex::Infinity
             || b == Complex::Infinity
             || c == Complex::Infinity
@@ -72,11 +70,40 @@ impl Mobius {
             return Err(String::from("parameters must be finite"));
         }
 
+        let det = a * d - b * c;
         if det != Complex::ONE {
             return Err(String::from("ab - dc must equal 1"));
         }
 
         Ok(Self { a, b, c, d })
+    }
+
+    pub fn from_unnormalized(
+        a: Complex,
+        b: Complex,
+        c: Complex,
+        d: Complex,
+    ) -> Result<Self, String> {
+        if a == Complex::Infinity
+            || b == Complex::Infinity
+            || c == Complex::Infinity
+            || d == Complex::Infinity
+        {
+            return Err(String::from("parameters must be finite"));
+        }
+
+        let det = a * d - b * c;
+        let normalize = det.sqrt().inverse();
+        if det == Complex::ONE {
+            Ok(Self { a, b, c, d })
+        } else {
+            Ok(Self {
+                a: normalize * a,
+                b: normalize * b,
+                c: normalize * c,
+                d: normalize * d,
+            })
+        }
     }
 
     /// Compute the determinant, ad - bc
