@@ -53,6 +53,9 @@ pub fn main() -> Result<(), Error> {
     )?;
 
     // rib cage
+    let smaller = scale(0.9).unwrap();
+    let shift_up = translation(Complex::new(0.0, 2.0)).unwrap();
+    let head = skull().transform(shift_up * smaller);
     let rot4 = rotation(FRAC_PI_2).unwrap();
     let rib = bone(20.0).transform(rot4 * a_little_smaller);
     let pull_left = hyperbolic(1.6).unwrap();
@@ -63,8 +66,11 @@ pub fn main() -> Result<(), Error> {
     render_views(
         "output",
         "rib_cage",
-        &[View("", 0.0, 0.0, 1.1)],
-        style_geometry(white_lines, &rib_cage[..]),
+        &[View("", 0.0, 1.0, 1.5)],
+        union(vec![
+            style_geometry(white_lines, &rib_cage[..]),
+            style_geometry(white_lines, &head),
+        ]),
     )?;
 
     // bone tree

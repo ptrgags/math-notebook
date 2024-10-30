@@ -81,8 +81,15 @@ pub fn main() -> Result<(), std::io::Error> {
     let double_spiral = loxodromic(Complex::new(1.5, 1.1)).unwrap();
     let rotate90 = rotation(FRAC_PI_2).unwrap();
     let vertical_spiral = Mobius::sandwich(rotate90, double_spiral);
-    let ifs = SemigroupIFS::new(vec![vertical_spiral, vertical_spiral.inverse()]);
-    let double_spiral_walk = ifs.apply(&small_ghost, 0, 10);
+    let ellip4 = elliptic(FRAC_PI_2).unwrap();
+    let vertical_ellip = Mobius::sandwich(rotate90, ellip4);
+
+    let grid = GridIFS::new(vec![(vertical_spiral, -8, 8), (vertical_ellip, 0, 4)]);
+
+    //let ifs = SemigroupIFS::new(vec![vertical_spiral, vertical_spiral.inverse()]);
+    //let double_spiral_walk = ifs.apply(&small_ghost, 0, 10);
+    let double_spiral_walk = grid.apply(&small_ghost);
+
     render_views(
         "output",
         "ghost_double_spiral",
