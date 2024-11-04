@@ -59,15 +59,21 @@ fn compute_ccw_angles(a: f64, b: f64, c: f64) -> ArcAngles {
     let delta_b = (b - a).rem_euclid(TAU);
     let delta_c = (c - b).rem_euclid(TAU);
 
+    let adjusted_b = a + delta_b;
+    let adjusted_c = adjusted_b + delta_c;
+
     // using the full constructor to check for corner cases
-    ArcAngles::new(a, a + delta_b, a + delta_b + delta_c).unwrap()
+    ArcAngles::new(a, adjusted_b, adjusted_c).unwrap()
 }
 
 fn compute_cw_angles(a: f64, b: f64, c: f64) -> ArcAngles {
     // Compute angles in the CW direction
     let delta_b = (a - b).rem_euclid(TAU);
     let delta_c = (b - c).rem_euclid(TAU);
-    ArcAngles::new(a, a - delta_b, a - delta_b - delta_c).unwrap()
+
+    let adjusted_b = a - delta_b;
+    let adjusted_c = adjusted_b - delta_c;
+    ArcAngles::new(a, adjusted_b, adjusted_c).unwrap()
 }
 
 impl ClineArc {

@@ -1,8 +1,8 @@
 use std::ops::Index;
 
-use abstraction::{Group, Semigroup};
+use abstraction::Semigroup;
 
-use crate::{transformable::Transformable, Mobius};
+use crate::transformable::Transformable;
 
 /// Iterated Function System. This is still in a prototype stage
 pub struct SemigroupIFS<S: Semigroup> {
