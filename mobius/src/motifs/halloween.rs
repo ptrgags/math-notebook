@@ -1,7 +1,7 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, PI, SQRT_2, TAU};
 
 use crate::{
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     rendering::Style,
     scale,
     transformable::{ClineArcTile, Motif, Transformable},
@@ -9,8 +9,9 @@ use crate::{
 };
 
 fn circle_to_arcs(circle: Circle) -> (CircularArc, CircularArc) {
-    let top = CircularArc::new(circle, 0.0, FRAC_PI_2, PI);
-    let bottom = CircularArc::new(circle, PI, 3.0 * FRAC_PI_2, TAU);
+    let (upper_half, lower_half) = ArcAngles::semicircles();
+    let top = CircularArc::new(circle, upper_half);
+    let bottom = CircularArc::new(circle, lower_half);
 
     (top, bottom)
 }
@@ -37,17 +38,19 @@ pub fn ghost() -> (ClineArcTile, Style) {
     let (right_eye_top, right_eye_bottom) = circle_to_arcs(right_eye);
     let (mouth_top, mouth_bottom) = circle_to_arcs(mouth);
 
+    let (upper, lower) = ArcAngles::semicircles();
+
     let ghost = ClineArcTile::new(vec![
         // top of ghost head is a semi-circle
-        CircularArc::new(head_circle, 0.0, FRAC_PI_2, PI).into(),
+        CircularArc::new(head_circle, upper).into(),
         // Left side
         LineSegment::new(-Complex::ONE, Complex::new(-1.0, -SIDE_HEIGHT)).into(),
         // Five semi-circles for the bottom
-        CircularArc::new(bottom_circles[0], PI, 3.0 * FRAC_PI_2, TAU).into(),
-        CircularArc::new(bottom_circles[1], PI, FRAC_PI_2, 0.0).into(),
-        CircularArc::new(bottom_circles[2], PI, 3.0 * FRAC_PI_2, TAU).into(),
-        CircularArc::new(bottom_circles[3], PI, FRAC_PI_2, 0.0).into(),
-        CircularArc::new(bottom_circles[4], PI, 3.0 * FRAC_PI_2, TAU).into(),
+        CircularArc::new(bottom_circles[0], lower).into(),
+        CircularArc::new(bottom_circles[1], upper).into(),
+        CircularArc::new(bottom_circles[2], lower).into(),
+        CircularArc::new(bottom_circles[3], upper).into(),
+        CircularArc::new(bottom_circles[4], lower).into(),
         // Right side
         LineSegment::new(Complex::new(1.0, -SIDE_HEIGHT), Complex::ONE).into(),
         // Eyes and mouths are circles drawn as two semicircles
@@ -119,9 +122,12 @@ pub fn candy_corn() -> (Motif, Vec<Style>) {
     let circle_a = Circle::new(center_a, radius);
     let circle_b = Circle::new(center_b, radius);
     let circle_c = Circle::new(center_c, radius);
-    let arc_a = CircularArc::new(circle_a, -FRAC_PI_3, 0.0, FRAC_PI_3);
-    let arc_b = CircularArc::new(circle_b, FRAC_PI_3, 2.0 * FRAC_PI_3, PI);
-    let arc_c = CircularArc::new(circle_c, -PI, -2.0 * FRAC_PI_3, -FRAC_PI_3);
+    let angles_a = ArcAngles::new(-FRAC_PI_3, 0.0, FRAC_PI_3).unwrap();
+    let angles_b = ArcAngles::new(FRAC_PI_3, 2.0 * FRAC_PI_3, PI).unwrap();
+    let angles_c = ArcAngles::new(-PI, -2.0 * FRAC_PI_3, -FRAC_PI_3).unwrap();
+    let arc_a = CircularArc::new(circle_a, angles_a);
+    let arc_b = CircularArc::new(circle_b, angles_b);
+    let arc_c = CircularArc::new(circle_c, angles_c);
 
     // Compute arcs dividing the 3 parts of the candy corn
     let len_ab = (b - a).mag();
@@ -129,8 +135,9 @@ pub fn candy_corn() -> (Motif, Vec<Style>) {
     let radius2 = 2.0 * radius1;
     let circle1 = Circle::new(a, radius1);
     let circle2 = Circle::new(a, radius2);
-    let arc1 = CircularArc::new(circle1, 5.0 * FRAC_PI_6, PI, 7.0 * FRAC_PI_6);
-    let arc2 = CircularArc::new(circle2, 5.0 * FRAC_PI_6, PI, 7.0 * FRAC_PI_6);
+    let divider_angles = ArcAngles::new(5.0 * FRAC_PI_6, PI, 7.0 * FRAC_PI_6).unwrap();
+    let arc1 = CircularArc::new(circle1, divider_angles);
+    let arc2 = CircularArc::new(circle2, divider_angles);
 
     // Build the three parts of the candy corn
     let base = ClineArcTile::new(vec![
@@ -191,10 +198,14 @@ pub fn bone(length: f64) -> ClineArcTile {
     let circle_bottom_left = Circle::new(center_bottom_left, 1.0);
     let circle_bottom_right = Circle::new(center_bottom_right, 1.0);
 
-    let arc_top_left = CircularArc::new(circle_top_left, 0.0, FRAC_PI_2, 3.0 * FRAC_PI_2);
-    let arc_top_right = CircularArc::new(circle_top_right, -FRAC_PI_2, FRAC_PI_2, PI);
-    let arc_bottom_left = CircularArc::new(circle_bottom_left, FRAC_PI_2, PI, TAU);
-    let arc_bottom_right = CircularArc::new(circle_bottom_right, -PI, -FRAC_PI_2, FRAC_PI_2);
+    let angles_top_left = ArcAngles::new(0.0, FRAC_PI_2, 3.0 * FRAC_PI_2).unwrap();
+    let angles_top_right = ArcAngles::new(-FRAC_PI_2, FRAC_PI_2, PI).unwrap();
+    let angles_bottom_left = ArcAngles::new(FRAC_PI_2, PI, TAU).unwrap();
+    let angles_bottom_right = ArcAngles::new(-PI, -FRAC_PI_2, FRAC_PI_2).unwrap();
+    let arc_top_left = CircularArc::new(circle_top_left, angles_top_left);
+    let arc_top_right = CircularArc::new(circle_top_right, angles_top_right);
+    let arc_bottom_left = CircularArc::new(circle_bottom_left, angles_bottom_left);
+    let arc_bottom_right = CircularArc::new(circle_bottom_right, angles_bottom_right);
 
     let left_side = LineSegment::new(
         center_top_left - Complex::I,
@@ -234,11 +245,16 @@ pub fn witch_hat() -> Motif {
     let circle_point_top = Circle::new(Complex::new(1.0, 1.0), 2.0);
 
     // Outline the outside of the hat
-    let arc_brim_left = CircularArc::new(circle_brim_left, FRAC_PI_2, 3.0 * FRAC_PI_4, PI);
-    let arc_brim_bottom = CircularArc::new(circle_brim_bottom, -PI, -FRAC_PI_2, 0.0);
-    let arc_brim_right = CircularArc::new(circle_brim_right, 0.0, FRAC_PI_4, FRAC_PI_2);
-    let arc_point_bottom = CircularArc::new(circle_point_bottom, PI, FRAC_PI_2, 0.0);
-    let arc_point_top = CircularArc::new(circle_point_top, 0.0, FRAC_PI_2, PI);
+    let angles_brim_left = ArcAngles::new(FRAC_PI_2, 3.0 * FRAC_PI_4, PI).unwrap();
+    let angles_brim_bottom = ArcAngles::new(-PI, -FRAC_PI_2, 0.0).unwrap();
+    let angles_brim_right = ArcAngles::new(0.0, FRAC_PI_4, FRAC_PI_2).unwrap();
+    let angles_point_bottom = ArcAngles::new(PI, FRAC_PI_2, 0.0).unwrap();
+    let angles_point_top = ArcAngles::new(0.0, FRAC_PI_2, PI).unwrap();
+    let arc_brim_left = CircularArc::new(circle_brim_left, angles_brim_left);
+    let arc_brim_bottom = CircularArc::new(circle_brim_bottom, angles_brim_bottom);
+    let arc_brim_right = CircularArc::new(circle_brim_right, angles_brim_right);
+    let arc_point_bottom = CircularArc::new(circle_point_bottom, angles_point_bottom);
+    let arc_point_top = CircularArc::new(circle_point_top, angles_point_top);
     let outside = ClineArcTile::new(vec![
         arc_brim_left.into(),
         arc_brim_bottom.into(),
@@ -252,10 +268,10 @@ pub fn witch_hat() -> Motif {
     let circle_band_top = Circle::new(Complex::new(0.0, 2.0), SQRT_2);
     let circle_band_bottom = Circle::new(Complex::I, SQRT_2);
 
-    let arc_band_top = CircularArc::new(circle_band_top, -FRAC_PI_4, -FRAC_PI_2, -3.0 * FRAC_PI_4);
+    let angles_band = ArcAngles::new(-FRAC_PI_4, -FRAC_PI_2, -3.0 * FRAC_PI_4).unwrap();
+    let arc_band_top = CircularArc::new(circle_band_top, angles_band);
     let band_left = LineSegment::new(Complex::new(-1.0, 1.0), -Complex::ONE);
-    let arc_band_bottom =
-        CircularArc::new(circle_band_bottom, -3.0 * FRAC_PI_4, -FRAC_PI_2, -FRAC_PI_4);
+    let arc_band_bottom = CircularArc::new(circle_band_bottom, angles_band.reverse());
     let band_right = LineSegment::new(Complex::ONE, Complex::new(1.0, 1.0));
 
     let band = ClineArcTile::new(vec![
@@ -277,9 +293,12 @@ pub fn skull() -> ClineArcTile {
     let left_circle = Circle::new(-Complex::ONE, 1.0);
     let right_circle = Circle::new(Complex::ONE, 1.0);
 
-    let arc_top = CircularArc::new(top_circle, 0.0, FRAC_PI_2, PI);
-    let arc_left = CircularArc::new(left_circle, PI, 5.0 * FRAC_PI_4, 3.0 * FRAC_PI_2);
-    let arc_right = CircularArc::new(right_circle, -FRAC_PI_2, -FRAC_PI_4, 0.0);
+    let angles_top = ArcAngles::new(0.0, FRAC_PI_2, PI).unwrap();
+    let angles_left = ArcAngles::new(PI, 5.0 * FRAC_PI_4, 3.0 * FRAC_PI_2).unwrap();
+    let angles_right = ArcAngles::new(-FRAC_PI_2, -FRAC_PI_4, 0.0).unwrap();
+    let arc_top = CircularArc::new(top_circle, angles_top);
+    let arc_left = CircularArc::new(left_circle, angles_left);
+    let arc_right = CircularArc::new(right_circle, angles_right);
 
     let teeth_left = Complex::new(-1.0, -1.0);
     let teeth_spacing = Complex::from(0.5);

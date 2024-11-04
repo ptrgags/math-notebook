@@ -1,7 +1,7 @@
 use std::{f64::consts::TAU, fmt::Display};
 
 use crate::{
-    geometry::{Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
+    geometry::{ArcAngles, Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
     transformable::{Cline, GeneralizedCircle, Transformable},
@@ -143,12 +143,11 @@ impl ClineArc {
                 };
 
                 let theta_b = (self.b - center).arg().unwrap();
+                let angles = ArcAngles::new(theta_a, theta_b, end_angle).unwrap();
 
                 ClineArcGeometry::CircularArc(CircularArc {
                     circle: Circle { center, radius },
-                    angle_a: theta_a,
-                    angle_b: theta_b,
-                    angle_c: end_angle,
+                    angles,
                 })
             }
         }
@@ -157,14 +156,9 @@ impl ClineArc {
 
 impl From<CircularArc> for ClineArc {
     fn from(value: CircularArc) -> Self {
-        let CircularArc {
-            circle,
-            angle_a,
-            angle_b,
-            angle_c,
-        } = value;
-
+        let CircularArc { circle, angles } = value;
         let Circle { center, radius } = circle;
+        let ArcAngles(angle_a, angle_b, angle_c) = angles;
         let a = center + Complex::from_polar(radius, angle_a);
         let b = center + Complex::from_polar(radius, angle_b);
         let c = center + Complex::from_polar(radius, angle_c);

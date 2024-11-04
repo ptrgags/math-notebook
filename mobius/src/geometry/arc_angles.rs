@@ -1,10 +1,17 @@
-use std::f64::consts::TAU;
+use std::{
+    f64::consts::{PI, TAU},
+    fmt::Display,
+};
+
+use crate::nearly::is_nearly;
 
 /// Angles for use with CircularArc. These are subject to the following
 /// restrictions:
 ///
 /// - a < b < c (CCW arc) or a > b > c (CW arc). This reduces corner cases
 /// - |c - a| < 2pi so we're always drawing less than a full circle
+/// - the value of a will be reduced to be in [0, 2pi)
+#[derive(Clone, Copy, Debug)]
 pub struct ArcAngles(pub f64, pub f64, pub f64);
 
 impl ArcAngles {
@@ -26,14 +33,57 @@ impl ArcAngles {
 
         Ok(Self(a, b, c))
     }
+
+    /// Create two semicircles, one for the upper half of a circle traced
+    /// from 0 to pi, the other is the lower half from pi to 2pi
+    pub fn semicircles() -> (Self, Self) {
+        let upper = Self(0.0, PI / 2.0, PI);
+        let lower = Self(PI, 3.0 * PI / 2.0, TAU);
+        (upper, lower)
+    }
+
+    /// Return the same arc but traced backwards.
+    pub fn reverse(&self) -> Self {
+        let Self(a, b, c) = self;
+
+        Self(*c, *b, *a)
+    }
+}
+
+impl PartialEq for ArcAngles {
+    fn eq(&self, other: &Self) -> bool {
+        let ArcAngles(a, b, c) = self;
+        let ArcAngles(e, f, g) = other;
+
+        let same_start_point = is_nearly(a % TAU, b % TAU);
+        let same_ab = is_nearly(b - a, f - e);
+        let same_bc = is_nearly(c - b, g - f);
+
+        same_start_point && same_ab && same_bc
+    }
+}
+
+impl Display for ArcAngles {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self(a, b, c) = self;
+        write!(f, "{:.3}° -> {:.3}° -> {:.3}°", a, b, c)
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use std::f64::consts::PI;
+    use std::f64::{consts::PI, NAN};
 
     use super::*;
     use test_case::test_case;
+
+    #[test_case(NAN, 1.0, 0.0; "nan a")]
+    #[test_case(0.0,  NAN, 3.0; "nan b")]
+    #[test_case(0.0, 1.0, NAN; "nan c")]
+    #[should_panic]
+    pub fn new_with_nan_panics(a: f64, b: f64, c: f64) {
+        let _ = ArcAngles::new(a, b, c);
+    }
 
     #[test_case(0.0, 1.0, 0.5; "neither increasing or decreasing")]
     #[test_case(0.0, 0.0, 1.0; "not strictly increasing")]
@@ -64,5 +114,25 @@ mod test {
         let result = ArcAngles::new(a, b, c);
 
         assert!(result.is_ok_and(|ArcAngles(x, y, z)| x == a && y == b && z == c));
+    }
+
+    #[test]
+    pub fn equals() {
+        todo!("partial equality tests");
+    }
+
+    #[test]
+    pub fn display() {
+        todo!("display tests");
+    }
+
+    #[test]
+    pub fn semicircles() {
+        todo!("semicircle tests");
+    }
+
+    #[test]
+    pub fn reverse() {
+        todo!("reverse tests")
     }
 }

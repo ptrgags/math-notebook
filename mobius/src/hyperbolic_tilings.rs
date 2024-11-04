@@ -3,7 +3,7 @@ use std::f64::consts::{FRAC_PI_2, PI, TAU};
 use abstraction::Group;
 
 use crate::{
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     isogonal::Isogonal,
     rotation,
     transformable::ClineArcTile,
@@ -126,7 +126,7 @@ pub fn get_fundamental_region(
     p: usize,
     q: usize,
 ) -> Result<(ClineArcTile, (Complex, Complex, Complex)), String> {
-    let (conj, r_conj, e2_conj) = reflection_group(p, q)?;
+    //let (conj, r_conj, e2_conj) = reflection_group(p, q)?;
 
     // tile center
     let center = Complex::Zero;
@@ -144,7 +144,8 @@ pub fn get_fundamental_region(
 
     let edge_bisector = LineSegment::new(center, edge_midpoint);
     let angle_midpoint = (suppliment + PI) / 2.0;
-    let edge = CircularArc::new(edge_circle, PI, angle_midpoint, suppliment);
+    let angles = ArcAngles::new(PI, angle_midpoint, suppliment)?;
+    let edge = CircularArc::new(edge_circle, angles);
     let angle_bisector = LineSegment::new(vertex, center);
 
     Ok((

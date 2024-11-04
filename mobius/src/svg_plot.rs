@@ -7,7 +7,7 @@ use svg::{
 };
 
 use crate::{
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     rendering::{RenderPrimitive, Renderable, Style},
     transformable::{Cline, ClineTile, Motif},
     Complex,
@@ -27,10 +27,9 @@ fn svg_circle(circle: Circle) -> Box<dyn Node> {
 fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
     let CircularArc {
         circle: Circle { center, radius },
-        angle_a: start_angle,
-        angle_c: end_angle,
-        ..
+        angles,
     } = arc;
+    let ArcAngles(start_angle, _, end_angle) = angles;
 
     let start = center + Complex::from_polar(radius, start_angle);
     let start_x = start.real();
