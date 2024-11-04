@@ -18,7 +18,7 @@ impl Signature {
     }
 
     pub fn get_dimensions(&self) -> usize {
-        return (self.positive + self.negative + self.zero) as usize;
+        self.positive + self.negative + self.zero
     }
 
     pub fn get_sign(&self, dimension: usize) -> Result<i8, String> {

@@ -31,8 +31,8 @@ impl<const N: usize> Mul for Permutation<N> {
     fn mul(self, rhs: Self) -> Self::Output {
         let mut product = [0; N];
 
-        for i in 0..N {
-            product[i] = self.values[rhs.values[i]];
+        for (i, rhs_value) in rhs.values.iter().enumerate() {
+            product[i] = self.values[*rhs_value];
         }
 
         Self { values: product }
@@ -42,8 +42,8 @@ impl<const N: usize> Mul for Permutation<N> {
 impl<const N: usize> Semigroup for Permutation<N> {
     fn identity() -> Self {
         let mut values = [0; N];
-        for i in 0..N {
-            values[i] = i;
+        for (i, value) in values.iter_mut().enumerate() {
+            *value = i;
         }
 
         Self { values }
