@@ -1,3 +1,4 @@
+pub mod arc_angles;
 pub mod circle;
 pub mod circular_arc;
 pub mod double_ray;
@@ -7,6 +8,7 @@ pub mod ray;
 
 use crate::Complex;
 
+pub use arc_angles::*;
 pub use circle::*;
 pub use circular_arc::*;
 pub use double_ray::*;
