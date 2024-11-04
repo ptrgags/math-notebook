@@ -20,8 +20,9 @@ impl ArcAngles {
         let is_strictly_decreasing = a > b && b > c;
 
         if !is_strictly_increasing && !is_strictly_decreasing {
-            return Err(String::from(
-                "angles must be strictly increasing or strictly decreasing",
+            return Err(format!(
+                "angles must be strictly increasing or strictly decreasing: ({}, {}, {})",
+                a, b, c
             ));
         }
 

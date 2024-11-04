@@ -54,6 +54,22 @@ pub struct ClineArc {
     c: Complex,
 }
 
+fn compute_ccw_angles(a: f64, b: f64, c: f64) -> ArcAngles {
+    // Compute angles in the CCW direction
+    let delta_b = (b - a).rem_euclid(TAU);
+    let delta_c = (c - b).rem_euclid(TAU);
+
+    // using the full constructor to check for corner cases
+    ArcAngles::new(a, a + delta_b, a + delta_b + delta_c).unwrap()
+}
+
+fn compute_cw_angles(a: f64, b: f64, c: f64) -> ArcAngles {
+    // Compute angles in the CW direction
+    let delta_b = (a - b).rem_euclid(TAU);
+    let delta_c = (b - c).rem_euclid(TAU);
+    ArcAngles::new(a, a - delta_b, a - delta_b - delta_c).unwrap()
+}
+
 impl ClineArc {
     pub fn classify(&self) -> ClineArcGeometry {
         match self.cline.classify() {
@@ -122,7 +138,7 @@ impl ClineArc {
                     ))
                 }
             }
-            GeneralizedCircle::Circle(Circle { center, radius }) => {
+            GeneralizedCircle::Circle(circle) => {
                 // Determine if the 3 points circulate counterclockwise or
                 // clockwise by forming a triangle ABC and computing
                 // (the magnitude of) the wedge product.
@@ -130,25 +146,17 @@ impl ClineArc {
                 let ac = self.c - self.a;
                 let ccw = Complex::wedge(ab, ac) > 0.0;
 
-                let theta_a = (self.a - center).arg().unwrap();
-                let theta_c = (self.c - center).arg().unwrap();
-                let a_bigger = theta_a > theta_c;
+                // Get the raw angles
+                let theta_a = circle.get_angle(self.a).unwrap();
+                let theta_b = circle.get_angle(self.b).unwrap();
+                let theta_c = circle.get_angle(self.c).unwrap();
 
-                let end_angle = if !ccw && !a_bigger {
-                    theta_c - TAU
-                } else if ccw && a_bigger {
-                    theta_c + TAU
+                let angles = if ccw {
+                    compute_ccw_angles(theta_a, theta_b, theta_c)
                 } else {
-                    theta_c
+                    compute_cw_angles(theta_a, theta_b, theta_c)
                 };
-
-                let theta_b = (self.b - center).arg().unwrap();
-                let angles = ArcAngles::new(theta_a, theta_b, end_angle).unwrap();
-
-                ClineArcGeometry::CircularArc(CircularArc {
-                    circle: Circle { center, radius },
-                    angles,
-                })
+                ClineArcGeometry::CircularArc(CircularArc { circle, angles })
             }
         }
     }

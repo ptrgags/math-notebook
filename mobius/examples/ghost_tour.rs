@@ -56,8 +56,6 @@ pub fn main() -> Result<(), std::io::Error> {
     )
     .unwrap();
 
-    println!("{}", Mobius::commutator(left_parabolic, right_parabolic));
-
     let parabolic_ifs = GroupIFS::new(vec![left_parabolic, right_parabolic]);
     let parabolic_walk = parabolic_ifs.apply(&small_ghost, 0, 5);
     render_views(
