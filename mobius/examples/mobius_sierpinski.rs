@@ -1,7 +1,7 @@
-use core::f64;
+use std::f64::consts::PI;
 
 use mobius::{
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     scale,
     svg_plot::{add_geometry, flip_y, make_axes, make_card},
     transformable::{Cline, ClineArcTile, ClineTile, Transformable},
@@ -151,15 +151,10 @@ fn main() {
 
     // ----------------------
 
+    let quarter_circle = ArcAngles::new(0.0, PI / 4.0, PI / 2.0).unwrap();
     let tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, Complex::ONE).into(),
-        CircularArc::new(
-            Circle::unit_circle(),
-            0.0,
-            f64::consts::FRAC_PI_4,
-            f64::consts::FRAC_PI_2,
-        )
-        .into(),
+        CircularArc::new(Circle::unit_circle(), quarter_circle).into(),
         LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 

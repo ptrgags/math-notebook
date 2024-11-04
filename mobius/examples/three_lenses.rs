@@ -1,8 +1,8 @@
-use std::f64::consts::{FRAC_PI_2, PI};
+use std::f64::consts::PI;
 
 use mobius::{
     algorithms::SemigroupIFS,
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple,
     rendering::Style,
     svg_plot::{flip_y, make_card, style_geometry},
@@ -56,9 +56,10 @@ fn show_individual_xforms(
 fn main() {
     let xforms = make_xforms();
 
+    let angles = ArcAngles::new(0.0, PI / 2.0, PI).unwrap();
     let half_circle = ClineArcTile::new(vec![
         LineSegment::new(-Complex::ONE, Complex::ONE).into(),
-        CircularArc::new(Circle::unit_circle(), 0.0, FRAC_PI_2, PI).into(),
+        CircularArc::new(Circle::unit_circle(), angles).into(),
     ]);
 
     //let rotate_90 = rotation(FRAC_PI_2).unwrap();

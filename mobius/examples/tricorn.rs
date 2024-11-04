@@ -1,8 +1,7 @@
-use core::f64;
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, TAU};
+use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, PI, TAU};
 
 use mobius::{
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple, scale,
     svg_plot::{add_geometry, flip_y, make_axes, make_card},
     transformable::{ClineArcTile, Transformable},
@@ -60,15 +59,10 @@ fn main() {
 
     // ----------------------
 
+    let angles = ArcAngles::new(0.0, PI / 4.0, PI / 2.0).unwrap();
     let tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, Complex::ONE).into(),
-        CircularArc::new(
-            Circle::unit_circle(),
-            0.0,
-            f64::consts::FRAC_PI_4,
-            f64::consts::FRAC_PI_2,
-        )
-        .into(),
+        CircularArc::new(Circle::unit_circle(), angles).into(),
         LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
@@ -96,9 +90,10 @@ fn main() {
 
     // --
 
+    let more_angles = ArcAngles::new(3.0 * FRAC_PI_2, 7.0 * FRAC_PI_4, TAU).unwrap();
     let another_tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, -Complex::I).into(),
-        CircularArc::new(Circle::unit_circle(), 3.0 * FRAC_PI_2, 7.0 * FRAC_PI_4, TAU).into(),
+        CircularArc::new(Circle::unit_circle(), more_angles).into(),
         LineSegment::new(Complex::ONE, Complex::Zero).into(),
     ]);
 
