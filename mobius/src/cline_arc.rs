@@ -208,6 +208,15 @@ impl From<LineSegment> for ClineArc {
 
 impl Transformable<Isogonal> for ClineArc {
     fn transform(&self, xform: Isogonal) -> Self {
+        let transformed = self.cline.transform(xform);
+        println!(
+            "---\nTransform:\n{}\nby {}\n to {}\n{}",
+            self,
+            xform,
+            transformed,
+            transformed.classify()
+        );
+
         Self {
             cline: self.cline.transform(xform),
             a: xform * self.a,

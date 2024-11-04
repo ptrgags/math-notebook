@@ -239,6 +239,13 @@ impl Renderable for Cline {
     }
 }
 
+impl Display for Cline {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let &Self { a, b, c, d } = self;
+        write!(f, "[{} {}]\n[{} {}]", a, b, c, d)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

@@ -67,7 +67,13 @@ impl PartialEq for ArcAngles {
 impl Display for ArcAngles {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self(a, b, c) = self;
-        write!(f, "{:.3}° -> {:.3}° -> {:.3}°", a, b, c)
+        write!(
+            f,
+            "{:.3}° -> {:.3}° -> {:.3}°",
+            a.to_degrees(),
+            b.to_degrees(),
+            c.to_degrees()
+        )
     }
 }
 
