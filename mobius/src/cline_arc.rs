@@ -12,18 +12,20 @@ use crate::{
 
 #[derive(Debug)]
 pub enum ClineArcError {
-    PossiblePrecisionError(ClineArc, Box<dyn Error + 'static>),
+    // To reduce the size of the enum, the first parameter is a pretty-printed
+    // string representation of the cline such that you can see the numeric
+    // values for debugging
+    PossiblePrecisionError(String, Box<dyn Error + 'static>),
 }
 
 impl Display for ClineArcError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::PossiblePrecisionError(arc, inner_error) => {
-                let ClineArc { cline, a, b, c } = arc;
+            Self::PossiblePrecisionError(cline_formatted, inner_error) => {
                 write!(
                     f,
-                    "possible precision issue for ClineArc:\ncline={}\n(a, b, c) = ({}, {}, {})\ncaused by: {}",
-                    cline, a, b, c, inner_error
+                    "possible precision issue for ClineArc:\n{}\ncaused by: {}",
+                    cline_formatted, inner_error
                 )
             }
         }
@@ -189,10 +191,14 @@ impl ClineArc {
                 circle,
                 angles,
             })),
-            Err(err) => Err(ClineArcError::PossiblePrecisionError(
-                self.clone(),
-                Box::new(err),
-            )),
+            Err(err) => {
+                let ClineArc { cline, a, b, c } = self;
+                let message = format!("cline={}\n(a, b, c) = ({}, {}, {})", cline, a, b, c);
+                Err(ClineArcError::PossiblePrecisionError(
+                    message,
+                    Box::new(err),
+                ))
+            }
         }
     }
 
