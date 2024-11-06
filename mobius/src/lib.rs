@@ -2,6 +2,7 @@ pub mod address;
 pub mod algorithms;
 pub mod cline_arc;
 mod complex;
+pub mod float_error;
 pub mod geometry;
 pub mod isogonal;
 mod mobius;
