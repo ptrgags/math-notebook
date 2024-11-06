@@ -107,12 +107,8 @@ impl From<Vec<SvgNode>> for SvgNodes {
 
 impl<T: Renderable> From<&T> for SvgNodes {
     fn from(value: &T) -> Self {
-        let nodes: Vec<SvgNode> = value
-            .bake_geometry()
-            .iter()
-            .map(|x| SvgNode::from(*x))
-            .collect();
-
+        let baked = value.bake_geometry().unwrap();
+        let nodes: Vec<SvgNode> = baked.iter().map(|x| SvgNode::from(*x)).collect();
         nodes.into()
     }
 }
