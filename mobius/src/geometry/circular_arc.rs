@@ -20,13 +20,13 @@ impl CircularArc {
 impl Geometry for CircularArc {}
 impl DirectedEdge for CircularArc {
     fn start(&self) -> Complex {
-        let ArcAngles(a, _, _) = self.angles;
+        let ArcAngles(a, _) = self.angles;
         self.circle.get_point(a)
     }
 
     fn end(&self) -> Complex {
-        let ArcAngles(_, _, c) = self.angles;
-        self.circle.get_point(c)
+        let ArcAngles(_, b) = self.angles;
+        self.circle.get_point(b)
     }
 }
 

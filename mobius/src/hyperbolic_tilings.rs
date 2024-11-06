@@ -141,8 +141,7 @@ pub fn get_fundamental_region(
     let vertex = edge_circle.center + Complex::from_polar(edge_circle.radius, suppliment);
 
     let edge_bisector = LineSegment::new(center, edge_midpoint);
-    let angle_midpoint = (suppliment + PI) / 2.0;
-    let angles = ArcAngles::new(PI, angle_midpoint, suppliment).unwrap();
+    let angles = ArcAngles::new(PI, suppliment).unwrap();
     let edge = CircularArc::new(edge_circle, angles);
     let angle_bisector = LineSegment::new(vertex, center);
 

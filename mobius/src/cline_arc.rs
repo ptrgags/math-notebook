@@ -85,7 +85,7 @@ fn compute_ccw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesPars
 
     let adjusted_b = a + delta_b;
     let adjusted_c = adjusted_b + delta_c;
-    ArcAngles::new(a, adjusted_b, adjusted_c)
+    ArcAngles::new(a, adjusted_c)
 }
 
 fn compute_cw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParseError> {
@@ -95,7 +95,7 @@ fn compute_cw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParse
 
     let adjusted_b = a - delta_b;
     let adjusted_c = adjusted_b - delta_c;
-    ArcAngles::new(a, adjusted_b, adjusted_c)
+    ArcAngles::new(a, adjusted_c)
 }
 
 impl ClineArc {
@@ -208,7 +208,8 @@ impl From<CircularArc> for ClineArc {
     fn from(value: CircularArc) -> Self {
         let CircularArc { circle, angles } = value;
         let Circle { center, radius } = circle;
-        let ArcAngles(angle_a, angle_b, angle_c) = angles;
+        let ArcAngles(angle_a, angle_c) = angles;
+        let angle_b = 0.5 * (angle_a + angle_c);
         let a = center + Complex::from_polar(radius, angle_a);
         let b = center + Complex::from_polar(radius, angle_b);
         let c = center + Complex::from_polar(radius, angle_c);
