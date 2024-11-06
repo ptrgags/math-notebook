@@ -1,4 +1,4 @@
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, PI, TAU};
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 use mobius::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
@@ -59,7 +59,7 @@ fn main() {
 
     // ----------------------
 
-    let angles = ArcAngles::new(0.0, PI / 4.0, PI / 2.0).unwrap();
+    let angles = ArcAngles::new(0.0, PI / 2.0).unwrap();
     let tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, Complex::ONE).into(),
         CircularArc::new(Circle::unit_circle(), angles).into(),
@@ -90,7 +90,7 @@ fn main() {
 
     // --
 
-    let more_angles = ArcAngles::new(3.0 * FRAC_PI_2, 7.0 * FRAC_PI_4, TAU).unwrap();
+    let more_angles = ArcAngles::new(3.0 * FRAC_PI_2, TAU).unwrap();
     let another_tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, -Complex::I).into(),
         CircularArc::new(Circle::unit_circle(), more_angles).into(),

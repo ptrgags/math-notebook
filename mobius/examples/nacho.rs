@@ -1,7 +1,4 @@
-use std::{
-    f64::consts::{FRAC_PI_2, FRAC_PI_4},
-    io::Error,
-};
+use std::{f64::consts::FRAC_PI_2, io::Error};
 
 use mobius::{
     algorithms::SemigroupIFS,
@@ -63,7 +60,7 @@ fn main() -> Result<(), Error> {
     let xforms = compute_xforms();
     let modified_sierpinski = SemigroupIFS::new(xforms.clone());
 
-    let angles = ArcAngles::new(0.0, FRAC_PI_4, FRAC_PI_2).unwrap();
+    let angles = ArcAngles::new(0.0, FRAC_PI_2).unwrap();
     let tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, Complex::ONE).into(),
         CircularArc::new(Circle::unit_circle(), angles).into(),

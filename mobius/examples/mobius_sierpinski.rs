@@ -151,7 +151,7 @@ fn main() {
 
     // ----------------------
 
-    let quarter_circle = ArcAngles::new(0.0, PI / 4.0, PI / 2.0).unwrap();
+    let quarter_circle = ArcAngles::new(0.0, PI / 2.0).unwrap();
     let tile = ClineArcTile::new(vec![
         LineSegment::new(Complex::Zero, Complex::ONE).into(),
         CircularArc::new(Circle::unit_circle(), quarter_circle).into(),

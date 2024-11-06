@@ -53,10 +53,11 @@ fn arc_lerp(circle: Circle, a: Complex, b: Complex, t: f64) -> Complex {
 
 fn arc_fractal(arc: CircularArc) -> (Mobius, Mobius) {
     let CircularArc { circle, angles } = arc;
-    let ArcAngles(angle_a, angle_b, angle_c) = angles;
-    let t = ((angle_b - angle_a) / (angle_c - angle_a)).abs();
+    let ArcAngles(angle_a, angle_c) = angles;
+    let t = 0.5;
 
     let a = circle.get_point(angle_a);
+    let angle_b = t * (angle_a + angle_c);
     let b = circle.get_point(angle_b);
     let c = circle.get_point(angle_c);
 
@@ -73,7 +74,7 @@ fn arc_fractal(arc: CircularArc) -> (Mobius, Mobius) {
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(0.0, PI / 4.0, PI / 2.0).unwrap();
+    let angles = ArcAngles::new(0.0, PI / 2.0).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let (a, b) = arc_fractal(arc);
 

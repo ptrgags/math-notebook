@@ -56,7 +56,7 @@ fn show_individual_xforms(
 fn main() {
     let xforms = make_xforms();
 
-    let angles = ArcAngles::new(0.0, PI / 2.0, PI).unwrap();
+    let angles = ArcAngles::new(0.0, PI).unwrap();
     let half_circle = ClineArcTile::new(vec![
         LineSegment::new(-Complex::ONE, Complex::ONE).into(),
         CircularArc::new(Circle::unit_circle(), angles).into(),
