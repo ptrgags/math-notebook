@@ -1,8 +1,5 @@
 use core::f64;
-use std::{
-    f64::consts::{PI, TAU},
-    path,
-};
+use std::{f64::consts::PI, path};
 
 use svg::{
     node::element::{path::Data, Circle as SvgCircle, Group, Line as SvgLine, Path, Rectangle},
@@ -36,7 +33,9 @@ fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
     let start_y = start.imag();
 
     let counterclockwise = angles.direction() == ArcDirection::Counterclockwise;
-    let large_arc = (end_angle - start_angle).rem_euclid(TAU) > PI;
+    // ArcAngles guarantees that the total angle of the arc is in [0, 2pi). If it's
+    // greater than pi in magnitude, we want to stroke the long way around the circle.
+    let large_arc = (end_angle - start_angle).abs() > PI;
 
     let end = arc.end();
     let end_x = end.real();
