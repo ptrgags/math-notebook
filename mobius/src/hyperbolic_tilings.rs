@@ -126,8 +126,6 @@ pub fn get_fundamental_region(
     p: usize,
     q: usize,
 ) -> Result<(ClineArcTile, (Complex, Complex, Complex)), String> {
-    let (conj, r_conj, e2_conj) = reflection_group(p, q)?;
-
     // tile center
     let center = Complex::Zero;
 

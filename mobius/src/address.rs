@@ -52,11 +52,11 @@ impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Forward(i) => {
-                let symbol = ('a' as u8 + *i as u8) as char;
+                let symbol = (b'a' + *i as u8) as char;
                 write!(f, "{}", symbol)
             }
             Self::Inverse(i) => {
-                let symbol = ('A' as u8 + *i as u8) as char;
+                let symbol = (b'A' + *i as u8) as char;
                 write!(f, "{}", symbol)
             }
         }
@@ -71,6 +71,10 @@ pub struct FractalAddress {
 impl FractalAddress {
     pub fn new(symbols: Vec<Symbol>) -> Self {
         Self { symbols }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.symbols.is_empty()
     }
 
     pub fn len(&self) -> usize {
@@ -112,6 +116,8 @@ impl TryFrom<&str> for FractalAddress {
 impl Mul for FractalAddress {
     type Output = Self;
 
+    // Using + is intentional here, as the group operation is concatenation
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: Self) -> Self::Output {
         // TODO: cancel out symbols at the join
         let mut symbols = Vec::with_capacity(self.symbols.len() + rhs.symbols.len());

@@ -35,7 +35,7 @@ impl<T: Transformable<Isogonal>> Transformable<Isogonal> for Collection<T> {
 impl<T: Display + Transformable<Isogonal>> Display for Collection<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for primitive in self.primitives.iter() {
-            write!(f, "{}\n", primitive)?;
+            writeln!(f, "{}", primitive)?;
         }
         Ok(())
     }
