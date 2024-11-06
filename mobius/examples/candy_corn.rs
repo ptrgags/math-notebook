@@ -77,7 +77,6 @@ pub fn main() -> Result<(), Error> {
     // Candy-corner hyperbolic tiling, based on tiling {3, 7}
     let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();
     let dist_to_edge = 0.5 * (e2_conj * Complex::Zero).real();
-    println!("{}", dist_to_edge);
     let shrink = scale(dist_to_edge * 0.3).unwrap();
     let shift = translation(Complex::new(0.51 * dist_to_edge, 0.05)).unwrap();
     let tiny_corn = corn.transform(shift * shrink);
