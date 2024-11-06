@@ -3,7 +3,7 @@ use std::f64::consts::{FRAC_PI_2, PI, TAU};
 use abstraction::Group;
 
 use crate::{
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     isogonal::Isogonal,
     rotation,
     transformable::ClineArcTile,
@@ -141,8 +141,8 @@ pub fn get_fundamental_region(
     let vertex = edge_circle.center + Complex::from_polar(edge_circle.radius, suppliment);
 
     let edge_bisector = LineSegment::new(center, edge_midpoint);
-    let angle_midpoint = (suppliment + PI) / 2.0;
-    let edge = CircularArc::new(edge_circle, PI, angle_midpoint, suppliment);
+    let angles = ArcAngles::new(PI, suppliment).unwrap();
+    let edge = CircularArc::new(edge_circle, angles);
     let angle_bisector = LineSegment::new(vertex, center);
 
     Ok((

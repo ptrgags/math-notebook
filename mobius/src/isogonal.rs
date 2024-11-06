@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::{fmt::Display, ops::Mul};
 
 use abstraction::{Group, Semigroup};
 
@@ -75,6 +75,15 @@ impl Group for Isogonal {
             Self::Conformal(m) => Self::Conformal(m.inverse()),
             // (M conj)^-1 = conj^-1 M^-1 = conj(M)^-1 conj
             Self::AntiConformal(m) => Self::AntiConformal(m.complex_conjugate().inverse()),
+        }
+    }
+}
+
+impl Display for Isogonal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Conformal(m) => write!(f, "Conformal{}", m),
+            Self::AntiConformal(m) => write!(f, "AntiConformal{}", m),
         }
     }
 }

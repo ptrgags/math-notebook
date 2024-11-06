@@ -257,6 +257,11 @@ mod test {
     use super::*;
     use test_case::test_case;
 
+    #[test]
+    pub fn missing_tests() {
+        todo!("wedge tests");
+    }
+
     #[should_panic]
     #[test_case(-3.0, f64::NAN; "NaN in imaginary part")]
     #[test_case(f64::NAN, 3.0; "NaN in real part")]

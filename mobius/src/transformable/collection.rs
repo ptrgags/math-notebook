@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
 
 use crate::{
     cline_arc::ClineArc,
@@ -42,11 +42,24 @@ impl<T: Display + Transformable<Isogonal>> Display for Collection<T> {
 }
 
 impl<T: Renderable + Transformable<Isogonal>> Renderable for Collection<T> {
-    fn bake_geometry(&self) -> Vec<RenderPrimitive> {
-        self.primitives
+    fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn Error>> {
+        let mut errors = vec![];
+        let baked: Vec<_> = self
+            .primitives
             .iter()
-            .flat_map(|x| x.bake_geometry())
-            .collect()
+            .map(|x| x.bake_geometry())
+            .filter_map(|x| x.map_err(|x| errors.push(x)).ok())
+            .flatten()
+            .collect();
+
+        if !errors.is_empty() {
+            println!("Warning: Errors detected when baking geometry. Skipping these primitives");
+            for error in errors {
+                println!("{}", error)
+            }
+        }
+
+        Ok(baked)
     }
 }
 

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
 
 use crate::{
     geometry::{Circle, Line},
@@ -229,13 +229,20 @@ impl Transformable<Isogonal> for Cline {
 }
 
 impl Renderable for Cline {
-    fn bake_geometry(&self) -> Vec<RenderPrimitive> {
+    fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn Error>> {
         let primitive = match self.classify() {
             GeneralizedCircle::Circle(circle) => RenderPrimitive::Circle(circle),
             GeneralizedCircle::Line(line) => RenderPrimitive::make_line(line),
         };
 
-        vec![primitive]
+        Ok(vec![primitive])
+    }
+}
+
+impl Display for Cline {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let &Self { a, b, c, d } = self;
+        write!(f, "[{} {}]\n[{} {}]", a, b, c, d)
     }
 }
 

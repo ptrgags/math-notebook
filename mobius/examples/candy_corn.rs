@@ -6,14 +6,13 @@ use std::{
 use abstraction::Group;
 use mobius::{
     algorithms::{GridIFS, SemigroupIFS},
-    geometry::Circle,
     hyperbolic,
     hyperbolic_tilings::{corner_rotation_group, get_fundamental_region, reflection_group},
     motifs::candy_corn,
     rendering::Style,
     rotation, scale,
     svg_plot::{render_views, style_geometry, style_motif, style_motifs, union, View},
-    transformable::{Cline, ClineTile, Motif, Transformable},
+    transformable::{Motif, Transformable},
     translation, Complex, Mobius,
 };
 
@@ -68,29 +67,22 @@ pub fn main() -> Result<(), Error> {
     //let warped_pair = two_corns.transform(pull_left);
     let curved_wallpaper = curved_grid.apply(&two_corns);
     let curved_svg = style_motifs(&curved_wallpaper[..], &styles);
-    let unit_circle = style_geometry(
-        Style::stroke(255, 255, 255).with_width(0.5),
-        &ClineTile::new(vec![Cline::unit_circle()]),
-    );
     render_views(
         "output",
         "candy_corn_warpedpaper",
         &[View("", -2.5, 3.0, 4.0)],
-        union(vec![/*unit_circle, */ curved_svg]),
+        curved_svg,
     )?;
 
     // Candy-corner hyperbolic tiling, based on tiling {3, 7}
     let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();
     let dist_to_edge = 0.5 * (e2_conj * Complex::Zero).real();
-    println!("{}", dist_to_edge);
     let shrink = scale(dist_to_edge * 0.3).unwrap();
-    let rot2 = rotation(PI).unwrap();
     let shift = translation(Complex::new(0.51 * dist_to_edge, 0.05)).unwrap();
     let tiny_corn = corn.transform(shift * shrink);
     let ifs = SemigroupIFS::new(vec![conj, r_conj, e2_conj]);
     let candy_corners = ifs.apply(&tiny_corn, 0, 7);
-    let (fundamental_triangle, (center, edge_midpoint, vertex)) =
-        get_fundamental_region(3, 7).unwrap();
+    let (fundamental_triangle, (_, _, vertex)) = get_fundamental_region(3, 7).unwrap();
     let tiles = ifs.apply(&fundamental_triangle, 0, 5);
     let yellow_lines = Style::stroke(255, 0, 255).with_width(0.5);
 

@@ -10,3 +10,6 @@ svg = "0.18.0"
 [dev-dependencies]
 test-case = "3.3.1"
 pretty_assertions = "1.4.1"
+
+[features]
+debug_cline_arcs = []

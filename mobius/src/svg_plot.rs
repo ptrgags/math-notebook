@@ -1,5 +1,5 @@
 use core::f64;
-use std::path;
+use std::{f64::consts::PI, path};
 
 use svg::{
     node::element::{path::Data, Circle as SvgCircle, Group, Line as SvgLine, Path, Rectangle},
@@ -7,7 +7,7 @@ use svg::{
 };
 
 use crate::{
-    geometry::{Circle, CircularArc, LineSegment},
+    geometry::{ArcAngles, ArcDirection, Circle, CircularArc, DirectedEdge, LineSegment},
     rendering::{RenderPrimitive, Renderable, Style},
     transformable::{Cline, ClineTile, Motif},
     Complex,
@@ -25,25 +25,24 @@ fn svg_circle(circle: Circle) -> Box<dyn Node> {
 }
 
 fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
-    let CircularArc {
-        circle: Circle { center, radius },
-        angle_a: start_angle,
-        angle_c: end_angle,
-        ..
-    } = arc;
+    let CircularArc { circle, angles } = arc;
+    let ArcAngles(start_angle, end_angle) = angles;
 
-    let start = center + Complex::from_polar(radius, start_angle);
+    let start = arc.start();
     let start_x = start.real();
     let start_y = start.imag();
 
-    let counterclockwise = end_angle - start_angle > 0.0;
-    let large_arc = (end_angle - start_angle) % f64::consts::TAU > f64::consts::PI;
+    let counterclockwise = angles.direction() == ArcDirection::Counterclockwise;
+    // ArcAngles guarantees that the total angle of the arc is in [0, 2pi). If it's
+    // greater than pi in magnitude, we want to stroke the long way around the circle.
+    let large_arc = (end_angle - start_angle).abs() > PI;
 
-    const NO_ROTATION: f64 = 0.0;
-    let end = center + Complex::from_polar(radius, end_angle);
+    let end = arc.end();
     let end_x = end.real();
     let end_y = end.imag();
 
+    const NO_ROTATION: f64 = 0.0;
+    let radius = circle.radius;
     let data = Data::new().move_to((start_x, start_y)).elliptical_arc_to((
         radius,
         radius,
@@ -108,12 +107,8 @@ impl From<Vec<SvgNode>> for SvgNodes {
 
 impl<T: Renderable> From<&T> for SvgNodes {
     fn from(value: &T) -> Self {
-        let nodes: Vec<SvgNode> = value
-            .bake_geometry()
-            .iter()
-            .map(|x| SvgNode::from(*x))
-            .collect();
-
+        let baked = value.bake_geometry().unwrap();
+        let nodes: Vec<SvgNode> = baked.iter().map(|x| SvgNode::from(*x)).collect();
         nodes.into()
     }
 }

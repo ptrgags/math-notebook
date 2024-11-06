@@ -10,3 +10,10 @@ pub fn is_nearly(a: f64, b: f64) -> bool {
         diff <= EPSILON * a.abs().max(b.abs())
     }
 }
+
+#[cfg(test)]
+pub fn assert_nearly(a: f64, b: f64) {
+    if !is_nearly(a, b) {
+        panic!("!is_nearly({}, {})", a, b);
+    }
+}
