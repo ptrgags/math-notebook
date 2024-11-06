@@ -36,7 +36,7 @@ impl Complex {
         }
 
         let (s, c) = theta.sin_cos();
-        return Complex::Finite(r * c, r * s);
+        Complex::Finite(r * c, r * s)
     }
 
     pub fn roots_of_unity(n: usize) -> Vec<Complex> {
@@ -213,6 +213,8 @@ impl Mul for Complex {
 impl Div for Complex {
     type Output = Complex;
 
+    // Division is multiplying by the reciprocal. :P
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, rhs: Self) -> Self::Output {
         self * rhs.inverse()
     }

@@ -19,8 +19,7 @@ impl Motif {
     }
 
     pub fn union(a: Self, b: Self) -> Self {
-        let parts: Vec<(ClineArcTile, usize)> =
-            a.parts.into_iter().chain(b.parts.into_iter()).collect();
+        let parts: Vec<(ClineArcTile, usize)> = a.parts.into_iter().chain(b.parts).collect();
 
         Self { parts }
     }

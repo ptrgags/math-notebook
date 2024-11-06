@@ -31,8 +31,8 @@ impl RenderPrimitive {
         let far_away: Complex = FAR_AWAY.into();
         let tangent = Complex::I * unit_normal;
         let center: Complex = unit_normal * distance.into();
-        let start: Complex = center + tangent * far_away.into();
-        let end: Complex = center - tangent * far_away.into();
+        let start: Complex = center + tangent * far_away;
+        let end: Complex = center - tangent * far_away;
 
         Self::LineSegment(LineSegment { start, end })
     }

@@ -20,10 +20,7 @@ pub struct GroupIFS<G: Group> {
 impl<G: Group> GroupIFS<G> {
     pub fn new(xforms_no_inverses: Vec<G>) -> Self {
         let inverses: Vec<G> = xforms_no_inverses.iter().map(|x| x.inverse()).collect();
-        let xforms: Vec<G> = xforms_no_inverses
-            .into_iter()
-            .chain(inverses.into_iter())
-            .collect();
+        let xforms: Vec<G> = xforms_no_inverses.into_iter().chain(inverses).collect();
 
         Self { xforms }
     }

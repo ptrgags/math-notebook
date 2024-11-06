@@ -14,7 +14,7 @@ impl<S: Semigroup> SemigroupIFS<S> {
         Self { xforms }
     }
 
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = &S> {
+    pub fn iter(&self) -> impl Iterator<Item = &S> {
         self.xforms.iter()
     }
 

@@ -14,7 +14,7 @@ impl Display for ColorRGB {
 pub struct Style {
     pub stroke: Option<ColorRGB>,
     pub fill: Option<ColorRGB>,
-    pub width_percent: Option<f64>
+    pub width_percent: Option<f64>,
 }
 
 impl Style {
@@ -22,7 +22,7 @@ impl Style {
         Self {
             stroke: None,
             fill: None,
-            width_percent: None
+            width_percent: None,
         }
     }
 
@@ -30,7 +30,7 @@ impl Style {
         Self {
             stroke: Some(ColorRGB(r, g, b)),
             fill: None,
-            width_percent: None
+            width_percent: None,
         }
     }
 
@@ -38,7 +38,13 @@ impl Style {
         Self {
             stroke: self.stroke,
             fill: self.fill,
-            width_percent: Some(width)
+            width_percent: Some(width),
         }
+    }
+}
+
+impl Default for Style {
+    fn default() -> Self {
+        Self::new()
     }
 }

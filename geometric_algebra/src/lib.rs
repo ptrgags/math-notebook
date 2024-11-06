@@ -5,7 +5,7 @@ pub use signature::Signature;
 use unit_blade::UnitBlade;
 
 fn choose_bits(n: usize, choices: &[u8]) -> Vec<u8> {
-    if n == 0 || choices.len() == 0 {
+    if n == 0 || choices.is_empty() {
         return vec![0];
     }
 
