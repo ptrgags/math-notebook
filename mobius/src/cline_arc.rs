@@ -80,26 +80,6 @@ pub struct ClineArc {
     c: Complex,
 }
 
-fn compute_ccw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParseError> {
-    // Compute angles in the CCW direction
-    let delta_b = (b - a).rem_euclid(TAU);
-    let delta_c = (c - b).rem_euclid(TAU);
-
-    let adjusted_b = a + delta_b;
-    let adjusted_c = adjusted_b + delta_c;
-    ArcAngles::new(a, adjusted_c)
-}
-
-fn compute_cw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParseError> {
-    // Compute angles in the CW direction
-    let delta_b = (a - b).rem_euclid(TAU);
-    let delta_c = (b - c).rem_euclid(TAU);
-
-    let adjusted_b = a - delta_b;
-    let adjusted_c = adjusted_b - delta_c;
-    ArcAngles::new(a, adjusted_c)
-}
-
 impl ClineArc {
     fn compute_line_geometry(&self) -> ClineArcGeometry {
         if let Complex::Infinity = self.a {
@@ -168,29 +148,8 @@ impl ClineArc {
     }
 
     fn compute_circle_geometry(&self, circle: Circle) -> Result<ClineArcGeometry, ClineArcError> {
-        // Determine if the 3 points circulate counterclockwise or
-        // clockwise by forming a triangle ABC and computing
-        // (the magnitude of) the wedge product.
-        let ab = self.b - self.a;
-        let ac = self.c - self.a;
-        let ccw = Complex::wedge(ab, ac) > 0.0;
-
-        // Get the raw angles
-        let theta_a = circle.get_angle(self.a).unwrap();
-        let theta_b = circle.get_angle(self.b).unwrap();
-        let theta_c = circle.get_angle(self.c).unwrap();
-
-        let angles = if ccw {
-            compute_ccw_angles(theta_a, theta_b, theta_c)
-        } else {
-            compute_cw_angles(theta_a, theta_b, theta_c)
-        };
-
-        match angles {
-            Ok(angles) => Ok(ClineArcGeometry::CircularArc(CircularArc {
-                circle,
-                angles,
-            })),
+        match CircularArc::from_circle_and_points(circle, self.a, self.b, self.c) {
+            Ok(arc) => Ok(ClineArcGeometry::CircularArc(arc)),
             Err(err) => {
                 let ClineArc { cline, a, b, c } = self;
                 let message = format!("cline={}\n(a, b, c) = ({}, {}, {})", cline, a, b, c);

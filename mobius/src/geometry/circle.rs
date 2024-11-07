@@ -29,6 +29,10 @@ impl Circle {
     pub fn get_angle(&self, point: Complex) -> Option<f64> {
         (point - self.center).arg()
     }
+
+    pub fn point_inside(&self, point: Complex) -> bool {
+        (point - self.center).norm() <= self.radius * self.radius
+    }
 }
 
 impl Geometry for Circle {}

@@ -112,6 +112,17 @@ impl ArcAngles {
         let (reduced_a, reduced_b) = reduce_angles(*b, *a);
         Self(reduced_a, reduced_b)
     }
+
+    pub fn complement(&self) -> Self {
+        let Self(a, b) = self;
+        let diff = b - a;
+        let abs_diff = diff.abs();
+        let other_angle = TAU - abs_diff;
+
+        let adjusted_diff = other_angle / abs_diff * diff;
+
+        Self(*b, b + adjusted_diff)
+    }
 }
 
 impl PartialEq for ArcAngles {
