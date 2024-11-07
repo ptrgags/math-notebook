@@ -262,4 +262,22 @@ mod test {
 
         assert_eq!(result, expected);
     }
+
+    #[test_case(ArcAngles::new(0.0, PI/2.0).unwrap(), ArcAngles::new(PI / 2.0, 2.0 * PI).unwrap(); "ccw arc")]
+    #[test_case(ArcAngles::new(PI/6.0, -PI/4.0).unwrap(), ArcAngles::new(7.0 * PI / 4.0, PI / 6.0).unwrap(); "cw arc")]
+    pub fn complement_returns_other_part_of_circle(arc: ArcAngles, expected: ArcAngles) {
+        let result = arc.complement();
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn reverse_and_complement_commute() {
+        let arc = ArcAngles::new(PI / 3.0, 5.0 * PI / 4.0).unwrap();
+
+        let rev_comp = arc.complement().reverse();
+        let comp_rev = arc.reverse().complement();
+
+        assert_eq!(rev_comp, comp_rev);
+    }
 }

@@ -36,7 +36,8 @@ impl CircularArc {
         Self { circle, angles }
     }
 
-    /// Given a circle and 3 angles (computed )
+    /// Given a circle and 3 points (a, b, c) on that circle, compute a circular
+    /// arc from a -> b -> c
     pub fn from_circle_and_points(
         circle: Circle,
         a: Complex,

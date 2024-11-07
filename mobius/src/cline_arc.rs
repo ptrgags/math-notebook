@@ -1,9 +1,7 @@
-use std::{error::Error, f64::consts::TAU, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 use crate::{
-    geometry::{
-        ArcAngles, ArcAnglesParseError, Circle, CircularArc, DoubleRay, Line, LineSegment, Ray,
-    },
+    geometry::{ArcAngles, Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
     transformable::{Cline, GeneralizedCircle, Transformable},
