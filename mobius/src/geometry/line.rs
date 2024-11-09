@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::Complex;
 
 use super::Geometry;
@@ -37,3 +39,13 @@ impl Line {
 }
 
 impl Geometry for Line {}
+
+impl Display for Line {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self {
+            unit_normal,
+            distance,
+        } = self;
+        write!(f, "Line(n={}, d={})", unit_normal, distance)
+    }
+}

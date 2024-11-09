@@ -1,10 +1,12 @@
 use std::{error::Error, fmt::Display};
 
 use crate::{
-    geometry::{ArcAngles, Circle, CircularArc, DoubleRay, Line, LineSegment, Ray},
+    geometry::{
+        ArcAngles, Circle, CircularArc, DoubleRay, GeneralizedCircle, Line, LineSegment, Ray,
+    },
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
-    transformable::{Cline, GeneralizedCircle, Transformable},
+    transformable::{Cline, Transformable},
     Complex,
 };
 
