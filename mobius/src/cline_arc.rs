@@ -191,12 +191,7 @@ impl From<LineSegment> for ClineArc {
     fn from(value: LineSegment) -> Self {
         let LineSegment { start, end } = value;
 
-        let unit_tangent = (end - start).normalize().unwrap();
-        let unit_normal = Complex::I * unit_tangent;
-
-        let distance = Complex::dot(unit_normal, start);
-        let line = Line::new(unit_normal, distance).unwrap();
-
+        let line = Line::from(value);
         let midpoint = (start + end) * (0.5).into();
 
         Self {
