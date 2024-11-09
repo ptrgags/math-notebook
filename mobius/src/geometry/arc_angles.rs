@@ -57,9 +57,11 @@ impl Display for ArcDirection {
 /// Angles for use with CircularArc. These are subject to the following
 /// restrictions:
 ///
-/// - a < b < c (CCW arc) or a > b > c (CW arc). This reduces corner cases
-/// - |c - a| < 2pi so we're always drawing less than a full circle
-/// - the value of a will be reduced to be in [0, 2pi)
+/// - a != b to avoid degenerate
+/// - if a < b, then the arc is assumed to sweep out counterclockwise
+/// - if a > b, then the arc is assumed to sweep out clockwise
+/// - |b - a| < TAU to avoid arcs that go completely around the circle.
+/// - a will be reduced to [0, 2pi)
 #[derive(Clone, Copy, Debug)]
 pub struct ArcAngles(pub f64, pub f64);
 
@@ -86,6 +88,23 @@ impl ArcAngles {
 
         let (reduced_a, reduced_b) = reduce_angles(a, b);
         Ok(Self(reduced_a, reduced_b))
+    }
+
+    /// Given two angles (e.g. computed from atan2()) and a CCW/Clockwise
+    /// direction, compute the reduced angles representation
+    pub fn from_raw_angles(a: f64, b: f64, direction: ArcDirection) -> Self {
+        // slightly different reduction process to ensure the arc points
+        // in the correct direction
+        let reduced_a = a.rem_euclid(TAU);
+        let reduced_b = if direction == ArcDirection::Counterclockwise {
+            let delta = (b - a).rem_euclid(TAU);
+            reduced_a + delta
+        } else {
+            let delta = (a - b).rem_euclid(TAU);
+            reduced_a - delta
+        };
+
+        Self(reduced_a, reduced_b)
     }
 
     /// Create two semicircles, one for the upper half of a circle traced
@@ -279,5 +298,10 @@ mod test {
         let comp_rev = arc.reverse().complement();
 
         assert_eq!(rev_comp, comp_rev);
+    }
+
+    #[test]
+    pub fn missing_tests() {
+        todo!("test from_raw_angles")
     }
 }

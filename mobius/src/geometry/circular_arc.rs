@@ -1,6 +1,6 @@
 use std::{f64::consts::TAU, fmt::Display};
 
-use crate::Complex;
+use crate::{interpolation::lerp, Complex};
 
 use super::{circle::Circle, ArcAngles, ArcAnglesParseError, ArcDirection, DirectedEdge, Geometry};
 
@@ -69,11 +69,17 @@ impl CircularArc {
         self.angles.direction()
     }
 
-    pub fn midpoint(&self) -> Complex {
-        let ArcAngles(a, c) = self.angles;
-        let b = 0.5 * (a + c);
+    pub fn interpolate(&self, t: f64) -> Complex {
+        let ArcAngles(a, b) = self.angles;
+        let in_between_angle = lerp(a, b, t);
+        self.circle.get_point(in_between_angle)
+    }
 
-        self.circle.get_point(b)
+    pub fn reverse(&self) -> Self {
+        Self {
+            circle: self.circle,
+            angles: self.angles.reverse(),
+        }
     }
 
     pub fn complement(&self) -> Self {

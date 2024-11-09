@@ -1,118 +1,109 @@
-use std::{
-    f64::consts::{PI, TAU},
-    io::Error,
-};
+use std::{f64::consts::PI, io::Error};
 
-use mobius::{algorithms::SemigroupIFS, geometry::ArcAngles, transformable::Cline};
 use mobius::{
-    cline_arc::ClineArc,
+    algorithms::SemigroupIFS,
+    geometry::{ArcAngles, DirectedEdge, GeneralizedCircle},
+    orthogonal_arcs::compute_orthogonal_circle,
+    svg_plot::union,
+    transformable::ClineArcTile,
+};
+use mobius::{
     geometry::{Circle, CircularArc},
     map_triple,
     rendering::Style,
     svg_plot::{render_views, style_geometry, View},
     Complex, Mobius,
 };
-use svg::node::element::Group;
 
-/// Compute an orthogonal circle through a and b.
-/// I've done this before for another project, see my explainer here:
-/// https://github.com/ptrgags/p5-sketchbook/tree/main/HyperbolicConnections#method-2-kite-analysis
-/// as well as the code
-/// https://github.com/ptrgags/p5-sketchbook/blob/458e47383ed8492cff3cc0bce4bded666b0672bc/HyperbolicConnections/boundaries.js#L35
-fn get_orthog_circle(circle: Circle, a: Complex, b: Complex) -> Circle {
-    let q = (a - b).mag();
-    let p = (4.0 / (4.0 - q * q)).sqrt();
-    let orthog_radius = 0.5 * p * q;
-
-    let angle_a = circle.get_angle(a).unwrap();
-    let angle_b = circle.get_angle(b).unwrap();
-
-    let angle_bisector = 0.5 * (angle_a + angle_b);
-    let angle_bisector = if (angle_b - angle_a) % TAU > PI {
-        (angle_bisector + PI) % TAU
-    } else {
-        angle_bisector
+fn compute_orthogonal_arc(arc: CircularArc, a: Complex, b: Complex) -> CircularArc {
+    let circle = arc.circle;
+    let orthog_circle = match compute_orthogonal_circle(circle, a, b).unwrap() {
+        GeneralizedCircle::Circle(sub_circle) => sub_circle,
+        GeneralizedCircle::Line(_) => panic!("Not implemented: sub arc that's a line"),
     };
 
-    let orthog_center = Complex::from_polar(p, angle_bisector);
+    // My convention is to compute the sub arc that's sweeping in the same
+    // angular direction as the original arc. But if the original one went from b -> a,
+    // now we're going from a -> b;
+    let angle_a_raw = orthog_circle.get_angle(a).unwrap();
+    let angle_b_raw = orthog_circle.get_angle(b).unwrap();
+    let sub_angles = ArcAngles::from_raw_angles(angle_b_raw, angle_a_raw, arc.direction());
 
-    Circle {
-        center: orthog_center,
-        radius: orthog_radius,
+    CircularArc::new(orthog_circle, sub_angles)
+}
+
+struct ArcFractal {
+    /// The original arc, a -> c
+    arc: CircularArc,
+    /// Two transformations (translate/rotate/scale) that shrink arc onto
+    /// the two respective sub-arcs
+    xforms: (Mobius, Mobius),
+    /// An arc orthogonal to the first one, as I want to render this too.
+    orthog_arc: CircularArc,
+    /// The two sub-arcs. The first one is c -> b, the second is b -> a
+    sub_arcs: (CircularArc, CircularArc),
+}
+
+impl ArcFractal {
+    pub fn new(arc: CircularArc, t: f64) -> Self {
+        let a = arc.start();
+        let b = arc.interpolate(t);
+        let c = arc.end();
+
+        let arc_cb = compute_orthogonal_arc(arc, b, c);
+        let arc_ba = compute_orthogonal_arc(arc, a, b);
+
+        let d = arc_ba.interpolate(t);
+        let e = arc_cb.interpolate(t);
+
+        let xform_bda = map_triple((a, b, c), (b, d, a)).unwrap();
+        let xform_ceb = map_triple((a, b, c), (c, e, b)).unwrap();
+
+        Self {
+            xforms: (xform_ceb, xform_bda),
+            arc,
+            orthog_arc: compute_orthogonal_arc(arc, a, c),
+            sub_arcs: (arc_cb, arc_ba),
+        }
     }
-}
-
-fn lerp(a: f64, b: f64, t: f64) -> f64 {
-    (1.0 - t) * a + t * b
-}
-
-fn compute_sub_arc(
-    original_circle: Circle,
-    circle: Circle,
-    a: Complex,
-    b: Complex,
-    t: f64,
-) -> CircularArc {
-    let angle_a = circle.get_angle(a).unwrap();
-    let angle_b = circle.get_angle(b).unwrap();
-    let angle_mid1 = lerp(angle_a, angle_b, t);
-    let angle_mid2 = angle_mid1 + PI;
-
-    let mid1 = circle.get_point(angle_mid1);
-    let mid2 = circle.get_point(angle_mid2);
-
-    if original_circle.point_inside(mid1) {
-        CircularArc::from_circle_and_points(circle, a, mid1, b).unwrap()
-    } else {
-        CircularArc::from_circle_and_points(circle, a, mid2, b).unwrap()
-    }
-}
-
-fn arc_fractal(arc: CircularArc, t: f64) -> (Mobius, Mobius) {
-    let CircularArc { circle, angles } = arc;
-    let ArcAngles(angle_a, angle_c) = angles;
-
-    let a = circle.get_point(angle_a);
-    let angle_b = lerp(angle_a, angle_c, t);
-    let b = circle.get_point(angle_b);
-    let c = circle.get_point(angle_c);
-
-    let circle_ab = get_orthog_circle(circle, a, b);
-    let circle_bc = get_orthog_circle(circle, b, c);
-
-    let arc_ab = compute_sub_arc(circle, circle_ab, a, b, t);
-    let arc_bc = compute_sub_arc(circle, circle_bc, b, c, t);
-
-    let d = arc_ab.midpoint();
-    let e = arc_bc.midpoint();
-
-    let xform_bda = map_triple((a, b, c), (b, d, a)).unwrap();
-    let xform_ceb = map_triple((a, b, c), (c, e, b)).unwrap();
-
-    (xform_bda, xform_ceb)
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(0.0, 3.0 * PI / 4.0).unwrap();
+    let angles = ArcAngles::new(-PI / 2.0, PI / 4.0).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
-    let (a, b) = arc_fractal(arc, 0.5);
+    let fractal = ArcFractal::new(arc, 0.5);
 
-    let tile: ClineArc = arc.into();
-
+    let (a, b) = fractal.xforms;
     let ifs = SemigroupIFS::new(vec![a, b]);
 
-    let tiles = ifs.apply(&tile, 0, 8);
+    let lens_tile = ClineArcTile::new(vec![fractal.arc.into(), fractal.orthog_arc.into()]);
+
+    let (arc_cb, arc_ba) = fractal.sub_arcs;
+    let triangle_tile = ClineArcTile::new(vec![
+        // orthogonal arc from b -> a
+        fractal.orthog_arc.into(),
+        //
+        arc_ba.reverse().into(),
+        arc_cb.reverse().into(),
+    ]);
+
+    let depth = 7usize;
+
+    let triangle_tiles = ifs.apply(&triangle_tile, 0, depth - 1);
+    let leaf_lenses = ifs.apply(&lens_tile, depth, depth);
+
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.125);
-    let geometry = style_geometry(orange_lines, &tiles[..]);
+    let purple_lines = Style::stroke(127, 0, 255).with_width(0.5);
 
-    let orthog_circle = get_orthog_circle(Circle::unit_circle(), Complex::ONE, Complex::I);
-    let circle_cline: Cline = orthog_circle.into();
-    let yellow_lines = Style::stroke(255, 255, 0).with_width(0.5);
-    let more_geometry = style_geometry(yellow_lines, &circle_cline);
-
-    let group = Group::new().add(geometry); //.add(more_geometry);
-
-    render_views("output", "crinkle_arc", &[View("", 0.0, 0.0, 1.0)], group)?;
+    render_views(
+        "output",
+        "crinkle_arc",
+        &[View("", 0.0, 0.0, 1.0)],
+        union(vec![
+            style_geometry(orange_lines, &triangle_tiles[..]),
+            style_geometry(purple_lines, &leaf_lenses[..]),
+        ]),
+    )?;
 
     Ok(())
 }
