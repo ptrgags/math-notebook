@@ -1,28 +1,35 @@
-use std::{f64::consts::TAU, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 use crate::{interpolation::lerp, Complex};
 
 use super::{circle::Circle, ArcAngles, ArcAnglesParseError, ArcDirection, DirectedEdge, Geometry};
 
-fn compute_ccw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParseError> {
-    // Compute angles in the CCW direction
-    let delta_b = (b - a).rem_euclid(TAU);
-    let delta_c = (c - b).rem_euclid(TAU);
-
-    let adjusted_b = a + delta_b;
-    let adjusted_c = adjusted_b + delta_c;
-    ArcAngles::new(a, adjusted_c)
+#[derive(Debug)]
+pub enum CircularArcError {
+    BadAngles(ArcAnglesParseError),
+    DuplicatePoint(Complex),
+    PointAtCenter(Complex),
 }
 
-fn compute_cw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParseError> {
-    // Compute angles in the CW direction
-    let delta_b = (a - b).rem_euclid(TAU);
-    let delta_c = (b - c).rem_euclid(TAU);
-
-    let adjusted_b = a - delta_b;
-    let adjusted_c = adjusted_b - delta_c;
-    ArcAngles::new(a, adjusted_c)
+impl Display for CircularArcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CircularArcError::BadAngles(err) => err.fmt(f),
+            CircularArcError::DuplicatePoint(point) => write!(f, "Duplicate point: {}", point),
+            CircularArcError::PointAtCenter(point) => {
+                write!(f, "Point at center of circle not allowed: {}", point)
+            }
+        }
+    }
 }
+
+impl From<ArcAnglesParseError> for CircularArcError {
+    fn from(value: ArcAnglesParseError) -> Self {
+        Self::BadAngles(value)
+    }
+}
+
+impl Error for CircularArcError {}
 
 // Directed circular arc through 3 points on a circular arc
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -43,7 +50,31 @@ impl CircularArc {
         a: Complex,
         b: Complex,
         c: Complex,
-    ) -> Result<Self, ArcAnglesParseError> {
+    ) -> Result<Self, CircularArcError> {
+        if a == b {
+            return Err(CircularArcError::DuplicatePoint(a));
+        }
+
+        if b == c {
+            return Err(CircularArcError::DuplicatePoint(b));
+        }
+
+        if a == c {
+            return Err(CircularArcError::DuplicatePoint(a));
+        }
+
+        if a == circle.center {
+            return Err(CircularArcError::PointAtCenter(a));
+        }
+
+        if b == circle.center {
+            return Err(CircularArcError::PointAtCenter(b));
+        }
+
+        if c == circle.center {
+            return Err(CircularArcError::PointAtCenter(c));
+        }
+
         // Determine if the 3 points circulate counterclockwise or
         // clockwise by forming a triangle ABC and computing
         // (the magnitude of) the wedge product.
@@ -53,15 +84,15 @@ impl CircularArc {
 
         // Get the raw angles
         let theta_a = circle.get_angle(a).unwrap();
-        let theta_b = circle.get_angle(b).unwrap();
         let theta_c = circle.get_angle(c).unwrap();
 
-        let angles = if ccw {
-            compute_ccw_angles(theta_a, theta_b, theta_c)
+        let direction = if ccw {
+            ArcDirection::Counterclockwise
         } else {
-            compute_cw_angles(theta_a, theta_b, theta_c)
-        }?;
+            ArcDirection::Clockwise
+        };
 
+        let angles = ArcAngles::from_raw_angles(theta_a, theta_c, direction);
         Ok(Self { circle, angles })
     }
 
@@ -115,6 +146,49 @@ impl Display for CircularArc {
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
+    use test_case::test_case;
+
+    #[test_case(Complex::ONE, Complex::ONE, Complex::I; "a equals b")]
+    #[test_case(Complex::I, Complex::ONE, Complex::ONE; "b equals c")]
+    #[test_case(Complex::ONE, Complex::I, Complex::ONE; "a equals c")]
+    pub fn from_circle_and_points_with_duplicate_points_returns_error(
+        a: Complex,
+        b: Complex,
+        c: Complex,
+    ) {
+        let circle = Circle::unit_circle();
+
+        let result = CircularArc::from_circle_and_points(circle, a, b, c);
+
+        assert!(result.is_err_and(|x| matches!(x, CircularArcError::DuplicatePoint(_))))
+    }
+
+    #[test_case(Complex::Zero, Complex::ONE, Complex::I; "a is zero")]
+    #[test_case(Complex::I, Complex::Zero, Complex::ONE; "b is zero")]
+    #[test_case(Complex::ONE, Complex::I, Complex::Zero; "c is zero")]
+    pub fn from_circle_and_points_with_circle_center_returns_error(
+        a: Complex,
+        b: Complex,
+        c: Complex,
+    ) {
+        let circle = Circle::unit_circle();
+
+        let result = CircularArc::from_circle_and_points(circle, a, b, c);
+
+        assert!(result.is_err_and(|x| matches!(x, CircularArcError::PointAtCenter(_))))
+    }
+
+    #[test]
+    pub fn from_circle_and_points_with_points_on_circle_computes_arc() {
+        todo!()
+    }
+
+    #[test]
+    pub fn from_circle_and_points_with_points_off_circle_computes_arc() {
+        todo!()
+    }
 
     #[test]
     pub fn missing_tests() {

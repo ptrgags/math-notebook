@@ -8,7 +8,7 @@ use crate::{
 
 #[derive(Debug)]
 pub enum OrthogonalArcError {
-    PointsIdentical(Complex),
+    DuplicatePoint(Complex),
     PointAtCenter(Complex),
 }
 
@@ -18,7 +18,7 @@ pub fn compute_orthogonal_circle(
     b: Complex,
 ) -> Result<GeneralizedCircle, OrthogonalArcError> {
     if a == b {
-        return Err(OrthogonalArcError::PointsIdentical(a));
+        return Err(OrthogonalArcError::DuplicatePoint(a));
     }
 
     if a == circle.center {
@@ -113,7 +113,7 @@ mod test {
 
         let result = compute_orthogonal_circle(circle, point, point);
 
-        assert!(result.is_err_and(|x| matches!(x, OrthogonalArcError::PointsIdentical(_))))
+        assert!(result.is_err_and(|x| matches!(x, OrthogonalArcError::DuplicatePoint(_))))
     }
 
     #[test_case(Complex::new(5.0, 2.0), Complex::new(1.0, 6.0), Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter_circle")]
