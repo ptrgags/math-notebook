@@ -27,7 +27,10 @@ fn compute_orthogonal_arc(arc: CircularArc, a: Complex, b: Complex) -> CircularA
     // now we're going from a -> b;
     let angle_a_raw = orthog_circle.get_angle(a).unwrap();
     let angle_b_raw = orthog_circle.get_angle(b).unwrap();
-    let sub_angles = ArcAngles::from_raw_angles(angle_b_raw, angle_a_raw, arc.direction());
+    let mut sub_angles = ArcAngles::from_raw_angles(angle_b_raw, angle_a_raw, arc.direction());
+    if sub_angles.central_angle() > PI {
+        sub_angles = sub_angles.complement();
+    }
 
     CircularArc::new(orthog_circle, sub_angles)
 }
@@ -69,7 +72,7 @@ impl ArcFractal {
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(-PI / 2.0, PI / 4.0).unwrap();
+    let angles = ArcAngles::new(-PI / 2.0, 3.0 * PI / 4.0).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let fractal = ArcFractal::new(arc, 0.5);
 

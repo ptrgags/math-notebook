@@ -115,6 +115,12 @@ impl ArcAngles {
         (upper, lower)
     }
 
+    /// Compute the absolute angular difference between the two end points.
+    pub fn central_angle(&self) -> f64 {
+        let Self(a, b) = self;
+        return (b - a).abs();
+    }
+
     pub fn direction(&self) -> ArcDirection {
         let Self(a, b) = self;
         if b > a {
@@ -302,6 +308,6 @@ mod test {
 
     #[test]
     pub fn missing_tests() {
-        todo!("test from_raw_angles")
+        todo!("from_raw_angles, central_angle")
     }
 }
