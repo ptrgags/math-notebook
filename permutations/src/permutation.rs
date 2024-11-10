@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Mul};
+use std::{collections::HashSet, fmt::Display, ops::Mul};
 
 use abstraction::{Group, Semigroup};
 
@@ -22,6 +22,72 @@ impl<const N: usize> Permutation<N> {
         }
 
         Ok(Self { values })
+    }
+
+    pub fn from_cycles(cycles: Vec<Vec<usize>>) -> Result<Self, String> {
+        let mut combined = [0; N];
+        for i in 0..N {
+            combined[i] = i;
+        }
+
+        for cycle in cycles {
+            for (i, element) in cycle.iter().enumerate() {
+                combined[*element] = cycle[(i + 1) % cycle.len()];
+            }
+        }
+
+        Self::new(combined)
+    }
+
+    pub fn order(&self) -> usize {
+        let id = Self::identity();
+        let mut current = *self;
+        for power in 1.. {
+            if current == id {
+                return power;
+            }
+
+            current = *self * current;
+        }
+
+        unreachable!();
+    }
+
+    pub fn out_of_place(&self) -> usize {
+        let mut count: usize = 0;
+        for (i, value) in self.values.iter().enumerate() {
+            if *value != i {
+                count += 1;
+            }
+        }
+
+        count
+    }
+
+    pub fn cycle_decomposition(&self) -> Vec<Vec<usize>> {
+        let mut visited = [false; N];
+        let mut result = Vec::new();
+
+        for start_element in 0..N {
+            if visited[start_element] {
+                continue;
+            }
+            visited[start_element] = true;
+            let mut cycle = vec![start_element];
+
+            let mut current = self.values[start_element];
+            while current != start_element {
+                visited[current] = true;
+                cycle.push(current);
+                current = self.values[current];
+            }
+
+            if cycle.len() > 1 {
+                result.push(cycle);
+            }
+        }
+
+        result
     }
 }
 
@@ -59,6 +125,26 @@ impl<const N: usize> Group for Permutation<N> {
         }
 
         Self { values: result }
+    }
+}
+
+impl<const N: usize> Display for Permutation<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let cycles = self.cycle_decomposition();
+        if cycles.is_empty() {
+            return write!(f, "I");
+        }
+
+        for cycle in cycles {
+            if cycle.len() == 1 {
+                continue;
+            }
+
+            let element_strs: Vec<String> = cycle.iter().map(|x| x.to_string()).collect();
+            write!(f, "({})", element_strs.join(" "))?;
+        }
+
+        Ok(())
     }
 }
 
