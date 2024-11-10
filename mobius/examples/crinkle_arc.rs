@@ -72,7 +72,7 @@ impl ArcFractal {
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(-PI / 2.0, 3.0 * PI / 4.0).unwrap();
+    let angles = ArcAngles::new(-PI / 2.0, PI).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let fractal = ArcFractal::new(arc, 0.5);
 
