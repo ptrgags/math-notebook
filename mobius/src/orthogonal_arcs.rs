@@ -1,7 +1,7 @@
 use std::f64::consts::{PI, TAU};
 
 use crate::{
-    geometry::{Circle, CircularArc, GeneralizedCircle, Line, LineSegment},
+    geometry::{ArcAngles, Circle, CircularArc, GeneralizedCircle, Line, LineSegment},
     nearly::is_nearly,
     Complex,
 };
@@ -79,6 +79,26 @@ pub fn compute_orthogonal_circle(
     Ok(GeneralizedCircle::Circle(orthog_circle))
 }
 
+pub fn compute_orthogonal_arc(arc: CircularArc, a: Complex, b: Complex) -> CircularArc {
+    let circle = arc.circle;
+    let orthog_circle = match compute_orthogonal_circle(circle, a, b).unwrap() {
+        GeneralizedCircle::Circle(sub_circle) => sub_circle,
+        GeneralizedCircle::Line(_) => panic!("Not implemented: sub arc that's a line"),
+    };
+
+    // My convention is to compute the sub arc that's sweeping in the same
+    // angular direction as the original arc. But if the original one went from b -> a,
+    // now we're going from a -> b;
+    let angle_a_raw = orthog_circle.get_angle(a).unwrap();
+    let angle_b_raw = orthog_circle.get_angle(b).unwrap();
+    let mut sub_angles = ArcAngles::from_raw_angles(angle_b_raw, angle_a_raw, arc.direction());
+    if sub_angles.central_angle() > PI {
+        sub_angles = sub_angles.complement();
+    }
+
+    CircularArc::new(orthog_circle, sub_angles)
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum OrthogonalArc {
     Arc(CircularArc),
@@ -116,7 +136,10 @@ mod test {
         assert!(result.is_err_and(|x| matches!(x, OrthogonalArcError::DuplicatePoint(_))))
     }
 
-    #[test_case(Complex::new(5.0, 2.0), Complex::new(1.0, 6.0), Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter_circle")]
+    #[test_case(Complex::new(5.0, 2.0), Complex::new(1.0, 6.0), Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter circle ccw")]
+    #[test_case(Complex::new(1.0, 6.0), Complex::new(5.0, 2.0), Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter circle cw")]
+    #[test_case(Complex::new(5.0, 2.0), Complex::new(1.0, -2.0), Circle::new(Complex::new(5.0, -2.0), 4.0); "three quarters circle ccw")]
+    #[test_case(Complex::new(1.0, -2.0), Complex::new(5.0, 2.0), Circle::new(Complex::new(5.0, -2.0), 4.0); "three quarters circle cw")]
     pub fn compute_orthog_circle_with_points_on_circle_computes_correct_circle(
         a: Complex,
         b: Complex,

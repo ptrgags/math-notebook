@@ -3,7 +3,7 @@ use std::{f64::consts::PI, io::Error};
 use mobius::{
     algorithms::SemigroupIFS,
     geometry::{ArcAngles, DirectedEdge, GeneralizedCircle},
-    orthogonal_arcs::compute_orthogonal_circle,
+    orthogonal_arcs::{compute_orthogonal_arc, compute_orthogonal_circle},
     svg_plot::union,
     transformable::ClineArcTile,
 };
@@ -14,26 +14,6 @@ use mobius::{
     svg_plot::{render_views, style_geometry, View},
     Complex, Mobius,
 };
-
-fn compute_orthogonal_arc(arc: CircularArc, a: Complex, b: Complex) -> CircularArc {
-    let circle = arc.circle;
-    let orthog_circle = match compute_orthogonal_circle(circle, a, b).unwrap() {
-        GeneralizedCircle::Circle(sub_circle) => sub_circle,
-        GeneralizedCircle::Line(_) => panic!("Not implemented: sub arc that's a line"),
-    };
-
-    // My convention is to compute the sub arc that's sweeping in the same
-    // angular direction as the original arc. But if the original one went from b -> a,
-    // now we're going from a -> b;
-    let angle_a_raw = orthog_circle.get_angle(a).unwrap();
-    let angle_b_raw = orthog_circle.get_angle(b).unwrap();
-    let mut sub_angles = ArcAngles::from_raw_angles(angle_b_raw, angle_a_raw, arc.direction());
-    if sub_angles.central_angle() > PI {
-        sub_angles = sub_angles.complement();
-    }
-
-    CircularArc::new(orthog_circle, sub_angles)
-}
 
 struct ArcFractal {
     /// The original arc, a -> c
@@ -72,7 +52,7 @@ impl ArcFractal {
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(-PI / 2.0, PI).unwrap();
+    let angles = ArcAngles::new(PI / 4.0, 3.0 * PI / 2.0).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let fractal = ArcFractal::new(arc, 0.5);
 
@@ -90,10 +70,10 @@ fn main() -> Result<(), Error> {
         arc_cb.reverse().into(),
     ]);
 
-    let depth = 7usize;
+    let depth = 2usize;
 
-    let triangle_tiles = ifs.apply(&triangle_tile, 0, depth - 1);
-    let leaf_lenses = ifs.apply(&lens_tile, depth, depth);
+    let triangle_tiles = ifs.apply(&triangle_tile, 0, 0); //0, depth - 1);
+    let leaf_lenses = ifs.apply(&lens_tile, 0, 0); //depth, depth);
 
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.125);
     let purple_lines = Style::stroke(127, 0, 255).with_width(0.5);
@@ -104,7 +84,7 @@ fn main() -> Result<(), Error> {
         &[View("", 0.0, 0.0, 1.0)],
         union(vec![
             style_geometry(orange_lines, &triangle_tiles[..]),
-            style_geometry(purple_lines, &leaf_lenses[..]),
+            //style_geometry(purple_lines, &leaf_lenses[..]),
         ]),
     )?;
 
