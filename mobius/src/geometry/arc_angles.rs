@@ -293,6 +293,28 @@ mod test {
         assert_eq!(direction, expected_dir);
     }
 
+    #[test_case(0.0, PI / 4.0; "start of arc")]
+    #[test_case(0.25, 0.0; "quarter point")]
+    #[test_case(0.5, -PI / 4.0; "halfway point")]
+    #[test_case(1.0, -3.0 * PI / 4.0; "end of arc")]
+    pub fn interpolate_computes_in_between_angles(t: f64, expected: f64) {
+        let arc = ArcAngles::new(PI / 4.0, -3.0 * PI / 4.0).unwrap();
+
+        let result = arc.interpolate(t);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test_case(-0.5, 3.0 * PI / 4.0; "negative t")]
+    #[test_case(1.5, - 5.0 * PI / 4.0; "t bigger than 1")]
+    pub fn interpolate_computes_out_of_range_angles_gracefully(t: f64, expected: f64) {
+        let arc = ArcAngles::new(PI / 4.0, -3.0 * PI / 4.0).unwrap();
+
+        let result = arc.interpolate(t);
+
+        assert_eq!(result, expected);
+    }
+
     #[test]
     pub fn semicircles_computes_upper_and_lower_arcs() {
         let (upper, lower) = ArcAngles::semicircles();
