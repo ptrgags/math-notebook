@@ -2,7 +2,8 @@ use std::{error::Error, fmt::Display};
 
 use crate::{
     geometry::{
-        ArcAngles, Circle, CircularArc, DoubleRay, GeneralizedCircle, Line, LineSegment, Ray,
+        ArcAngles, ArcDirection, Circle, CircularArc, DoubleRay, GeneralizedCircle, Line,
+        LineSegment, Ray,
     },
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
@@ -147,23 +148,38 @@ impl ClineArc {
         }
     }
 
-    fn compute_circle_geometry(&self, circle: Circle) -> Result<ClineArcGeometry, ClineArcError> {
-        match CircularArc::from_circle_and_points(circle, self.a, self.b, self.c) {
-            Ok(arc) => Ok(ClineArcGeometry::CircularArc(arc)),
-            Err(err) => {
-                let ClineArc { cline, a, b, c } = self;
-                let message = format!("cline={}\n(a, b, c) = ({}, {}, {})", cline, a, b, c);
-                Err(ClineArcError::PossiblePrecisionError(
-                    message,
-                    Box::new(err),
-                ))
-            }
-        }
+    /// Implementation detail - to go from the ClineArc representation
+    /// to a CircularArc, it requires computing the arc a -> b -> c. the middle
+    /// point is necessary to disambiguate clockwise from counter-clockwise
+    fn compute_circle_geometry(&self, circle: Circle) -> ClineArcGeometry {
+        let &Self { a, b, c, .. } = self;
+
+        // Determine if the 3 points circulate counterclockwise or
+        // clockwise by forming a triangle ABC and computing
+        // (the magnitude of) the wedge product.
+        let ab = b - a;
+        let ac = c - a;
+        let ccw = Complex::wedge(ab, ac) > 0.0;
+
+        // Get the raw angles
+        let theta_a = circle.get_angle(a).unwrap();
+        let theta_c = circle.get_angle(c).unwrap();
+
+        let direction = if ccw {
+            ArcDirection::Counterclockwise
+        } else {
+            ArcDirection::Clockwise
+        };
+
+        let angles = ArcAngles::from_raw_angles(theta_a, theta_c, direction);
+        let arc = CircularArc::new(circle, angles);
+
+        ClineArcGeometry::CircularArc(arc)
     }
 
-    pub fn classify(&self) -> Result<ClineArcGeometry, ClineArcError> {
+    pub fn classify(&self) -> ClineArcGeometry {
         match self.cline.classify() {
-            GeneralizedCircle::Line(_) => Ok(self.compute_line_geometry()),
+            GeneralizedCircle::Line(_) => self.compute_line_geometry(),
             GeneralizedCircle::Circle(circle) => self.compute_circle_geometry(circle),
         }
     }
@@ -229,8 +245,7 @@ impl Renderable for ClineArc {
     fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn std::error::Error>> {
         let mut result = Vec::new();
 
-        let geom = self.classify()?;
-        let (first, maybe_second) = match geom {
+        let (first, maybe_second) = match self.classify() {
             ClineArcGeometry::CircularArc(arc) => (RenderPrimitive::CircularArc(arc), None),
             ClineArcGeometry::LineSegment(line_segment) => {
                 (RenderPrimitive::LineSegment(line_segment), None)
@@ -255,7 +270,6 @@ impl Renderable for ClineArc {
 
 impl Display for ClineArc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let geom = self.classify().unwrap();
-        geom.fmt(f)
+        self.classify().fmt(f)
     }
 }
