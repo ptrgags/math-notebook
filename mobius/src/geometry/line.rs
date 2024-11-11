@@ -54,7 +54,10 @@ impl Line {
         ComplexError::require_finite_nonzero("normal", normal)?;
         FloatError::require_finite("distance", distance)?;
 
-        let unit_normal = normal.normalize().unwrap();
+        let magnitude = normal.mag();
+        let distance = 1.0 / magnitude;
+
+        let unit_normal = normal * distance.into();
 
         Ok(Self {
             unit_normal,
@@ -136,6 +139,26 @@ pub mod test {
     use super::*;
 
     use test_case::test_case;
+
+    #[test]
+    pub fn new_normalizes_parameters_correctly() {
+        let not_normalized = Complex::new(2.0, 2.0);
+        let distance = 1.0;
+
+        let result = Line::new(not_normalized, distance).unwrap();
+
+        // |2 + 2i| = 2 sqrt(2)
+        // The normalized form will be 1/sqrt(2)(1 + i)
+        // the distance value also needs to be divided by this magnitude,
+        // so it's 1 / (2 sqrt(2))
+        let normalized_component = 1.0 / (2.0f64).sqrt();
+        let distance = normalized_component / 2.0;
+        let expected = Line {
+            unit_normal: Complex::new(normalized_component, normalized_component),
+            distance,
+        };
+        assert_eq!(result, expected);
+    }
 
     #[test_case(Complex::new(1.0, 1.0), Complex::new(5.0, 1.0), Line::new(Complex::I, 1.0).unwrap(); "horizontal_line")]
     pub fn from_points_with_valid_points_computes_correct_line(
