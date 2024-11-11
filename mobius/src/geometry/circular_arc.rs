@@ -101,9 +101,7 @@ impl CircularArc {
     }
 
     pub fn interpolate(&self, t: f64) -> Complex {
-        let ArcAngles(a, b) = self.angles;
-        let in_between_angle = lerp(a, b, t);
-        self.circle.get_point(in_between_angle)
+        self.circle.get_point(self.angles.interpolate(t))
     }
 
     pub fn reverse(&self) -> Self {
@@ -192,6 +190,6 @@ mod test {
 
     #[test]
     pub fn missing_tests() {
-        todo!("from_circle_and_points, directed_edge");
+        todo!("from_circle_and_points, directed_edge, interpolate");
     }
 }

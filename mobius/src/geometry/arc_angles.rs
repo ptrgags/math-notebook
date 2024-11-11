@@ -4,7 +4,7 @@ use std::{
     fmt::Display,
 };
 
-use crate::{float_error::FloatError, nearly::is_nearly};
+use crate::{float_error::FloatError, interpolation::lerp, nearly::is_nearly};
 
 #[derive(Debug)]
 pub enum ArcAnglesParseError {
@@ -130,17 +130,23 @@ impl ArcAngles {
         }
     }
 
+    // Interpolate between the start and end angles
+    pub fn interpolate(&self, t: f64) -> f64 {
+        let &Self(a, b) = self;
+        lerp(a, b, t)
+    }
+
     /// Return the same arc but traced backwards.
     pub fn reverse(&self) -> Self {
-        let Self(a, b) = self;
+        let &Self(a, b) = self;
 
-        let (reduced_a, reduced_b) = reduce_angles(*b, *a);
+        let (reduced_a, reduced_b) = reduce_angles(b, a);
         Self(reduced_a, reduced_b)
     }
 
     /// Return the other half of the circle.
     pub fn complement(&self) -> Self {
-        let Self(a, b) = self;
+        let &Self(a, b) = self;
 
         let diff = b - a;
         let abs_diff = diff.abs();
@@ -148,19 +154,19 @@ impl ArcAngles {
 
         let adjusted_diff = other_angle / abs_diff * diff;
 
-        let (reduced_a, reduced_b) = reduce_angles(*b, *b + adjusted_diff);
+        let (reduced_a, reduced_b) = reduce_angles(b, b + adjusted_diff);
         Self(reduced_a, reduced_b)
     }
 }
 
 impl PartialEq for ArcAngles {
     fn eq(&self, other: &Self) -> bool {
-        let ArcAngles(a, b) = self;
-        let ArcAngles(c, d) = other;
+        let &ArcAngles(a, b) = self;
+        let &ArcAngles(c, d) = other;
 
         // Even if the midpoints were to differ, the strictly
 
-        is_nearly(*a, *c) && is_nearly(*b, *d)
+        is_nearly(a, c) && is_nearly(b, d)
     }
 }
 
