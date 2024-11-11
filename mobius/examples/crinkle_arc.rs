@@ -6,6 +6,7 @@ use mobius::{
     orthogonal_arcs::compute_orthogonal_arc,
     svg_plot::{style_motifs, union},
     transformable::{ClineArcTile, Motif, Transformable},
+    Complex,
 };
 use mobius::{
     geometry::{Circle, CircularArc},
@@ -14,6 +15,7 @@ use mobius::{
     svg_plot::{render_views, style_geometry, View},
     Mobius,
 };
+use svg::node::element::Group;
 
 struct ArcFractal {
     /// The original arc, a -> c
@@ -60,10 +62,8 @@ impl ArcFractal {
     }
 }
 
-fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(-PI / 4.0, 5.0 * PI / 4.0).unwrap();
-    let arc = CircularArc::new(Circle::unit_circle(), angles);
-    let fractal = ArcFractal::new(arc, 0.5);
+fn crinkle_highlight_leaves(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2]) -> Group {
+    let fractal = ArcFractal::new(arc, t);
 
     let (a, b) = fractal.xforms;
     let ifs = SemigroupIFS::new(vec![a, b]);
@@ -80,20 +80,21 @@ fn main() -> Result<(), Error> {
         arc_cb.reverse().into(),
     ]);
 
-    let depth = 7usize;
     let triangle_tiles = ifs.apply(&triangle_tile, 0, depth - 1);
     let leaf_lenses = ifs.apply(&lens_tile, depth, depth);
-    let orange_lines = Style::stroke(255, 127, 0).with_width(0.125);
-    let purple_lines = Style::stroke(127, 0, 255).with_width(0.5);
-    render_views(
-        "output",
-        "crinkle_arc",
-        &[View("", 0.0, 0.0, 1.0)],
-        union(vec![
-            style_geometry(orange_lines, &triangle_tiles[..]),
-            style_geometry(purple_lines, &leaf_lenses[..]),
-        ]),
-    )?;
+
+    let [style_interior, style_leaves] = styles;
+
+    union(vec![
+        style_geometry(style_interior, &triangle_tiles[..]),
+        style_geometry(style_leaves, &leaf_lenses[..]),
+    ])
+}
+
+fn crinkle_two_color(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2]) -> Group {
+    let fractal = ArcFractal::new(arc, t);
+
+    let (a, b) = fractal.xforms;
 
     // Doodling on paper, I find that alternating the colors as you iterate
     // deeper produceses a cool effect. Let's try that.
@@ -105,6 +106,16 @@ fn main() -> Result<(), Error> {
     let bb = b * b;
     let ifs = SemigroupIFS::new(vec![aa, ab, ba, bb]);
 
+    let (arc_cb, arc_ba) = fractal.sub_arcs;
+    let triangle_tile = ClineArcTile::new(vec![
+        // orthogonal arc from b -> a
+        fractal.orthog_arc.into(),
+        // orthgonal arc from a -> midpoint
+        arc_ba.reverse().into(),
+        // orthogonal arc from midpoint -> b
+        arc_cb.reverse().into(),
+    ]);
+
     // Our tile will now be the big triangle tile + the first 2 children tiles (in a different color)
     let combined_tile = Motif::new(vec![
         (triangle_tile.clone(), 0),
@@ -113,16 +124,70 @@ fn main() -> Result<(), Error> {
     ]);
 
     // Remember, we're making bigger jumps and a higher branchihng factor, so tune the depth down a bit.
-    let depth = 3usize;
     let tiles = ifs.apply(&combined_tile, 0, depth);
-    let thin_purple = purple_lines.with_width(0.125);
+    style_motifs(&tiles[..], &styles)
+}
 
-    let styles = vec![orange_lines, thin_purple];
+fn main() -> Result<(), Error> {
+    let angles = ArcAngles::new(-PI / 4.0, 5.0 * PI / 4.0).unwrap();
+    let arc = CircularArc::new(Circle::unit_circle(), angles);
+
+    let depth = 7usize;
+    let orange_lines = Style::stroke(255, 127, 0).with_width(0.25);
+    let purple_lines = Style::stroke(127, 0, 255).with_width(0.25);
+    render_views(
+        "output",
+        "crinkle_arc",
+        &[View("", 0.0, 0.0, 1.1)],
+        crinkle_highlight_leaves(arc, 0.5, depth, [orange_lines, purple_lines]),
+    )?;
+
+    let depth = 3usize;
     render_views(
         "output",
         "crinkle_two_color",
-        &[View("", 0.0, 0.0, 1.0)],
-        style_motifs(&tiles[..], &styles),
+        &[View("", 0.0, 0.0, 1.1)],
+        crinkle_two_color(
+            arc,
+            0.5,
+            depth,
+            // Make the purple lines a bit thinnner to match the orange ones.
+            [orange_lines, purple_lines],
+        ),
+    )?;
+
+    // Now let's chain multiple arcs together for a more intricate pattern
+    let angles_a = ArcAngles::new(0.0, PI / 2.0).unwrap();
+    let angles_b = ArcAngles::new(0.0, -PI / 2.0).unwrap();
+    let angles_c = ArcAngles::new(PI, 3.0 * PI / 2.0).unwrap();
+    let angles_d = ArcAngles::new(PI, PI / 2.0).unwrap();
+    let unit_circle = Circle::unit_circle();
+    let circle_b = Circle::new(Complex::new(-1.0, 1.0), 1.0);
+    let circle_d = Circle::new(Complex::new(1.0, -1.0), 1.0);
+    let arc_a = CircularArc::new(unit_circle, angles_a);
+    let arc_b = CircularArc::new(circle_b, angles_b);
+    let arc_c = CircularArc::new(unit_circle, angles_c);
+    let arc_d = CircularArc::new(circle_d, angles_d);
+
+    let styles = [
+        // Salmon
+        Style::stroke(230, 129, 203).with_width(0.25),
+        // Mint green
+        Style::stroke(41, 214, 165).with_width(0.25),
+    ];
+
+    let depth = 3usize;
+    let t = 0.5;
+    render_views(
+        "output",
+        "crinkle_necklace",
+        &[View("", 0.0, 0.0, 1.1), View("zoom", 0.51, 0.3, 0.51)],
+        union(vec![
+            crinkle_two_color(arc_a, t, depth, styles),
+            crinkle_two_color(arc_b, t, depth, styles),
+            crinkle_two_color(arc_c, t, depth, styles),
+            crinkle_two_color(arc_d, t, depth, styles),
+        ]),
     )?;
 
     Ok(())
