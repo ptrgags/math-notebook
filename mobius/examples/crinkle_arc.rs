@@ -1,99 +1,194 @@
-use std::{
-    f64::consts::{PI, TAU},
-    io::Error,
-};
+use std::{f64::consts::PI, io::Error};
 
-use mobius::{algorithms::SemigroupIFS, geometry::ArcAngles, transformable::Cline};
 use mobius::{
-    cline_arc::ClineArc,
+    algorithms::SemigroupIFS,
+    geometry::{ArcAngles, DirectedEdge},
+    orthogonal_arcs::compute_orthogonal_arc,
+    svg_plot::{style_motifs, union},
+    transformable::{ClineArcTile, Motif, Transformable},
+    Complex,
+};
+use mobius::{
     geometry::{Circle, CircularArc},
     map_triple,
     rendering::Style,
     svg_plot::{render_views, style_geometry, View},
-    Complex, Mobius,
+    Mobius,
 };
 use svg::node::element::Group;
 
-/// Compute an orthogonal circle through a and b.
-/// I've done this before for another project, see my explainer here:
-/// https://github.com/ptrgags/p5-sketchbook/tree/main/HyperbolicConnections#method-2-kite-analysis
-/// as well as the code
-/// https://github.com/ptrgags/p5-sketchbook/blob/458e47383ed8492cff3cc0bce4bded666b0672bc/HyperbolicConnections/boundaries.js#L35
-fn get_orthog_circle(circle: Circle, a: Complex, b: Complex) -> Circle {
-    let q = (a - b).mag();
-    let p = (4.0 / (4.0 - q * q)).sqrt();
-    let orthog_radius = 0.5 * p * q;
+struct ArcFractal {
+    /// The original arc, a -> c
+    arc: CircularArc,
+    /// Two transformations (translate/rotate/scale) that shrink arc onto
+    /// the two respective sub-arcs
+    xforms: (Mobius, Mobius),
+    /// An arc orthogonal to the first one, as I want to render this too.
+    orthog_arc: CircularArc,
+    /// The two sub-arcs. The first one is c -> b, the second is b -> a
+    sub_arcs: (CircularArc, CircularArc),
+}
 
-    let angle_a = circle.get_angle(a).unwrap();
-    let angle_b = circle.get_angle(b).unwrap();
+impl ArcFractal {
+    pub fn new(arc: CircularArc, t: f64) -> Self {
+        let CircularArc { circle, angles } = arc;
 
-    let angle_bisector = 0.5 * (angle_a + angle_b);
-    let angle_bisector = if (angle_b - angle_a) % TAU > PI {
-        (angle_bisector + PI) % TAU
-    } else {
-        angle_bisector
-    };
+        let ArcAngles(angle_a, angle_c) = angles;
+        let angle_b = angles.interpolate(t);
 
-    let orthog_center = Complex::from_polar(p, angle_bisector);
+        let angles_ab = ArcAngles::new(angle_a, angle_b).unwrap();
+        let angles_bc = ArcAngles::new(angle_b, angle_c).unwrap();
+        let arc_ab = CircularArc::new(circle, angles_ab);
+        let arc_bc = CircularArc::new(circle, angles_bc);
 
-    Circle {
-        center: orthog_center,
-        radius: orthog_radius,
+        let orthog_arc_cb = compute_orthogonal_arc(arc_bc);
+        let orthog_arc_ba = compute_orthogonal_arc(arc_ab);
+
+        let d = orthog_arc_ba.interpolate(t);
+        let e = orthog_arc_cb.interpolate(t);
+
+        let a = arc.start();
+        let b = arc.interpolate(t);
+        let c = arc.end();
+        let xform_bda = map_triple((a, b, c), (b, d, a)).unwrap();
+        let xform_ceb = map_triple((a, b, c), (c, e, b)).unwrap();
+
+        Self {
+            xforms: (xform_ceb, xform_bda),
+            arc,
+            orthog_arc: compute_orthogonal_arc(arc),
+            sub_arcs: (orthog_arc_cb, orthog_arc_ba),
+        }
     }
 }
 
-fn arc_lerp(circle: Circle, a: Complex, b: Complex, t: f64) -> Complex {
-    let angle_a = circle.get_angle(a).unwrap();
-    let angle_b = circle.get_angle(b).unwrap();
+fn crinkle_highlight_leaves(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2]) -> Group {
+    let fractal = ArcFractal::new(arc, t);
 
-    let lerp_angle = (1.0 - t) * angle_a + t * angle_b;
+    let (a, b) = fractal.xforms;
+    let ifs = SemigroupIFS::new(vec![a, b]);
 
-    circle.get_point(lerp_angle)
+    let lens_tile = ClineArcTile::new(vec![fractal.arc.into(), fractal.orthog_arc.into()]);
+
+    let (arc_cb, arc_ba) = fractal.sub_arcs;
+    let triangle_tile = ClineArcTile::new(vec![
+        // orthogonal arc from b -> a
+        fractal.orthog_arc.into(),
+        // orthgonal arc from a -> midpoint
+        arc_ba.reverse().into(),
+        // orthogonal arc from midpoint -> b
+        arc_cb.reverse().into(),
+    ]);
+
+    let triangle_tiles = ifs.apply(&triangle_tile, 0, depth - 1);
+    let leaf_lenses = ifs.apply(&lens_tile, depth, depth);
+
+    let [style_interior, style_leaves] = styles;
+
+    union(vec![
+        style_geometry(style_interior, &triangle_tiles[..]),
+        style_geometry(style_leaves, &leaf_lenses[..]),
+    ])
 }
 
-fn arc_fractal(arc: CircularArc) -> (Mobius, Mobius) {
-    let CircularArc { circle, angles } = arc;
-    let ArcAngles(angle_a, angle_c) = angles;
-    let t = 0.5;
+fn crinkle_two_color(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2]) -> Group {
+    let fractal = ArcFractal::new(arc, t);
 
-    let a = circle.get_point(angle_a);
-    let angle_b = t * (angle_a + angle_c);
-    let b = circle.get_point(angle_b);
-    let c = circle.get_point(angle_c);
+    let (a, b) = fractal.xforms;
 
-    let circle_ab = get_orthog_circle(circle, a, b);
-    let circle_bc = get_orthog_circle(circle, b, c);
+    // Doodling on paper, I find that alternating the colors as you iterate
+    // deeper produceses a cool effect. Let's try that.
+    //
+    // First, compute an IFS that moves 2 iterations at a time.
+    let aa = a * a;
+    let ab = a * b;
+    let ba = b * a;
+    let bb = b * b;
+    let ifs = SemigroupIFS::new(vec![aa, ab, ba, bb]);
 
-    let d = arc_lerp(circle_ab, b, a, t);
-    let e = arc_lerp(circle_bc, c, b, t);
+    let (arc_cb, arc_ba) = fractal.sub_arcs;
+    let triangle_tile = ClineArcTile::new(vec![
+        // orthogonal arc from b -> a
+        fractal.orthog_arc.into(),
+        // orthgonal arc from a -> midpoint
+        arc_ba.reverse().into(),
+        // orthogonal arc from midpoint -> b
+        arc_cb.reverse().into(),
+    ]);
 
-    let xform_bda = map_triple((a, b, c), (b, d, a)).unwrap();
-    let xform_ceb = map_triple((a, b, c), (c, e, b)).unwrap();
+    // Our tile will now be the big triangle tile + the first 2 children tiles (in a different color)
+    let combined_tile = Motif::new(vec![
+        (triangle_tile.clone(), 0),
+        (triangle_tile.clone().transform(a), 1),
+        (triangle_tile.clone().transform(b), 1),
+    ]);
 
-    (xform_bda, xform_ceb)
+    // Remember, we're making bigger jumps and a higher branchihng factor, so tune the depth down a bit.
+    let tiles = ifs.apply(&combined_tile, 0, depth);
+    style_motifs(&tiles[..], &styles)
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(0.0, PI / 2.0).unwrap();
+    let angles = ArcAngles::new(-PI / 4.0, 5.0 * PI / 4.0).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
-    let (a, b) = arc_fractal(arc);
 
-    let tile: ClineArc = arc.into();
+    let depth = 7usize;
+    let orange_lines = Style::stroke(255, 127, 0).with_width(0.25);
+    let purple_lines = Style::stroke(127, 0, 255).with_width(0.25);
+    render_views(
+        "output",
+        "crinkle_arc",
+        &[View("", 0.0, 0.0, 1.1)],
+        crinkle_highlight_leaves(arc, 0.5, depth, [orange_lines, purple_lines]),
+    )?;
 
-    let ifs = SemigroupIFS::new(vec![a, b]);
+    let depth = 3usize;
+    render_views(
+        "output",
+        "crinkle_two_color",
+        &[View("", 0.0, 0.0, 1.1)],
+        crinkle_two_color(
+            arc,
+            0.5,
+            depth,
+            // Make the purple lines a bit thinnner to match the orange ones.
+            [orange_lines, purple_lines],
+        ),
+    )?;
 
-    let tiles = ifs.apply(&tile, 0, 8);
-    let orange_lines = Style::stroke(255, 127, 0).with_width(0.5);
-    let geometry = style_geometry(orange_lines, &tiles[..]);
+    // Now let's chain multiple arcs together for a more intricate pattern
+    let angles_a = ArcAngles::new(0.0, PI / 2.0).unwrap();
+    let angles_b = ArcAngles::new(0.0, -PI / 2.0).unwrap();
+    let angles_c = ArcAngles::new(PI, 3.0 * PI / 2.0).unwrap();
+    let angles_d = ArcAngles::new(PI, PI / 2.0).unwrap();
+    let unit_circle = Circle::unit_circle();
+    let circle_b = Circle::new(Complex::new(-1.0, 1.0), 1.0);
+    let circle_d = Circle::new(Complex::new(1.0, -1.0), 1.0);
+    let arc_a = CircularArc::new(unit_circle, angles_a);
+    let arc_b = CircularArc::new(circle_b, angles_b);
+    let arc_c = CircularArc::new(unit_circle, angles_c);
+    let arc_d = CircularArc::new(circle_d, angles_d);
 
-    let orthog_circle = get_orthog_circle(Circle::unit_circle(), Complex::ONE, Complex::I);
-    let circle_cline: Cline = orthog_circle.into();
-    let yellow_lines = Style::stroke(255, 255, 0).with_width(0.5);
-    let more_geometry = style_geometry(yellow_lines, &circle_cline);
+    let styles = [
+        // Salmon
+        Style::stroke(230, 129, 203).with_width(0.25),
+        // Mint green
+        Style::stroke(41, 214, 165).with_width(0.25),
+    ];
 
-    let group = Group::new().add(geometry).add(more_geometry);
-
-    render_views("output", "crinkle_arc", &[View("", 0.5, 0.5, 0.51)], group)?;
+    let depth = 3usize;
+    let t = 0.5;
+    render_views(
+        "output",
+        "crinkle_necklace",
+        &[View("", 0.0, 0.0, 1.1), View("zoom", 0.51, 0.3, 0.51)],
+        union(vec![
+            crinkle_two_color(arc_a, t, depth, styles),
+            crinkle_two_color(arc_b, t, depth, styles),
+            crinkle_two_color(arc_c, t, depth, styles),
+            crinkle_two_color(arc_d, t, depth, styles),
+        ]),
+    )?;
 
     Ok(())
 }

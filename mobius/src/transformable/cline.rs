@@ -1,33 +1,13 @@
 use std::{error::Error, fmt::Display};
 
 use crate::{
-    geometry::{Circle, Line},
+    geometry::{Circle, GeneralizedCircle, Line},
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
     Complex, Mobius,
 };
 
 use super::Transformable;
-
-// Simpler data structure for representing clines in human-understandable
-// format.
-#[derive(PartialEq, Debug)]
-pub enum GeneralizedCircle {
-    Circle(Circle),
-    Line(Line),
-}
-
-impl Display for GeneralizedCircle {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            GeneralizedCircle::Circle(circle) => circle.fmt(f),
-            GeneralizedCircle::Line(Line {
-                unit_normal,
-                distance,
-            }) => write!(f, "Line({}, {:.3})", unit_normal, distance),
-        }
-    }
-}
 
 /// Generalized circle/line, sometimes called a "cline"
 /// See https://en.wikipedia.org/wiki/Generalised_circle

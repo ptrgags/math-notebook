@@ -1,8 +1,47 @@
-use crate::Complex;
+use std::{error::Error, fmt::Display};
 
-use super::Geometry;
+use crate::{complex_error::ComplexError, float_error::FloatError, nearly::is_nearly, Complex};
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+use super::{Geometry, LineSegment};
+
+#[derive(Debug)]
+pub enum LineError {
+    InvalidComplexParam(ComplexError),
+    InvalidFloatParam(FloatError),
+    /// Tried to create a line with two identical points
+    /// this specifies a point, not a point
+    DuplicatePoints(Complex),
+}
+
+impl From<ComplexError> for LineError {
+    fn from(value: ComplexError) -> Self {
+        Self::InvalidComplexParam(value)
+    }
+}
+
+impl From<FloatError> for LineError {
+    fn from(value: FloatError) -> Self {
+        Self::InvalidFloatParam(value)
+    }
+}
+
+impl Display for LineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LineError::InvalidComplexParam(complex_error) => complex_error.fmt(f),
+            LineError::InvalidFloatParam(float_error) => float_error.fmt(f),
+            LineError::DuplicatePoints(complex) => write!(
+                f,
+                "a and b must be distinct points, got {}, {}",
+                complex, complex
+            ),
+        }
+    }
+}
+
+impl Error for LineError {}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Line {
     pub unit_normal: Complex,
     pub distance: f64,
@@ -11,14 +50,43 @@ pub struct Line {
 impl Line {
     /// Create a line from a normal and distance offset
     /// This will automatically normalize the normal
-    pub fn new(normal: Complex, distance: f64) -> Result<Self, String> {
-        match normal.normalize() {
-            Some(unit_normal) => Ok(Self {
-                unit_normal,
-                distance,
-            }),
-            None => Err(String::from("Normal must be finite and non-zero")),
+    pub fn new(normal: Complex, distance: f64) -> Result<Self, LineError> {
+        ComplexError::require_finite_nonzero("normal", normal)?;
+        FloatError::require_finite("distance", distance)?;
+
+        let magnitude = normal.mag();
+        let distance = 1.0 / magnitude;
+
+        let unit_normal = normal * distance.into();
+
+        Ok(Self {
+            unit_normal,
+            distance,
+        })
+    }
+
+    /// Compute a line through a and b
+    pub fn from_points(a: Complex, b: Complex) -> Result<Self, LineError> {
+        ComplexError::require_finite("a", a)?;
+        ComplexError::require_finite("b", b)?;
+
+        if a == b {
+            return Err(LineError::DuplicatePoints(a));
         }
+
+        // The checks above mean this vector is nonzero and finite, so
+        // this operation will always work.
+        let unit_tangent = (b - a).normalize().unwrap();
+
+        // In 2D, we just rotate the tangent to get the normal
+        let unit_normal = Complex::I * unit_tangent;
+        // Distance along the
+        let distance = Complex::dot(a, unit_normal);
+
+        Ok(Line {
+            unit_normal,
+            distance,
+        })
     }
 
     pub fn real_axis() -> Self {
@@ -36,4 +104,75 @@ impl Line {
     }
 }
 
+impl From<LineSegment> for Line {
+    fn from(value: LineSegment) -> Self {
+        let LineSegment { start, end } = value;
+
+        Self::from_points(start, end).unwrap()
+    }
+}
+
 impl Geometry for Line {}
+
+impl Display for Line {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self {
+            unit_normal,
+            distance,
+        } = self;
+        write!(f, "Line(n={}, d={})", unit_normal, distance)
+    }
+}
+
+impl PartialEq for Line {
+    fn eq(&self, other: &Self) -> bool {
+        // Lines are only unique up to a scalar multiple. Since we require
+        // the normal to have unit length, the scalar could be either -1 or 1
+        // so check both.
+        (self.unit_normal == other.unit_normal && is_nearly(self.distance, other.distance))
+            || (self.unit_normal == -other.unit_normal && is_nearly(self.distance, -other.distance))
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use super::*;
+
+    use test_case::test_case;
+
+    #[test]
+    pub fn new_normalizes_parameters_correctly() {
+        let not_normalized = Complex::new(2.0, 2.0);
+        let distance = 1.0;
+
+        let result = Line::new(not_normalized, distance).unwrap();
+
+        // |2 + 2i| = 2 sqrt(2)
+        // The normalized form will be 1/sqrt(2)(1 + i)
+        // the distance value also needs to be divided by this magnitude,
+        // so it's 1 / (2 sqrt(2))
+        let normalized_component = 1.0 / (2.0f64).sqrt();
+        let distance = normalized_component / 2.0;
+        let expected = Line {
+            unit_normal: Complex::new(normalized_component, normalized_component),
+            distance,
+        };
+        assert_eq!(result, expected);
+    }
+
+    #[test_case(Complex::new(1.0, 1.0), Complex::new(5.0, 1.0), Line::new(Complex::I, 1.0).unwrap(); "horizontal_line")]
+    pub fn from_points_with_valid_points_computes_correct_line(
+        a: Complex,
+        b: Complex,
+        expected: Line,
+    ) {
+        let result = Line::from_points(a, b);
+
+        assert!(result.is_ok_and(|x| x == expected));
+    }
+
+    #[test]
+    pub fn missing_tests() {
+        todo!("test new, more line cases, invalid lines, distance value");
+    }
+}
