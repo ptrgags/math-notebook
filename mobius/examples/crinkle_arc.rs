@@ -4,8 +4,8 @@ use mobius::{
     algorithms::SemigroupIFS,
     geometry::{ArcAngles, DirectedEdge},
     orthogonal_arcs::compute_orthogonal_arc,
-    svg_plot::union,
-    transformable::ClineArcTile,
+    svg_plot::{style_motifs, union},
+    transformable::{ClineArcTile, Motif, Transformable},
 };
 use mobius::{
     geometry::{Circle, CircularArc},
@@ -61,7 +61,7 @@ impl ArcFractal {
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(0.0, 5.0 * PI / 4.0).unwrap();
+    let angles = ArcAngles::new(-PI / 4.0, 5.0 * PI / 4.0).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let fractal = ArcFractal::new(arc, 0.5);
 
@@ -74,19 +74,17 @@ fn main() -> Result<(), Error> {
     let triangle_tile = ClineArcTile::new(vec![
         // orthogonal arc from b -> a
         fractal.orthog_arc.into(),
-        //
+        // orthgonal arc from a -> midpoint
         arc_ba.reverse().into(),
+        // orthogonal arc from midpoint -> b
         arc_cb.reverse().into(),
     ]);
 
     let depth = 7usize;
-
     let triangle_tiles = ifs.apply(&triangle_tile, 0, depth - 1);
     let leaf_lenses = ifs.apply(&lens_tile, depth, depth);
-
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.125);
     let purple_lines = Style::stroke(127, 0, 255).with_width(0.5);
-
     render_views(
         "output",
         "crinkle_arc",
@@ -95,6 +93,36 @@ fn main() -> Result<(), Error> {
             style_geometry(orange_lines, &triangle_tiles[..]),
             style_geometry(purple_lines, &leaf_lenses[..]),
         ]),
+    )?;
+
+    // Doodling on paper, I find that alternating the colors as you iterate
+    // deeper produceses a cool effect. Let's try that.
+    //
+    // First, compute an IFS that moves 2 iterations at a time.
+    let aa = a * a;
+    let ab = a * b;
+    let ba = b * a;
+    let bb = b * b;
+    let ifs = SemigroupIFS::new(vec![aa, ab, ba, bb]);
+
+    // Our tile will now be the big triangle tile + the first 2 children tiles (in a different color)
+    let combined_tile = Motif::new(vec![
+        (triangle_tile.clone(), 0),
+        (triangle_tile.clone().transform(a), 1),
+        (triangle_tile.clone().transform(b), 1),
+    ]);
+
+    // Remember, we're making bigger jumps and a higher branchihng factor, so tune the depth down a bit.
+    let depth = 3usize;
+    let tiles = ifs.apply(&combined_tile, 0, depth);
+    let thin_purple = purple_lines.with_width(0.125);
+
+    let styles = vec![orange_lines, thin_purple];
+    render_views(
+        "output",
+        "crinkle_two_color",
+        &[View("", 0.0, 0.0, 1.0)],
+        style_motifs(&tiles[..], &styles),
     )?;
 
     Ok(())
