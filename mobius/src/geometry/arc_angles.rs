@@ -138,15 +138,18 @@ impl ArcAngles {
         Self(reduced_a, reduced_b)
     }
 
+    /// Return the other half of the circle.
     pub fn complement(&self) -> Self {
         let Self(a, b) = self;
+
         let diff = b - a;
         let abs_diff = diff.abs();
         let other_angle = TAU - abs_diff;
 
         let adjusted_diff = other_angle / abs_diff * diff;
 
-        Self(*b, b + adjusted_diff)
+        let (reduced_a, reduced_b) = reduce_angles(*b, *b + adjusted_diff);
+        Self(reduced_a, reduced_b)
     }
 }
 
@@ -312,8 +315,10 @@ mod test {
         assert_eq!(result, expected);
     }
 
-    #[test_case(ArcAngles::new(0.0, PI/2.0).unwrap(), ArcAngles::new(PI / 2.0, 2.0 * PI).unwrap(); "ccw arc")]
-    #[test_case(ArcAngles::new(PI/6.0, -PI/4.0).unwrap(), ArcAngles::new(7.0 * PI / 4.0, PI / 6.0).unwrap(); "cw arc")]
+    #[test_case(ArcAngles::new(0.0, PI/2.0).unwrap(), ArcAngles::new(PI / 2.0, 2.0 * PI).unwrap(); "small ccw arc")]
+    #[test_case(ArcAngles::new(0.0, 3.0 * PI/2.0).unwrap(), ArcAngles::new(3.0* PI / 2.0, 2.0 * PI).unwrap(); "large ccw arc")]
+    #[test_case(ArcAngles::new(PI/6.0, -PI/4.0).unwrap(), ArcAngles::new(7.0 * PI / 4.0, PI / 6.0).unwrap(); "small cw arc")]
+    #[test_case(ArcAngles::new(PI/6.0, -3.0 * PI / 2.0).unwrap(), ArcAngles::new(PI / 2.0, PI / 6.0).unwrap(); "large cw arc")]
     pub fn complement_returns_other_part_of_circle(arc: ArcAngles, expected: ArcAngles) {
         let result = arc.complement();
 
