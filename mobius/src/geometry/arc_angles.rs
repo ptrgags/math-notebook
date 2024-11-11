@@ -238,6 +238,21 @@ mod test {
         assert_nearly(y, expected_y);
     }
 
+    #[test_case(PI / 4.0, 2.0 * PI / 3.0, ArcDirection::Counterclockwise, ArcAngles::new(PI / 4.0, 2.0 * PI / 3.0).unwrap(); "ccw arc")]
+    #[test_case(3.0 * PI / 4.0, -3.0 * PI / 4.0, ArcDirection::Counterclockwise, ArcAngles::new(3.0 * PI / 4.0, 5.0 * PI / 4.0).unwrap(); "ccw arc through atan2 branch point")]
+    #[test_case(PI / 4.0, -PI / 4.0, ArcDirection::Clockwise, ArcAngles::new(PI / 4.0, -PI / 4.0).unwrap(); "cw arc")]
+    #[test_case(3.0 * PI / 4.0, -3.0 * PI / 4.0, ArcDirection::Clockwise, ArcAngles::new(3.0 * PI / 4.0, -3.0 * PI / 4.0).unwrap(); "cw arc through atan2 branch point")]
+    pub fn from_raw_angles_computes_correct_angles(
+        a: f64,
+        b: f64,
+        direction: ArcDirection,
+        expected: ArcAngles,
+    ) {
+        let result = ArcAngles::from_raw_angles(a, b, direction);
+
+        assert_eq!(result, expected);
+    }
+
     #[test_case(ArcAngles::new(0.0, PI / 2.0).unwrap(); "ccw arc")]
     #[test_case(ArcAngles::new(0.0, -PI / 2.0).unwrap(); "cw arc")]
     pub fn arc_equals_itself(a: ArcAngles) {
@@ -250,6 +265,15 @@ mod test {
         let different_midpoint = ArcAngles::new(0.0, PI).unwrap();
 
         assert_eq!(arc, different_midpoint);
+    }
+
+    #[test_case(ArcAngles::new(-PI / 2.0, PI / 2.0).unwrap(), PI; "half_circle ccw")]
+    #[test_case(ArcAngles::new(PI / 3.0, PI / 6.0).unwrap(), PI / 6.0; "ccw arc")]
+    #[test_case(ArcAngles::new(3.0 * PI /4.0, 5.0 * PI / 4.0).unwrap(), PI / 2.0; "arc spanning atan2 branch point")]
+    pub fn computes_central_angle(angles: ArcAngles, expected_angle: f64) {
+        let result = angles.central_angle();
+
+        assert_nearly(result, expected_angle)
     }
 
     #[test_case(ArcAngles::new(0.0, PI).unwrap(), ArcDirection::Counterclockwise; "ccw arc")]
@@ -304,10 +328,5 @@ mod test {
         let comp_rev = arc.reverse().complement();
 
         assert_eq!(rev_comp, comp_rev);
-    }
-
-    #[test]
-    pub fn missing_tests() {
-        todo!("from_raw_angles, central_angle")
     }
 }
