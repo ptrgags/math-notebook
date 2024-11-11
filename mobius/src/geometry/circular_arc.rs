@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-use crate::{interpolation::lerp, Complex};
+use crate::Complex;
 
 use super::{circle::Circle, ArcAngles, ArcAnglesParseError, ArcDirection, DirectedEdge, Geometry};
 

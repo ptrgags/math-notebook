@@ -1,43 +1,26 @@
 use std::f64::consts::{PI, TAU};
 
 use crate::{
-    geometry::{ArcAngles, Circle, CircularArc, GeneralizedCircle, Line, LineSegment},
+    geometry::{
+        ArcAngles, Circle, CircularArc, DirectedEdge, GeneralizedCircle, Line, LineSegment,
+    },
     nearly::is_nearly,
     Complex,
 };
 
-#[derive(Debug)]
-pub enum OrthogonalArcError {
-    DuplicatePoint(Complex),
-    PointAtCenter(Complex),
-}
-
 pub fn compute_orthogonal_circle(
     circle: Circle,
-    a: Complex,
-    b: Complex,
-) -> Result<GeneralizedCircle, OrthogonalArcError> {
-    if a == b {
-        return Err(OrthogonalArcError::DuplicatePoint(a));
-    }
+    intersection_angles: ArcAngles,
+) -> GeneralizedCircle {
+    let ArcAngles(angle_a, angle_b) = intersection_angles;
 
-    if a == circle.center {
-        return Err(OrthogonalArcError::PointAtCenter(a));
-    }
+    let a = circle.get_point(angle_a);
+    let b = circle.get_point(angle_b);
 
-    if b == circle.center {
-        return Err(OrthogonalArcError::PointAtCenter(b));
-    }
-
-    // If the arc was exactly half a circle, the result will be a line, not a
-    // circle, so let's check for that first.
-    let angle_a = circle.get_angle(a).unwrap();
-    let angle_b = circle.get_angle(b).unwrap();
-
-    // Since we're comparing with half a circle, it doesn't matter if we
-    // measure the difference clockwise or counterclockwise.
-    if is_nearly((angle_a - angle_b).rem_euclid(TAU), PI) {
-        return Ok(GeneralizedCircle::Line(Line::from_points(b, a).unwrap()));
+    // If the arc is a semicircle, then the orthogonal circle is the line
+    // through the points.
+    if is_nearly(intersection_angles.central_angle(), PI) {
+        return GeneralizedCircle::Line(Line::from_points(b, a).unwrap());
     }
 
     // In the past, I computed this for a unit circle
@@ -63,9 +46,9 @@ pub fn compute_orthogonal_circle(
     let p = double_r1 * r1 * (1.0 / denominator).sqrt();
     let orthog_radius = 0.5 * p * q / r1;
 
-    let angle_bisector = 0.5 * (angle_a + angle_b);
-    let angle_bisector = if (angle_b - angle_a) % TAU > PI {
-        (angle_bisector + PI) % TAU
+    let angle_bisector = intersection_angles.interpolate(0.5);
+    let angle_bisector = if intersection_angles.central_angle() > PI {
+        (angle_bisector + PI).rem_euclid(TAU)
     } else {
         angle_bisector
     };
@@ -76,21 +59,21 @@ pub fn compute_orthogonal_circle(
         radius: orthog_radius,
     };
 
-    Ok(GeneralizedCircle::Circle(orthog_circle))
+    GeneralizedCircle::Circle(orthog_circle)
 }
 
-pub fn compute_orthogonal_arc(arc: CircularArc, a: Complex, b: Complex) -> CircularArc {
+pub fn compute_orthogonal_arc(arc: CircularArc) -> CircularArc {
     let circle = arc.circle;
-    let orthog_circle = match compute_orthogonal_circle(circle, a, b).unwrap() {
+    let orthog_circle = match compute_orthogonal_circle(circle, arc.angles) {
         GeneralizedCircle::Circle(sub_circle) => sub_circle,
         GeneralizedCircle::Line(_) => panic!("Not implemented: sub arc that's a line"),
     };
 
-    // My convention is to compute the sub arc that's sweeping in the same
-    // angular direction as the original arc. But if the original one went from b -> a,
-    // now we're going from a -> b;
-    let angle_a_raw = orthog_circle.get_angle(a).unwrap();
-    let angle_b_raw = orthog_circle.get_angle(b).unwrap();
+    // Compute the arc from b -> a that's inside the original circle. This will
+    // match the orientation of the original arc for small input arcs,
+    // but will be the opposite orientation for large input arcs.
+    let angle_a_raw = orthog_circle.get_angle(arc.start()).unwrap();
+    let angle_b_raw = orthog_circle.get_angle(arc.end()).unwrap();
     let mut sub_angles = ArcAngles::from_raw_angles(angle_b_raw, angle_a_raw, arc.direction());
     if sub_angles.central_angle() > PI {
         sub_angles = sub_angles.complement();
@@ -116,59 +99,39 @@ mod test {
         Circle::new(Complex::new(1.0, 2.0), 4.0)
     }
 
-    #[test_case(Complex::new(1.0, 2.0), Complex::new(5.0, 2.0); "a at center")]
-    #[test_case(Complex::new(5.0, 2.0), Complex::new(1.0, 2.0); "b at center")]
-    pub fn compute_orthog_circle_returns_error_for_center(a: Complex, b: Complex) {
-        let circle = make_circle();
-
-        let result = compute_orthogonal_circle(circle, a, b);
-
-        assert!(result.is_err_and(|x| matches!(x, OrthogonalArcError::PointAtCenter(_))))
-    }
-
-    #[test]
-    pub fn compute_orthog_circle_with_duplicate_point_returns_error() {
-        let circle = make_circle();
-        let point = Complex::new(5.0, 2.0);
-
-        let result = compute_orthogonal_circle(circle, point, point);
-
-        assert!(result.is_err_and(|x| matches!(x, OrthogonalArcError::DuplicatePoint(_))))
-    }
-
-    #[test_case(Complex::new(5.0, 2.0), Complex::new(1.0, 6.0), Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter circle ccw")]
-    #[test_case(Complex::new(1.0, 6.0), Complex::new(5.0, 2.0), Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter circle cw")]
-    #[test_case(Complex::new(5.0, 2.0), Complex::new(1.0, -2.0), Circle::new(Complex::new(5.0, -2.0), 4.0); "three quarters circle ccw")]
-    #[test_case(Complex::new(1.0, -2.0), Complex::new(5.0, 2.0), Circle::new(Complex::new(5.0, -2.0), 4.0); "three quarters circle cw")]
+    #[test_case(0.0, PI / 2.0, Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter circle ccw")]
+    #[test_case(PI / 2.0, 0.0, Circle::new(Complex::new(5.0, 6.0), 4.0); "quarter circle cw")]
+    #[test_case(0.0, 3.0 * PI / 2.0, Circle::new(Complex::new(5.0, -2.0), 4.0); "three quarters circle ccw")]
+    #[test_case(3.0 * PI / 2.0, 0.0, Circle::new(Complex::new(5.0, -2.0), 4.0); "three quarters circle cw")]
     pub fn compute_orthog_circle_with_points_on_circle_computes_correct_circle(
-        a: Complex,
-        b: Complex,
+        a: f64,
+        b: f64,
         expected: Circle,
     ) {
         let circle = make_circle();
+        let angles = ArcAngles::new(a, b).unwrap();
 
-        let result = compute_orthogonal_circle(circle, a, b);
-        let gen_circle = result.unwrap();
+        let result = compute_orthogonal_circle(circle, angles);
 
-        match gen_circle {
+        match result {
             GeneralizedCircle::Circle(circle) => assert_eq!(circle, expected),
             GeneralizedCircle::Line(line) => panic!("not a circle! {}", line),
         }
     }
 
-    #[test_case(Complex::new(5.0, 2.0), Complex::new(-3.0, 2.0), Line::new(-Complex::I, -2.0).unwrap(); "diameter at 0 and pi")]
-    #[test_case(Complex::new(1.0, 6.0), Complex::new(1.0, -2.0), Line::new(-Complex::ONE, -1.0).unwrap(); "diameter at pi/2 and -pi/2")]
+    #[test_case(0.0, PI, Line::new(-Complex::I, -2.0).unwrap(); "diameter at 0 and pi")]
+    #[test_case(PI / 2.0, -PI / 2.0, Line::new(-Complex::ONE, -1.0).unwrap(); "diameter at pi/2 and -pi/2")]
     pub fn compute_orthog_circle_with_points_on_diameter_computes_line(
-        a: Complex,
-        b: Complex,
+        a: f64,
+        b: f64,
         expected: Line,
     ) {
         let circle = make_circle();
+        let angles = ArcAngles::new(a, b).unwrap();
 
-        let result = compute_orthogonal_circle(circle, a, b);
-        let gen_circle = result.unwrap();
+        let result = compute_orthogonal_circle(circle, angles);
 
-        match gen_circle {
+        match result {
             GeneralizedCircle::Circle(circle) => panic!("not a line! {}", circle),
             GeneralizedCircle::Line(line) => assert_eq!(line, expected),
         }

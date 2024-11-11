@@ -2,8 +2,8 @@ use std::{f64::consts::PI, io::Error};
 
 use mobius::{
     algorithms::SemigroupIFS,
-    geometry::{ArcAngles, DirectedEdge, GeneralizedCircle},
-    orthogonal_arcs::{compute_orthogonal_arc, compute_orthogonal_circle},
+    geometry::{ArcAngles, DirectedEdge},
+    orthogonal_arcs::compute_orthogonal_arc,
     svg_plot::union,
     transformable::ClineArcTile,
 };
@@ -12,7 +12,7 @@ use mobius::{
     map_triple,
     rendering::Style,
     svg_plot::{render_views, style_geometry, View},
-    Complex, Mobius,
+    Mobius,
 };
 
 struct ArcFractal {
@@ -29,30 +29,39 @@ struct ArcFractal {
 
 impl ArcFractal {
     pub fn new(arc: CircularArc, t: f64) -> Self {
+        let CircularArc { circle, angles } = arc;
+
+        let ArcAngles(angle_a, angle_c) = angles;
+        let angle_b = angles.interpolate(t);
+
+        let angles_ab = ArcAngles::new(angle_a, angle_b).unwrap();
+        let angles_bc = ArcAngles::new(angle_b, angle_c).unwrap();
+        let arc_ab = CircularArc::new(circle, angles_ab);
+        let arc_bc = CircularArc::new(circle, angles_bc);
+
+        let orthog_arc_cb = compute_orthogonal_arc(arc_bc);
+        let orthog_arc_ba = compute_orthogonal_arc(arc_ab);
+
+        let d = orthog_arc_ba.interpolate(t);
+        let e = orthog_arc_cb.interpolate(t);
+
         let a = arc.start();
         let b = arc.interpolate(t);
         let c = arc.end();
-
-        let arc_cb = compute_orthogonal_arc(arc, b, c);
-        let arc_ba = compute_orthogonal_arc(arc, a, b);
-
-        let d = arc_ba.interpolate(t);
-        let e = arc_cb.interpolate(t);
-
         let xform_bda = map_triple((a, b, c), (b, d, a)).unwrap();
         let xform_ceb = map_triple((a, b, c), (c, e, b)).unwrap();
 
         Self {
             xforms: (xform_ceb, xform_bda),
             arc,
-            orthog_arc: compute_orthogonal_arc(arc, a, c),
-            sub_arcs: (arc_cb, arc_ba),
+            orthog_arc: compute_orthogonal_arc(arc),
+            sub_arcs: (orthog_arc_cb, orthog_arc_ba),
         }
     }
 }
 
 fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(PI / 4.0, 3.0 * PI / 2.0).unwrap();
+    let angles = ArcAngles::new(0.0, 5.0 * PI / 4.0).unwrap();
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let fractal = ArcFractal::new(arc, 0.5);
 
@@ -70,10 +79,10 @@ fn main() -> Result<(), Error> {
         arc_cb.reverse().into(),
     ]);
 
-    let depth = 2usize;
+    let depth = 7usize;
 
-    let triangle_tiles = ifs.apply(&triangle_tile, 0, 0); //0, depth - 1);
-    let leaf_lenses = ifs.apply(&lens_tile, 0, 0); //depth, depth);
+    let triangle_tiles = ifs.apply(&triangle_tile, 0, depth - 1);
+    let leaf_lenses = ifs.apply(&lens_tile, depth, depth);
 
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.125);
     let purple_lines = Style::stroke(127, 0, 255).with_width(0.5);
@@ -84,7 +93,7 @@ fn main() -> Result<(), Error> {
         &[View("", 0.0, 0.0, 1.0)],
         union(vec![
             style_geometry(orange_lines, &triangle_tiles[..]),
-            //style_geometry(purple_lines, &leaf_lenses[..]),
+            style_geometry(purple_lines, &leaf_lenses[..]),
         ]),
     )?;
 
