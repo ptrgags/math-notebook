@@ -1,12 +1,23 @@
 use std::f64::consts::{PI, TAU};
 
+use thiserror::Error;
+
 use crate::{
     geometry::{
-        ArcAngles, Circle, CircularArc, DirectedEdge, GeneralizedCircle, Line, LineSegment,
+        ArcAngles, ArcAnglesError, ArcDirection, Circle, CircularArc, DirectedEdge,
+        GeneralizedCircle, Line, LineSegment,
     },
     nearly::is_nearly,
     Complex,
 };
+
+#[derive(Debug, Error)]
+pub enum OrthogonalArcError {
+    #[error("{0}")]
+    BadAngles(#[from] ArcAnglesError),
+    #[error("a and b must be distinct: {0}")]
+    DuplicateInt(i64),
+}
 
 pub fn compute_orthogonal_circle(
     circle: Circle,
@@ -80,6 +91,41 @@ pub fn compute_orthogonal_arc(arc: CircularArc) -> CircularArc {
     }
 
     CircularArc::new(orthog_circle, sub_angles)
+}
+
+/// compute a circle with diameter between a and b on the real line
+pub fn integer_circle(a: i64, b: i64) -> Result<Circle, OrthogonalArcError> {
+    if a == b {
+        return Err(OrthogonalArcError::DuplicateInt(a));
+    }
+
+    let a = a as f64;
+    let b = b as f64;
+
+    let midpoint = 0.5 * (a + b);
+    let radius = 0.5 * (a - b).abs();
+
+    Ok(Circle {
+        center: midpoint.into(),
+        radius,
+    })
+}
+
+pub fn integer_arc(
+    a: i64,
+    b: i64,
+    direction: ArcDirection,
+) -> Result<CircularArc, OrthogonalArcError> {
+    let circle = integer_circle(a, b)?;
+
+    let angles = match direction {
+        ArcDirection::Counterclockwise if a < b => ArcAngles::new(PI, 2.0 * PI),
+        ArcDirection::Counterclockwise => ArcAngles::new(0.0, PI),
+        ArcDirection::Clockwise if a < b => ArcAngles::new(PI, 0.0),
+        ArcDirection::Clockwise => ArcAngles::new(0.0, -PI),
+    }?;
+
+    Ok(CircularArc { circle, angles })
 }
 
 #[derive(Clone, Copy, Debug)]
