@@ -1,4 +1,4 @@
-use std::{error::Error, fmt::Display};
+use std::fmt::Display;
 
 use crate::{
     geometry::{
@@ -10,30 +10,6 @@ use crate::{
     transformable::{Cline, Transformable},
     Complex,
 };
-
-#[derive(Debug)]
-pub enum ClineArcError {
-    // To reduce the size of the enum, the first parameter is a pretty-printed
-    // string representation of the cline such that you can see the numeric
-    // values for debugging
-    PossiblePrecisionError(String, Box<dyn Error + 'static>),
-}
-
-impl Display for ClineArcError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::PossiblePrecisionError(cline_formatted, inner_error) => {
-                write!(
-                    f,
-                    "possible precision issue for ClineArc:\n{}\ncaused by: {}",
-                    cline_formatted, inner_error
-                )
-            }
-        }
-    }
-}
-
-impl Error for ClineArcError {}
 
 #[derive(Clone, Copy, Debug)]
 pub enum ClineArcGeometry {

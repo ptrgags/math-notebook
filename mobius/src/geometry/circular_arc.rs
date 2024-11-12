@@ -1,35 +1,18 @@
-use std::{error::Error, fmt::Display};
+use std::fmt::Display;
+
+use thiserror::Error;
 
 use crate::Complex;
 
 use super::{circle::Circle, ArcAngles, ArcAnglesParseError, ArcDirection, DirectedEdge, Geometry};
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum CircularArcError {
-    BadAngles(ArcAnglesParseError),
+    #[error("{0}")]
+    BadAngles(#[from] ArcAnglesParseError),
+    #[error("duplicate point: {0}")]
     DuplicatePoint(Complex),
-    PointAtCenter(Complex),
 }
-
-impl Display for CircularArcError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CircularArcError::BadAngles(err) => err.fmt(f),
-            CircularArcError::DuplicatePoint(point) => write!(f, "Duplicate point: {}", point),
-            CircularArcError::PointAtCenter(point) => {
-                write!(f, "Point at center of circle not allowed: {}", point)
-            }
-        }
-    }
-}
-
-impl From<ArcAnglesParseError> for CircularArcError {
-    fn from(value: ArcAnglesParseError) -> Self {
-        Self::BadAngles(value)
-    }
-}
-
-impl Error for CircularArcError {}
 
 // Directed circular arc through 3 points on a circular arc
 #[derive(PartialEq, Clone, Copy, Debug)]

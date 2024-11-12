@@ -1,45 +1,20 @@
-use std::{error::Error, fmt::Display};
+use std::fmt::Display;
+
+use thiserror::Error;
 
 use crate::{complex_error::ComplexError, float_error::FloatError, nearly::is_nearly, Complex};
 
 use super::{Geometry, LineSegment};
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum LineError {
-    InvalidComplexParam(ComplexError),
-    InvalidFloatParam(FloatError),
-    /// Tried to create a line with two identical points
-    /// this specifies a point, not a point
+    #[error("{0}")]
+    InvalidComplexParam(#[from] ComplexError),
+    #[error("{0}")]
+    InvalidFloatParam(#[from] FloatError),
+    #[error("a and b must be distinct points: {0}")]
     DuplicatePoints(Complex),
 }
-
-impl From<ComplexError> for LineError {
-    fn from(value: ComplexError) -> Self {
-        Self::InvalidComplexParam(value)
-    }
-}
-
-impl From<FloatError> for LineError {
-    fn from(value: FloatError) -> Self {
-        Self::InvalidFloatParam(value)
-    }
-}
-
-impl Display for LineError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LineError::InvalidComplexParam(complex_error) => complex_error.fmt(f),
-            LineError::InvalidFloatParam(float_error) => float_error.fmt(f),
-            LineError::DuplicatePoints(complex) => write!(
-                f,
-                "a and b must be distinct points, got {}, {}",
-                complex, complex
-            ),
-        }
-    }
-}
-
-impl Error for LineError {}
 
 #[derive(Clone, Copy, Debug)]
 pub struct Line {

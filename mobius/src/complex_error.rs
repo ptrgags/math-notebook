@@ -1,10 +1,12 @@
-use std::{error::Error, fmt::Display};
+use thiserror::Error;
 
 use crate::Complex;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum ComplexError {
+    #[error("value must be finite: {0} = {1}")]
     NotFinite(String, Complex),
+    #[error("value must be finite and non-zero: {0} = {1}")]
     NotFiniteNonzero(String, Complex),
 }
 
@@ -27,16 +29,3 @@ impl ComplexError {
         }
     }
 }
-
-impl Display for ComplexError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotFinite(var, val) => write!(f, "value must be finite: {} = {}", var, val),
-            Self::NotFiniteNonzero(var, val) => {
-                write!(f, "value must be finite and non-zero: {} = {}", var, val)
-            }
-        }
-    }
-}
-
-impl Error for ComplexError {}

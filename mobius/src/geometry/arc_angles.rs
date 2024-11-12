@@ -1,42 +1,21 @@
 use std::{
-    error::Error,
     f64::consts::{PI, TAU},
     fmt::Display,
 };
 
+use thiserror::Error;
+
 use crate::{float_error::FloatError, interpolation::lerp, nearly::is_nearly};
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum ArcAnglesParseError {
-    /// One of the input floats is not valid
-    BadFloat(FloatError),
-    /// Arc angles must be distinct
+    #[error("{0}")]
+    BadFloat(#[from] FloatError),
+    #[error("arc angles must be distinct: {0}")]
     DegenerateArc(f64),
-    /// Arc is bigger than a full circle. I'm not supporting this case
+    #[error("only arcs smaller than a full circle are supported: ({0}, {1})")]
     BigArcNotSupported(f64, f64),
 }
-
-impl Display for ArcAnglesParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::BadFloat(err) => err.fmt(f),
-            Self::DegenerateArc(a) => write!(f, "arc angles must be distinct: ({}, {})", a, a),
-            Self::BigArcNotSupported(a, b) => write!(
-                f,
-                "only arcs smaller than a full circle are supported: ({}, {})",
-                a, b
-            ),
-        }
-    }
-}
-
-impl From<FloatError> for ArcAnglesParseError {
-    fn from(value: FloatError) -> Self {
-        Self::BadFloat(value)
-    }
-}
-
-impl Error for ArcAnglesParseError {}
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum ArcDirection {

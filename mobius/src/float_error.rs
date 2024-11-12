@@ -1,7 +1,8 @@
-use std::{error::Error, fmt::Display};
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum FloatError {
+    #[error("value must be finite: {0} = {1}")]
     NonFinite(String, f64),
 }
 
@@ -15,13 +16,3 @@ impl FloatError {
         }
     }
 }
-
-impl Display for FloatError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NonFinite(var, val) => write!(f, "value must be finite: {} = {}", var, val),
-        }
-    }
-}
-
-impl Error for FloatError {}

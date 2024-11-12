@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 abstraction = { path = "../abstraction" }
 svg = "0.18.0"
+thiserror = "2.0.3"
 
 [dev-dependencies]
 clap = { version = "4.5.20", features = ["derive"] }
