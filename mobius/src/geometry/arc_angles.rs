@@ -97,7 +97,7 @@ impl ArcAngles {
     /// Compute the absolute angular difference between the two end points.
     pub fn central_angle(&self) -> f64 {
         let Self(a, b) = self;
-        return (b - a).abs();
+        (b - a).abs()
     }
 
     pub fn direction(&self) -> ArcDirection {
