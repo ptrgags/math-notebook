@@ -102,19 +102,6 @@ impl Complex {
         }
     }
 
-    // Normalize the vector. This may return None when this operation is
-    // not defined (e.g. 0 / 0 and inf / inf are undefined)
-    pub fn normalize(&self) -> Option<Self> {
-        match self {
-            Complex::Zero => None,
-            Complex::Infinity => None,
-            Complex::Finite(a, b) => {
-                let r = self.mag();
-                Some(Complex::Finite(a / r, b / r))
-            }
-        }
-    }
-
     pub fn inverse(&self) -> Self {
         match self {
             Complex::Zero => Complex::Infinity,

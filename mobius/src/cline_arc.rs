@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
+    complex_error::ComplexError,
     geometry::{
         ArcAngles, ArcDirection, Circle, CircularArc, DoubleRay, GeneralizedCircle, Line,
         LineSegment, Ray,
@@ -8,6 +9,7 @@ use crate::{
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
     transformable::{Cline, Transformable},
+    unit_complex::UnitComplex,
     Complex,
 };
 
@@ -58,30 +60,30 @@ pub struct ClineArc {
 }
 
 impl ClineArc {
-    fn compute_line_geometry(&self) -> ClineArcGeometry {
+    fn compute_line_geometry(&self) -> Result<ClineArcGeometry, ComplexError> {
         if let Complex::Infinity = self.a {
             // ray goes inf -> b -> c
             // but it looks like inf <- c
-            let to_infinity = (self.b - self.c).normalize().unwrap();
-            return ClineArcGeometry::FromInfinity(Ray {
+            let to_infinity = UnitComplex::normalize(self.b - self.c)?;
+            return Ok(ClineArcGeometry::FromInfinity(Ray {
                 start: self.c,
                 unit_dir: to_infinity,
-            });
+            }));
         }
 
         if let Complex::Infinity = self.c {
             // ray goes a -> b -> inf
-            let to_infinity = (self.b - self.a).normalize().unwrap();
-            return ClineArcGeometry::ToInfinity(Ray {
+            let to_infinity = UnitComplex::normalize(self.b - self.a)?;
+            return Ok(ClineArcGeometry::ToInfinity(Ray {
                 start: self.a,
                 unit_dir: to_infinity,
-            });
+            }));
         }
 
         if let Complex::Infinity = self.b {
             // ray goes    inf <- a    c -> inf
-            let ac = (self.c - self.a).normalize().unwrap();
-            return ClineArcGeometry::ThruInfinity(DoubleRay(
+            let ac = UnitComplex::normalize(self.c - self.a)?;
+            return Ok(ClineArcGeometry::ThruInfinity(DoubleRay(
                 Ray {
                     start: self.a,
                     unit_dir: -ac,
@@ -90,7 +92,7 @@ impl ClineArc {
                     start: self.c,
                     unit_dir: ac,
                 },
-            ));
+            )));
         }
 
         // All three points are finite so now we we need to check if
@@ -105,13 +107,13 @@ impl ClineArc {
         let in_order = Complex::dot(self.b - self.a, self.c - self.b) > 0.0;
 
         if in_order {
-            ClineArcGeometry::LineSegment(LineSegment {
+            Ok(ClineArcGeometry::LineSegment(LineSegment {
                 start: self.a,
                 end: self.c,
-            })
+            }))
         } else {
-            let ac = (self.c - self.a).normalize().unwrap();
-            ClineArcGeometry::ThruInfinity(DoubleRay(
+            let ac = UnitComplex::normalize(self.c - self.a).unwrap();
+            Ok(ClineArcGeometry::ThruInfinity(DoubleRay(
                 Ray {
                     start: self.a,
                     unit_dir: -ac,
@@ -120,7 +122,7 @@ impl ClineArc {
                     start: self.c,
                     unit_dir: ac,
                 },
-            ))
+            )))
         }
     }
 
@@ -153,10 +155,10 @@ impl ClineArc {
         ClineArcGeometry::CircularArc(arc)
     }
 
-    pub fn classify(&self) -> ClineArcGeometry {
-        match self.cline.classify() {
+    pub fn classify(&self) -> Result<ClineArcGeometry, ComplexError> {
+        match self.cline.classify()? {
             GeneralizedCircle::Line(_) => self.compute_line_geometry(),
-            GeneralizedCircle::Circle(circle) => self.compute_circle_geometry(circle),
+            GeneralizedCircle::Circle(circle) => Ok(self.compute_circle_geometry(circle)),
         }
     }
 }
@@ -204,7 +206,7 @@ impl Transformable<Isogonal> for ClineArc {
                 self,
                 xform,
                 transformed,
-                transformed.classify()
+                transformed.classify().unwrap()
             );
         }
 
@@ -221,7 +223,7 @@ impl Renderable for ClineArc {
     fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn std::error::Error>> {
         let mut result = Vec::new();
 
-        let (first, maybe_second) = match self.classify() {
+        let (first, maybe_second) = match self.classify()? {
             ClineArcGeometry::CircularArc(arc) => (RenderPrimitive::CircularArc(arc), None),
             ClineArcGeometry::LineSegment(line_segment) => {
                 (RenderPrimitive::LineSegment(line_segment), None)
@@ -246,6 +248,9 @@ impl Renderable for ClineArc {
 
 impl Display for ClineArc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.classify().fmt(f)
+        match self.classify() {
+            Ok(x) => x.fmt(f),
+            _ => Err(std::fmt::Error),
+        }
     }
 }

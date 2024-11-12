@@ -90,7 +90,7 @@ pub enum OrthogonalArc {
 
 #[cfg(test)]
 mod test {
-    use crate::geometry::Line;
+    use crate::{geometry::Line, unit_complex::UnitComplex};
 
     use super::*;
     use test_case::test_case;
@@ -119,8 +119,8 @@ mod test {
         }
     }
 
-    #[test_case(0.0, PI, Line::new(-Complex::I, -2.0).unwrap(); "diameter at 0 and pi")]
-    #[test_case(PI / 2.0, -PI / 2.0, Line::new(-Complex::ONE, -1.0).unwrap(); "diameter at pi/2 and -pi/2")]
+    #[test_case(0.0, PI, Line::new(-UnitComplex::I, -2.0).unwrap(); "diameter at 0 and pi")]
+    #[test_case(PI / 2.0, -PI / 2.0, Line::new(-UnitComplex::ONE, -1.0).unwrap(); "diameter at pi/2 and -pi/2")]
     pub fn compute_orthog_circle_with_points_on_diameter_computes_line(
         a: f64,
         b: f64,

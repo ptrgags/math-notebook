@@ -2,7 +2,10 @@ use std::fmt::Display;
 
 use thiserror::Error;
 
-use crate::{complex_error::ComplexError, float_error::FloatError, nearly::is_nearly, Complex};
+use crate::{
+    complex_error::ComplexError, float_error::FloatError, nearly::is_nearly,
+    unit_complex::UnitComplex, Complex,
+};
 
 use super::{Geometry, LineSegment};
 
@@ -18,22 +21,14 @@ pub enum LineError {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Line {
-    pub unit_normal: Complex,
+    pub unit_normal: UnitComplex,
     pub distance: f64,
 }
 
 impl Line {
-    /// Create a line from a normal and distance offset
-    /// This will automatically normalize the normal
-    pub fn new(normal: Complex, distance: f64) -> Result<Self, LineError> {
-        ComplexError::require_finite_nonzero("normal", normal)?;
+    /// Create a line with the given unit normal and distance
+    pub fn new(unit_normal: UnitComplex, distance: f64) -> Result<Self, LineError> {
         FloatError::require_finite("distance", distance)?;
-
-        let magnitude = normal.mag();
-        let distance = 1.0 / magnitude;
-
-        let unit_normal = normal * distance.into();
-
         Ok(Self {
             unit_normal,
             distance,
@@ -51,12 +46,11 @@ impl Line {
 
         // The checks above mean this vector is nonzero and finite, so
         // this operation will always work.
-        let unit_tangent = (b - a).normalize().unwrap();
+        let unit_tangent = UnitComplex::normalize(b - a)?;
+        let unit_normal = unit_tangent.rot90();
 
-        // In 2D, we just rotate the tangent to get the normal
-        let unit_normal = Complex::I * unit_tangent;
-        // Distance along the
-        let distance = Complex::dot(a, unit_normal);
+        // Distance along the normal direction
+        let distance = Complex::dot(a, *unit_normal.get());
 
         Ok(Line {
             unit_normal,
@@ -66,14 +60,14 @@ impl Line {
 
     pub fn real_axis() -> Self {
         Self {
-            unit_normal: Complex::I,
+            unit_normal: UnitComplex::I,
             distance: 0.0,
         }
     }
 
     pub fn imag_axis() -> Self {
         Self {
-            unit_normal: Complex::ONE,
+            unit_normal: UnitComplex::ONE,
             distance: 0.0,
         }
     }
@@ -115,27 +109,7 @@ pub mod test {
 
     use test_case::test_case;
 
-    #[test]
-    pub fn new_normalizes_parameters_correctly() {
-        let not_normalized = Complex::new(2.0, 2.0);
-        let distance = 1.0;
-
-        let result = Line::new(not_normalized, distance).unwrap();
-
-        // |2 + 2i| = 2 sqrt(2)
-        // The normalized form will be 1/sqrt(2)(1 + i)
-        // the distance value also needs to be divided by this magnitude,
-        // so it's 1 / (2 sqrt(2))
-        let normalized_component = 1.0 / (2.0f64).sqrt();
-        let distance = normalized_component / 2.0;
-        let expected = Line {
-            unit_normal: Complex::new(normalized_component, normalized_component),
-            distance,
-        };
-        assert_eq!(result, expected);
-    }
-
-    #[test_case(Complex::new(1.0, 1.0), Complex::new(5.0, 1.0), Line::new(Complex::I, 1.0).unwrap(); "horizontal_line")]
+    #[test_case(Complex::new(1.0, 1.0), Complex::new(5.0, 1.0), Line::new(UnitComplex::I, 1.0).unwrap(); "horizontal_line")]
     pub fn from_points_with_valid_points_computes_correct_line(
         a: Complex,
         b: Complex,
