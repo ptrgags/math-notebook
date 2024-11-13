@@ -5,6 +5,7 @@ mod complex;
 pub mod complex_error;
 pub mod float_error;
 pub mod geometry;
+pub mod integer_arcs;
 pub mod interpolation;
 pub mod isogonal;
 mod mobius;
