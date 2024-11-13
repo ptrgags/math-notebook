@@ -1,15 +1,15 @@
 use std::ops::Index;
 
-use abstraction::Semigroup;
+use abstraction::Monoid;
 
 use crate::transformable::Transformable;
 
 /// Iterated Function System. This is still in a prototype stage
-pub struct SemigroupIFS<S: Semigroup> {
+pub struct MonoidIFS<S: Monoid> {
     xforms: Vec<S>,
 }
 
-impl<S: Semigroup> SemigroupIFS<S> {
+impl<S: Monoid> MonoidIFS<S> {
     pub fn new(xforms: Vec<S>) -> Self {
         Self { xforms }
     }
@@ -18,8 +18,8 @@ impl<S: Semigroup> SemigroupIFS<S> {
         self.xforms.iter()
     }
 
-    pub fn dfs(&self, max_depth: usize) -> SemigroupDFSIterator<S> {
-        SemigroupDFSIterator::new(self, max_depth)
+    pub fn dfs(&self, max_depth: usize) -> MonoidDFSIterator<S> {
+        MonoidDFSIterator::new(self, max_depth)
     }
 
     pub fn apply<T: Transformable<S>>(
@@ -40,7 +40,7 @@ impl<S: Semigroup> SemigroupIFS<S> {
     }
 }
 
-impl<S: Semigroup> Index<usize> for SemigroupIFS<S> {
+impl<S: Monoid> Index<usize> for MonoidIFS<S> {
     type Output = S;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -48,15 +48,15 @@ impl<S: Semigroup> Index<usize> for SemigroupIFS<S> {
     }
 }
 
-pub struct SemigroupDFSIterator<'a, S: Semigroup> {
-    ifs: &'a SemigroupIFS<S>,
+pub struct MonoidDFSIterator<'a, S: Monoid> {
+    ifs: &'a MonoidIFS<S>,
     max_depth: usize,
     // pairs of (depth, xform)
     stack: Vec<(usize, S)>,
 }
 
-impl<'a, S: Semigroup> SemigroupDFSIterator<'a, S> {
-    fn new(ifs: &'a SemigroupIFS<S>, max_depth: usize) -> Self {
+impl<'a, S: Monoid> MonoidDFSIterator<'a, S> {
+    fn new(ifs: &'a MonoidIFS<S>, max_depth: usize) -> Self {
         Self {
             ifs,
             max_depth,
@@ -65,7 +65,7 @@ impl<'a, S: Semigroup> SemigroupDFSIterator<'a, S> {
     }
 }
 
-impl<'a, S: Semigroup> Iterator for SemigroupDFSIterator<'a, S> {
+impl<'a, S: Monoid> Iterator for MonoidDFSIterator<'a, S> {
     type Item = (usize, S);
 
     fn next(&mut self) -> Option<Self::Item> {

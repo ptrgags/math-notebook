@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Mul};
 
-use abstraction::{Group, Semigroup};
+use abstraction::{Group, Monoid};
 
 /// Fractal adddress symbol, using the "uppercase is inverse" notation
 /// a la _Indra's Pearls_.
@@ -140,7 +140,7 @@ impl PartialEq for FractalAddress {
     }
 }
 
-impl Semigroup for FractalAddress {
+impl Monoid for FractalAddress {
     fn identity() -> Self {
         Self { symbols: vec![] }
     }

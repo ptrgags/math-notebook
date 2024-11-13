@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 
 use mobius::{
-    algorithms::SemigroupIFS,
+    algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple,
     rendering::Style,
@@ -46,7 +46,7 @@ fn show_individual_xforms(
         .iter()
         .zip(colors.iter())
         .map(|(xform, style)| {
-            let ifs = SemigroupIFS::new(vec![*xform]);
+            let ifs = MonoidIFS::new(vec![*xform]);
             let tiles = ifs.apply(tile, min_depth, max_depth);
             style_geometry(*style, &tiles[..])
         })
@@ -64,7 +64,7 @@ fn main() {
 
     //let rotate_90 = rotation(FRAC_PI_2).unwrap();
     //let ifs = IFS::sandwich(rotate_90, &IFS::new(xforms));
-    let ifs = SemigroupIFS::new(xforms.clone());
+    let ifs = MonoidIFS::new(xforms.clone());
 
     let tiles = ifs.apply(&half_circle, 8, 8);
     let geometry = style_geometry(Style::stroke(255, 0, 0).with_width(0.125), &tiles[..]);
