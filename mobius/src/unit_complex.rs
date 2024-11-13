@@ -2,6 +2,7 @@ use std::ops::Neg;
 
 use crate::{complex_error::ComplexError, Complex};
 
+/// A complex number restricted so |z| = 1
 #[derive(PartialEq, Clone, Copy, Debug, derive_more::Display)]
 pub struct UnitComplex(Complex);
 
@@ -9,6 +10,8 @@ impl UnitComplex {
     pub const I: Self = Self(Complex::I);
     pub const ONE: Self = Self(Complex::ONE);
 
+    /// Constructor that takes a finite, nonzero complex number and
+    /// normalizes it so it has magnitude 1.
     pub fn normalize(z: Complex) -> Result<Self, ComplexError> {
         ComplexError::require_finite_nonzero("z", z)?;
         let a = z.real();
@@ -32,6 +35,7 @@ impl UnitComplex {
         Self(Complex::new(-b, a))
     }
 
+    /// Get the underlying complex number
     pub fn get(&self) -> &Complex {
         &self.0
     }
