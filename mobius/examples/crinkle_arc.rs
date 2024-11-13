@@ -1,7 +1,7 @@
 use std::{f64::consts::PI, io::Error};
 
 use mobius::{
-    algorithms::SemigroupIFS,
+    algorithms::MonoidIFS,
     geometry::{ArcAngles, DirectedEdge},
     orthogonal_arcs::compute_orthogonal_arc,
     svg_plot::{style_motifs, union},
@@ -66,7 +66,7 @@ fn crinkle_highlight_leaves(arc: CircularArc, t: f64, depth: usize, styles: [Sty
     let fractal = ArcFractal::new(arc, t);
 
     let (a, b) = fractal.xforms;
-    let ifs = SemigroupIFS::new(vec![a, b]);
+    let ifs = MonoidIFS::new(vec![a, b]);
 
     let lens_tile = ClineArcTile::new(vec![fractal.arc.into(), fractal.orthog_arc.into()]);
 
@@ -104,7 +104,7 @@ fn crinkle_two_color(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2])
     let ab = a * b;
     let ba = b * a;
     let bb = b * b;
-    let ifs = SemigroupIFS::new(vec![aa, ab, ba, bb]);
+    let ifs = MonoidIFS::new(vec![aa, ab, ba, bb]);
 
     let (arc_cb, arc_ba) = fractal.sub_arcs;
     let triangle_tile = ClineArcTile::new(vec![

@@ -1,6 +1,6 @@
 use std::{collections::HashSet, ops::Mul};
 
-use abstraction::{Group, Semigroup};
+use abstraction::{Group, Monoid};
 
 /// Mathematical permutation of N elements. An element of the symmetric group S_N
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
@@ -39,7 +39,7 @@ impl<const N: usize> Mul for Permutation<N> {
     }
 }
 
-impl<const N: usize> Semigroup for Permutation<N> {
+impl<const N: usize> Monoid for Permutation<N> {
     fn identity() -> Self {
         let mut values = [0; N];
         for (i, value) in values.iter_mut().enumerate() {

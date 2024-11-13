@@ -1,7 +1,7 @@
 use std::{f64::consts::FRAC_PI_2, io::Error};
 
 use mobius::{
-    algorithms::SemigroupIFS,
+    algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple,
     rendering::Style,
@@ -58,7 +58,7 @@ fn compute_xforms() -> Vec<Mobius> {
 
 fn main() -> Result<(), Error> {
     let xforms = compute_xforms();
-    let modified_sierpinski = SemigroupIFS::new(xforms.clone());
+    let modified_sierpinski = MonoidIFS::new(xforms.clone());
 
     let angles = ArcAngles::new(0.0, FRAC_PI_2).unwrap();
     let tile = ClineArcTile::new(vec![
@@ -80,9 +80,9 @@ fn main() -> Result<(), Error> {
         geometry.clone(),
     )?;
 
-    let a_only = SemigroupIFS::new(vec![xforms[0]]);
-    let b_only = SemigroupIFS::new(vec![xforms[1]]);
-    let c_only = SemigroupIFS::new(vec![xforms[2]]);
+    let a_only = MonoidIFS::new(vec![xforms[0]]);
+    let b_only = MonoidIFS::new(vec![xforms[1]]);
+    let c_only = MonoidIFS::new(vec![xforms[2]]);
 
     let min_depth = 1;
     let overlay_depth = 3;
