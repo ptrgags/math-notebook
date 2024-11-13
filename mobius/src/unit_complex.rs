@@ -44,3 +44,84 @@ impl Neg for UnitComplex {
         Self(-self.0)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::f64::consts::PI;
+
+    use super::*;
+
+    #[test]
+    pub fn normalize_with_zero_returns_error() {
+        let result = UnitComplex::normalize(Complex::Zero);
+
+        assert!(matches!(result, Err(ComplexError::NotFiniteNonzero(_, _))))
+    }
+
+    #[test]
+    pub fn normalize_with_infinity_returns_error() {
+        let result = UnitComplex::normalize(Complex::Infinity);
+
+        assert!(matches!(result, Err(ComplexError::NotFiniteNonzero(_, _))))
+    }
+
+    #[test]
+    pub fn normalize_with_valid_complex_normalizes_result() -> Result<(), ComplexError> {
+        let result = UnitComplex::normalize(Complex::new(3.0, 4.0))?;
+
+        let expected = UnitComplex::normalize(Complex::new(3.0 / 5.0, 4.0 / 5.0))?;
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    pub fn from_angle_computes_correct_direction() -> Result<(), ComplexError> {
+        let result = UnitComplex::from_angle(4.0 * PI / 6.0);
+
+        // cos(4pi/6) = -1/2
+        // sin(4pi/6) = sqrt(3)/2
+        let z = Complex::new(-0.5, 0.5 * (3.0f64).sqrt());
+        let expected = UnitComplex::normalize(z)?;
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    pub fn rot90_rotates_vector_ccw() {
+        let n = UnitComplex::from_angle(PI / 4.0);
+
+        let result = n.rot90();
+
+        let expected = UnitComplex::from_angle(3.0 * PI / 4.0);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn rot90_has_order_4() {
+        let n = UnitComplex::from_angle(PI / 3.0);
+
+        let result = n.rot90().rot90().rot90().rot90();
+
+        assert_eq!(result, n);
+    }
+
+    #[test]
+    pub fn neg_negates_components() {
+        let n = UnitComplex::from_angle(PI / 6.0);
+
+        let result = -n;
+
+        let expected = UnitComplex::from_angle(7.0 * PI / 6.0);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn rot90_twice_same_as_neg() {
+        let n = UnitComplex::from_angle(PI / 6.0);
+
+        let rot180 = n.rot90().rot90();
+        let neg = -n;
+
+        assert_eq!(rot180, neg);
+    }
+}
