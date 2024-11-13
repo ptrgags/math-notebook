@@ -15,6 +15,7 @@ mod recipes;
 pub mod rendering;
 pub mod svg_plot;
 pub mod transformable;
+pub mod unit_complex;
 
 pub mod hyperbolic_tilings;
 

@@ -1,11 +1,11 @@
-use crate::Complex;
+use crate::{unit_complex::UnitComplex, Complex};
 
 use super::{DirectedEdge, Geometry};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Ray {
     pub start: Complex,
-    pub unit_dir: Complex,
+    pub unit_dir: UnitComplex,
 }
 
 impl Geometry for Ray {}
