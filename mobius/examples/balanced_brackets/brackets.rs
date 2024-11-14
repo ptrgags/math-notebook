@@ -10,12 +10,13 @@ pub enum BracketError {
     UnmachedLengths(usize, usize),
 }
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 enum Bracket {
     Left,
     Right,
 }
 
+#[derive(Debug, Clone)]
 pub struct BalancedBrackets {
     brackets: Vec<Bracket>,
 }
