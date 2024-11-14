@@ -2,7 +2,7 @@ use std::{error::Error, f64::consts::PI};
 
 use mobius::{
     cline_arc::ClineArc,
-    integer_arcs::{integer_arc_by_direction, integer_arc_by_hemisphere, Hemisphere},
+    integer_arcs::{integer_arc_by_hemisphere, Hemisphere},
     rendering::Style,
     rotation,
     svg_plot::{render_views, style_geometry, View},
@@ -12,10 +12,12 @@ use mobius::{
 
 #[derive(Debug, thiserror::Error)]
 enum BracketError {
-    #[error("Characters must be [ or ], got {0}")]
+    #[error("characters must be [ or ], got {0}")]
     InvalidCharacter(char),
-    #[error("Unbalanced brackets: {0}")]
+    #[error("unbalanced brackets: {0}")]
     Unbalanced(String),
+    #[error("bracket sequences must have the same length: {0}, {0}")]
+    UnmachedLengths(usize, usize),
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -104,25 +106,48 @@ impl<'a> Iterator for BracketIterator<'a> {
     }
 }
 
+/// A pair of balanced brackets that have the same length. One is for the
+/// northern hemisphere, one for the southern one
+struct MatchedBalancedBrackets(BalancedBrackets, BalancedBrackets);
+
+impl MatchedBalancedBrackets {
+    pub fn new(north: BalancedBrackets, south: BalancedBrackets) -> Result<Self, BracketError> {
+        if north.len() != south.len() {
+            return Err(BracketError::UnmachedLengths(north.len(), south.len()));
+        }
+
+        Ok(Self(north, south))
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (i64, i64, Hemisphere)> + '_ {
+        let Self(north, south) = self;
+        let labeled_north = north.iter().map(|(a, b)| (a, b, Hemisphere::North));
+        let labeled_south = south.iter().map(|(a, b)| (a, b, Hemisphere::South));
+        labeled_north.chain(labeled_south)
+    }
+}
+
 pub fn main() -> Result<(), Box<dyn Error>> {
     let north_brackets = BalancedBrackets::new("[][[]][][][[[]][]]")?;
-    let mut arcs: Vec<ClineArc> = Vec::new();
-    north_brackets.iter().for_each(|(a, b)| {
-        let arc = integer_arc_by_hemisphere(a, b, Hemisphere::North).unwrap();
-        arcs.push(arc.into());
-    });
-
     let south_brackets = BalancedBrackets::new("[[][][]][[[]][]][]")?;
-    south_brackets.iter().for_each(|(a, b)| {
-        let arc = integer_arc_by_hemisphere(a, b, Hemisphere::South).unwrap();
-        arcs.push(arc.into());
-    });
+    let brackets = MatchedBalancedBrackets::new(north_brackets, south_brackets)?;
 
-    assert_eq!(north_brackets.len(), south_brackets.len());
+    let arcs: Result<Vec<ClineArc>, Box<dyn Error>> = brackets
+        .iter()
+        .map(|(a, b, hemisphere)| -> Result<ClineArc, Box<dyn Error>> {
+            let arc = integer_arc_by_hemisphere(a, b, hemisphere)?;
+            Ok(ClineArc::from(arc))
+        })
+        .collect();
+    let arcs = arcs?;
 
     let tile = ClineArcTile::new(arcs);
     let rot90 = rotation(PI / 2.0)?;
-    let radius = 0.5 * (north_brackets.len() as f64);
+    let radius = 0.5 * (brackets.len() as f64);
     let translate_center = translation(Complex::new(0.0, -radius)).unwrap();
     let in_view = tile.transform(translate_center * rot90);
 
