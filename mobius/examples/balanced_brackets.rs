@@ -60,39 +60,62 @@ impl BalancedBrackets {
         self.brackets.len()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Bracket> {
-        self.brackets.iter()
+    pub fn iter(&self) -> impl Iterator<Item = (i64, i64)> + '_ {
+        BracketIterator::new(&self.brackets)
+    }
+}
+
+struct BracketIterator<'a> {
+    brackets: &'a [Bracket],
+    index: usize,
+    stack: Vec<i64>,
+}
+
+impl<'a> BracketIterator<'a> {
+    pub fn new(brackets: &'a [Bracket]) -> Self {
+        Self {
+            brackets,
+            index: 0,
+            stack: Vec::new(),
+        }
+    }
+}
+
+impl<'a> Iterator for BracketIterator<'a> {
+    type Item = (i64, i64);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.index < self.brackets.len() {
+            // Increment the index whether we short circuit or not.
+            let current = self.index;
+            self.index += 1;
+
+            match self.brackets[current] {
+                Bracket::Left => self.stack.push(current as i64),
+                Bracket::Right => {
+                    let a = self.stack.pop().unwrap();
+                    let b = current as i64;
+                    return Some((a, b));
+                }
+            }
+        }
+
+        None
     }
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     let north_brackets = BalancedBrackets::new("[][[]][][][[[]][]]")?;
-    let mut stack: Vec<usize> = Vec::new();
     let mut arcs: Vec<ClineArc> = Vec::new();
-    north_brackets.iter().enumerate().for_each(|(i, &b)| {
-        if b == Bracket::Left {
-            stack.push(i);
-        } else {
-            let a = stack.pop().unwrap();
-            let b = i;
-
-            let arc = integer_arc_by_hemisphere(a as i64, b as i64, Hemisphere::North).unwrap();
-            arcs.push(arc.into());
-        }
+    north_brackets.iter().for_each(|(a, b)| {
+        let arc = integer_arc_by_hemisphere(a, b, Hemisphere::North).unwrap();
+        arcs.push(arc.into());
     });
 
     let south_brackets = BalancedBrackets::new("[[][][]][[[]][]][]")?;
-    let mut stack: Vec<usize> = Vec::new();
-    south_brackets.iter().enumerate().for_each(|(i, &b)| {
-        if b == Bracket::Left {
-            stack.push(i);
-        } else {
-            let a = stack.pop().unwrap();
-            let b = i;
-
-            let arc = integer_arc_by_hemisphere(a as i64, b as i64, Hemisphere::South).unwrap();
-            arcs.push(arc.into());
-        }
+    south_brackets.iter().for_each(|(a, b)| {
+        let arc = integer_arc_by_hemisphere(a, b, Hemisphere::South).unwrap();
+        arcs.push(arc.into());
     });
 
     assert_eq!(north_brackets.len(), south_brackets.len());
