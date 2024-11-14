@@ -31,7 +31,11 @@ struct Cli {
     equator: bool,
 }
 
-pub fn render_line(suffix: &str, brackets: &MatchedBalancedBrackets) -> Result<(), Box<dyn Error>> {
+pub fn render_line(
+    suffix: &str,
+    brackets: &MatchedBalancedBrackets,
+    draw_equator: bool,
+) -> Result<(), Box<dyn Error>> {
     let arcs: Result<Vec<ClineArc>, Box<dyn Error>> = brackets
         .iter()
         .map(|(a, b, hemisphere)| -> Result<ClineArc, Box<dyn Error>> {
@@ -49,15 +53,19 @@ pub fn render_line(suffix: &str, brackets: &MatchedBalancedBrackets) -> Result<(
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
     let white = Style::stroke(255, 255, 255).with_width(0.25);
+    let arc_geom = style_geometry(yellow, &in_view);
+    let equator_geom = style_geometry(white, &Cline::imag_axis());
+    let geometry = if draw_equator {
+        union(vec![arc_geom, equator_geom])
+    } else {
+        arc_geom
+    };
 
     render_views(
         "output",
         &format!("brackets_line{}", suffix),
         &[View("", 0.0, 0.0, radius)],
-        union(vec![
-            style_geometry(yellow, &in_view),
-            style_geometry(white, &Cline::imag_axis()),
-        ]),
+        geometry,
     )?;
 
     Ok(())
@@ -66,6 +74,7 @@ pub fn render_line(suffix: &str, brackets: &MatchedBalancedBrackets) -> Result<(
 pub fn render_circle(
     suffix: &str,
     brackets: &MatchedBalancedBrackets,
+    draw_equator: bool,
 ) -> Result<(), Box<dyn Error>> {
     let n = brackets.len();
     let arcs: Result<Vec<ClineArc>, Box<dyn Error>> = brackets
@@ -81,14 +90,19 @@ pub fn render_circle(
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
     let white = Style::stroke(255, 255, 255).with_width(0.25);
 
+    let arc_geom = style_geometry(yellow, &circle_tile);
+    let equator_geom = style_geometry(white, &Cline::unit_circle());
+    let geometry = if draw_equator {
+        union(vec![arc_geom, equator_geom])
+    } else {
+        arc_geom
+    };
+
     render_views(
         "output",
         &format!("brackets_circle{}", suffix),
         &[View("", 0.0, 0.0, 2.0)],
-        union(vec![
-            style_geometry(yellow, &circle_tile),
-            style_geometry(white, &Cline::unit_circle()),
-        ]),
+        geometry,
     )?;
 
     Ok(())
@@ -98,11 +112,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     let brackets = MatchedBalancedBrackets::new(cli.north_brackets, cli.south_brackets)?;
-
     let suffix = cli.suffix.map_or("".into(), |x| format!("_{}", x));
 
-    render_line(&suffix, &brackets)?;
-    render_circle(&suffix, &brackets)?;
+    render_line(&suffix, &brackets, cli.equator)?;
+    render_circle(&suffix, &brackets, cli.equator)?;
 
     Ok(())
 }
