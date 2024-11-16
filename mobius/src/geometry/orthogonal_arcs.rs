@@ -65,12 +65,27 @@ pub fn compute_orthogonal_circle(
 
 /// Similar to ClineArcGeometry, but the cases are a little more
 /// restricted since both endpoints are finite.
+#[derive(Debug, Clone, Copy)]
 pub enum OrthogonalArc {
     Arc(CircularArc),
     Diameter(LineSegment),
     /// Part of the diameter line outside the circle.
     /// see integer_arc.rs
     DiameterOutside(DoubleRay),
+}
+
+impl OrthogonalArc {
+    pub fn reverse(&self) -> Self {
+        match self {
+            OrthogonalArc::Arc(circular_arc) => OrthogonalArc::Arc(circular_arc.reverse()),
+            OrthogonalArc::Diameter(line_segment) => {
+                OrthogonalArc::Diameter(line_segment.reverse())
+            }
+            OrthogonalArc::DiameterOutside(double_ray) => {
+                OrthogonalArc::DiameterOutside(double_ray.reverse())
+            }
+        }
+    }
 }
 
 pub fn compute_orthogonal_arc(arc: CircularArc) -> OrthogonalArc {

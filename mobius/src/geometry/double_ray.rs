@@ -15,6 +15,11 @@ impl DoubleRay {
         let ray_b = Ray::new(b, ab)?;
         Ok(Self(ray_a, ray_b))
     }
+
+    pub fn reverse(&self) -> Self {
+        let &Self(ray_a, ray_b) = self;
+        Self(ray_b, ray_a)
+    }
 }
 
 impl Geometry for DoubleRay {}

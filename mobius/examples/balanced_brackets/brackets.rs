@@ -1,4 +1,4 @@
-use mobius::integer_arcs::Hemisphere;
+use mobius::geometry::integer_arcs::Hemisphere;
 
 #[derive(Debug, thiserror::Error)]
 pub enum BracketError {

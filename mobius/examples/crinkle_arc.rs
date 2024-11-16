@@ -1,9 +1,11 @@
-use std::{f64::consts::PI, io::Error};
+use std::{error::Error, f64::consts::PI};
 
 use mobius::{
     algorithms::MonoidIFS,
-    geometry::{ArcAngles, DirectedEdge},
-    orthogonal_arcs::compute_orthogonal_arc,
+    geometry::{
+        orthogonal_arcs::{compute_orthogonal_arc, OrthogonalArc},
+        ArcAngles, DirectedEdge,
+    },
     svg_plot::{style_motifs, union},
     transformable::{ClineArcTile, Motif, Transformable},
     Complex,
@@ -24,9 +26,9 @@ struct ArcFractal {
     /// the two respective sub-arcs
     xforms: (Mobius, Mobius),
     /// An arc orthogonal to the first one, as I want to render this too.
-    orthog_arc: CircularArc,
+    orthog_arc: OrthogonalArc,
     /// The two sub-arcs. The first one is c -> b, the second is b -> a
-    sub_arcs: (CircularArc, CircularArc),
+    sub_arcs: (OrthogonalArc, OrthogonalArc),
 }
 
 impl ArcFractal {
@@ -44,8 +46,16 @@ impl ArcFractal {
         let orthog_arc_cb = compute_orthogonal_arc(arc_bc);
         let orthog_arc_ba = compute_orthogonal_arc(arc_ab);
 
-        let d = orthog_arc_ba.interpolate(t);
-        let e = orthog_arc_cb.interpolate(t);
+        let d = match orthog_arc_ba {
+            OrthogonalArc::Arc(circular_arc) => circular_arc.interpolate(t),
+            OrthogonalArc::Diameter(line_segment) => line_segment.interpolate(t),
+            OrthogonalArc::DiameterOutside(_) => unreachable!(),
+        };
+        let e = match orthog_arc_cb {
+            OrthogonalArc::Arc(circular_arc) => circular_arc.interpolate(t),
+            OrthogonalArc::Diameter(line_segment) => line_segment.interpolate(t),
+            OrthogonalArc::DiameterOutside(_) => unreachable!(),
+        };
 
         let a = arc.start();
         let b = arc.interpolate(t);
@@ -128,8 +138,8 @@ fn crinkle_two_color(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2])
     style_motifs(&tiles[..], &styles)
 }
 
-fn main() -> Result<(), Error> {
-    let angles = ArcAngles::new(-PI / 4.0, 5.0 * PI / 4.0).unwrap();
+fn main() -> Result<(), Box<dyn Error>> {
+    let angles = ArcAngles::new(-PI / 4.0, 5.0 * PI / 4.0)?;
     let arc = CircularArc::new(Circle::unit_circle(), angles);
 
     let depth = 7usize;
@@ -157,10 +167,10 @@ fn main() -> Result<(), Error> {
     )?;
 
     // Now let's chain multiple arcs together for a more intricate pattern
-    let angles_a = ArcAngles::new(0.0, PI / 2.0).unwrap();
-    let angles_b = ArcAngles::new(0.0, -PI / 2.0).unwrap();
-    let angles_c = ArcAngles::new(PI, 3.0 * PI / 2.0).unwrap();
-    let angles_d = ArcAngles::new(PI, PI / 2.0).unwrap();
+    let angles_a = ArcAngles::new(0.0, PI / 2.0)?;
+    let angles_b = ArcAngles::new(0.0, -PI / 2.0)?;
+    let angles_c = ArcAngles::new(PI, 3.0 * PI / 2.0)?;
+    let angles_d = ArcAngles::new(PI, PI / 2.0)?;
     let unit_circle = Circle::unit_circle();
     let circle_b = Circle::new(Complex::new(-1.0, 1.0), 1.0);
     let circle_d = Circle::new(Complex::new(1.0, -1.0), 1.0);
@@ -188,6 +198,24 @@ fn main() -> Result<(), Error> {
             crinkle_two_color(arc_c, t, depth, styles),
             crinkle_two_color(arc_d, t, depth, styles),
         ]),
+    )?;
+
+    let semicircle_angles = ArcAngles::new(0.0, PI)?;
+    let semicircle = CircularArc::new(unit_circle, semicircle_angles);
+    render_views(
+        "output",
+        "crinkle_semicircle",
+        &[View("", 0.0, 0.0, 1.1), View("zoom", 0.51, 0.3, 0.51)],
+        crinkle_two_color(semicircle, 0.5, 3usize, styles),
+    )?;
+
+    let angles = ArcAngles::new(0.0, 4.0 * PI / 3.0)?;
+    let arc = CircularArc::new(unit_circle, angles);
+    render_views(
+        "output",
+        "crinkle_diameter",
+        &[View("", 0.0, 0.0, 1.1)],
+        crinkle_two_color(arc, 3.0 / 4.0, 3usize, styles),
     )?;
 
     Ok(())

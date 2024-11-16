@@ -8,8 +8,9 @@ use crate::{
         ArcAngles, ArcAnglesError, ArcDirection, Circle, CircularArc, DirectedEdge, DoubleRay,
         GeneralizedCircle,
     },
-    orthogonal_arcs::{compute_orthogonal_arc, compute_orthogonal_circle, OrthogonalArc},
 };
+
+use super::orthogonal_arcs::{compute_orthogonal_arc, compute_orthogonal_circle, OrthogonalArc};
 
 #[derive(Debug, Error)]
 pub enum IntegerArcError {
