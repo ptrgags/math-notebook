@@ -3,8 +3,8 @@ use std::fmt::Display;
 use crate::{
     complex_error::ComplexError,
     geometry::{
-        orthogonal_arcs::OrthogonalArc, ray, ArcAngles, ArcDirection, Circle, CircularArc,
-        DoubleRay, GeneralizedCircle, Line, LineSegment, Ray,
+        orthogonal_arcs::OrthogonalArc, ArcAngles, ArcDirection, Circle, CircularArc, DoubleRay,
+        GeneralizedCircle, Line, LineSegment, Ray,
     },
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
