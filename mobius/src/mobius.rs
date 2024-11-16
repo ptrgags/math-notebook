@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Mul};
 
-use abstraction::{Group, Semigroup};
+use abstraction::{Group, Monoid};
 
 use crate::{complex::Complex, nearly::is_nearly};
 
@@ -291,7 +291,7 @@ impl Mul<Complex> for Mobius {
     }
 }
 
-impl Semigroup for Mobius {
+impl Monoid for Mobius {
     // The identity function I(z) = z, implemented
     // as (1z + 0) / (0z + 1)
     fn identity() -> Self {

@@ -213,7 +213,7 @@ mod test {
 
     use core::f64;
 
-    use abstraction::Semigroup;
+    use abstraction::Monoid;
     use test_case::test_case;
 
     use crate::{mobius::MobiusType, nearly::is_nearly};
