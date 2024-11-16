@@ -2,7 +2,8 @@ use std::f64::consts::{PI, TAU};
 
 use crate::{
     geometry::{
-        ArcAngles, Circle, CircularArc, DirectedEdge, GeneralizedCircle, Line, LineSegment,
+        ArcAngles, Circle, CircularArc, DirectedEdge, DoubleRay, GeneralizedCircle, Line,
+        LineSegment,
     },
     nearly::is_nearly,
     Complex,
@@ -62,11 +63,25 @@ pub fn compute_orthogonal_circle(
     GeneralizedCircle::Circle(orthog_circle)
 }
 
-pub fn compute_orthogonal_arc(arc: CircularArc) -> CircularArc {
+/// Similar to ClineArcGeometry, but the cases are a little more
+/// restricted since both endpoints are finite.
+pub enum OrthogonalArc {
+    Arc(CircularArc),
+    Diameter(LineSegment),
+    /// Part of the diameter line outside the circle.
+    /// see integer_arc.rs
+    DiameterOutside(DoubleRay),
+}
+
+pub fn compute_orthogonal_arc(arc: CircularArc) -> OrthogonalArc {
     let circle = arc.circle;
     let orthog_circle = match compute_orthogonal_circle(circle, arc.angles) {
         GeneralizedCircle::Circle(sub_circle) => sub_circle,
-        GeneralizedCircle::Line(_) => panic!("Not implemented: sub arc that's a line"),
+        GeneralizedCircle::Line(_) => {
+            let a = arc.start();
+            let b = arc.end();
+            return OrthogonalArc::Diameter(LineSegment::new(a, b));
+        }
     };
 
     // Compute the arc from b -> a that's inside the original circle. This will
@@ -79,13 +94,7 @@ pub fn compute_orthogonal_arc(arc: CircularArc) -> CircularArc {
         sub_angles = sub_angles.complement();
     }
 
-    CircularArc::new(orthog_circle, sub_angles)
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum OrthogonalArc {
-    Arc(CircularArc),
-    Segment(LineSegment),
+    OrthogonalArc::Arc(CircularArc::new(orthog_circle, sub_angles))
 }
 
 #[cfg(test)]

@@ -3,12 +3,18 @@ use std::f64::consts::{PI, TAU};
 use thiserror::Error;
 
 use crate::{
-    geometry::{ArcAngles, ArcAnglesError, ArcDirection, Circle, CircularArc, GeneralizedCircle},
-    orthogonal_arcs::{compute_orthogonal_arc, compute_orthogonal_circle},
+    complex_error::ComplexError,
+    geometry::{
+        ArcAngles, ArcAnglesError, ArcDirection, Circle, CircularArc, DirectedEdge, DoubleRay,
+        GeneralizedCircle,
+    },
+    orthogonal_arcs::{compute_orthogonal_arc, compute_orthogonal_circle, OrthogonalArc},
 };
 
 #[derive(Debug, Error)]
 pub enum IntegerArcError {
+    #[error("{0}")]
+    BadComplex(#[from] ComplexError),
     #[error("{0}")]
     BadAngles(#[from] ArcAnglesError),
     #[error("a and b must be distinct: {0}")]
@@ -111,16 +117,28 @@ pub fn cyclotomic_arc_by_direction(
     b: i64,
     n: usize,
     direction: ArcDirection,
-) -> Result<CircularArc, IntegerArcError> {
+) -> Result<OrthogonalArc, IntegerArcError> {
     let angles = cyclotomic_angles(a, b, n)?;
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let orthog_arc = compute_orthogonal_arc(arc);
 
-    if orthog_arc.direction() == direction {
-        Ok(orthog_arc)
-    } else {
-        Ok(orthog_arc.complement())
-    }
+    let adjusted_arc = match orthog_arc {
+        OrthogonalArc::Arc(circular_arc) => {
+            let selected_arc = if circular_arc.direction() == direction {
+                circular_arc
+            } else {
+                circular_arc.complement()
+            };
+            OrthogonalArc::Arc(selected_arc)
+        }
+        OrthogonalArc::Diameter(line_segment) => {
+            // When do we flip this?
+            OrthogonalArc::Diameter(line_segment)
+        }
+        OrthogonalArc::DiameterOutside(_) => unreachable!(),
+    };
+
+    Ok(adjusted_arc)
 }
 
 pub fn cyclotomic_arc_by_hemisphere(
@@ -128,24 +146,42 @@ pub fn cyclotomic_arc_by_hemisphere(
     b: i64,
     n: usize,
     hemisphere: Hemisphere,
-) -> Result<CircularArc, IntegerArcError> {
+) -> Result<OrthogonalArc, IntegerArcError> {
     let angles = cyclotomic_angles(a, b, n)?;
     let arc = CircularArc::new(Circle::unit_circle(), angles);
     let orthog_arc = compute_orthogonal_arc(arc);
 
-    let unit_circle = Circle::unit_circle();
-    let inside_circle = unit_circle.point_inside(orthog_arc.interpolate(0.5));
-    let arc_hemisphere = if inside_circle {
-        Hemisphere::South
-    } else {
-        Hemisphere::North
+    let adjusted_arc = match orthog_arc {
+        OrthogonalArc::Arc(circular_arc) => {
+            let unit_circle = Circle::unit_circle();
+            let inside_circle = unit_circle.point_inside(circular_arc.interpolate(0.5));
+            let arc_hemisphere = if inside_circle {
+                Hemisphere::South
+            } else {
+                Hemisphere::North
+            };
+
+            let selected_arc = if arc_hemisphere == hemisphere {
+                circular_arc
+            } else {
+                circular_arc.complement()
+            };
+
+            OrthogonalArc::Arc(selected_arc)
+        }
+        OrthogonalArc::Diameter(line_segment) => match hemisphere {
+            Hemisphere::North => {
+                let a = line_segment.start();
+                let b = line_segment.end();
+                let complement = DoubleRay::from_points(a, b)?;
+                OrthogonalArc::DiameterOutside(complement)
+            }
+            Hemisphere::South => OrthogonalArc::Diameter(line_segment),
+        },
+        OrthogonalArc::DiameterOutside(_) => unreachable!(),
     };
 
-    if arc_hemisphere == hemisphere {
-        Ok(orthog_arc)
-    } else {
-        Ok(orthog_arc.complement())
-    }
+    Ok(adjusted_arc)
 }
 
 #[cfg(test)]

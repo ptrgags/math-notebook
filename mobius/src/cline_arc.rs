@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::{
     complex_error::ComplexError,
     geometry::{
-        ArcAngles, ArcDirection, Circle, CircularArc, DoubleRay, GeneralizedCircle, Line,
+        ray, ArcAngles, ArcDirection, Circle, CircularArc, DoubleRay, GeneralizedCircle, Line,
         LineSegment, Ray,
     },
     isogonal::Isogonal,
@@ -193,6 +193,21 @@ impl From<LineSegment> for ClineArc {
             a: start,
             b: midpoint,
             c: end,
+        }
+    }
+}
+
+impl From<DoubleRay> for ClineArc {
+    fn from(value: DoubleRay) -> Self {
+        let DoubleRay(ray_a, ray_b) = value;
+
+        let line = Line::from_points(ray_a.start, ray_b.start).unwrap();
+
+        Self {
+            cline: line.into(),
+            a: ray_a.start,
+            b: Complex::Infinity,
+            c: ray_b.start,
         }
     }
 }
