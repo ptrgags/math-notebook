@@ -2,7 +2,7 @@ use std::{collections::HashSet, fmt::Display, ops::Mul, str::FromStr};
 
 use abstraction::{Group, Monoid};
 
-use crate::{cycle_notation::DisjointCycles, permutation_error::PermutationError};
+use crate::{disjoint_cycles::DisjointCycles, permutation_error::PermutationError};
 
 /// Mathematical permutation of N elements. An element of the symmetric group S_N
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
