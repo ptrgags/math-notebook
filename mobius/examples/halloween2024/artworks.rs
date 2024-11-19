@@ -262,7 +262,7 @@ pub fn warpedpaper() -> Result<(), Box<dyn Error>> {
 
     let translate_up = translation(Complex::new(0.0, 2.2))?;
     let translate_right = translation((1.7).into())?;
-    let grid = GridIFS::new(vec![(translate_up, -10, 10), (translate_right, -10, 10)]);
+    let grid = GridIFS::new(vec![(translate_up, -5, 7), (translate_right, -8, 3)]);
 
     // What happens if we conjugate by a transform that fixes the unit circle?
     let pull_left = hyperbolic(1.2)?;

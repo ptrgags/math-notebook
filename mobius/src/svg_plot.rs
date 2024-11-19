@@ -91,7 +91,7 @@ fn svg_polygon(commands: &[PathCommand]) -> Box<dyn Node> {
     for cmd in commands.iter() {
         match cmd {
             PathCommand::MoveTo(z) => path_data = path_data.move_to((z.real(), z.imag())),
-            PathCommand::LineTo(z) => path_data = path_data.move_to((z.real(), z.imag())),
+            PathCommand::LineTo(z) => path_data = path_data.line_to((z.real(), z.imag())),
             PathCommand::ArcTo(arc) => {
                 let arc_params = svg_arc_parameters(*arc);
                 path_data = path_data.elliptical_arc_to(arc_params);
