@@ -151,7 +151,7 @@ pub fn rib_cage() -> Result<(), Box<dyn Error>> {
 }
 
 pub fn ghost_octahedral() -> Result<(), Box<dyn Error>> {
-    let (ghost, ghost_style) = ghost();
+    let (ghost, ghost_styles) = ghost()?;
     let shrink = scale(0.125)?;
     let small_ghost = ghost.transform(shrink);
 
@@ -168,13 +168,13 @@ pub fn ghost_octahedral() -> Result<(), Box<dyn Error>> {
         "output",
         "ghost_octahedral",
         &[View("", 0.0, 0.0, 3.0)],
-        style_geometry(ghost_style, &swirl_walk[..]),
+        style_motifs(&swirl_walk[..], &ghost_styles),
     )?;
     Ok(())
 }
 
 pub fn ghost_double_spiral() -> Result<(), Box<dyn Error>> {
-    let (ghost, ghost_style) = ghost();
+    let (ghost, ghost_styles) = ghost()?;
     let shrink = scale(0.125)?;
     let small_ghost = ghost.transform(shrink);
 
@@ -193,13 +193,13 @@ pub fn ghost_double_spiral() -> Result<(), Box<dyn Error>> {
         "output",
         "ghost_double_spiral",
         &[View("", 0.0, 0.0, 1.0), View("sink", -0.125, 0.75, 0.5)],
-        style_geometry(ghost_style, &double_spiral_walk[..]),
+        style_motifs(&double_spiral_walk[..], &ghost_styles),
     )?;
     Ok(())
 }
 
 pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
-    let (ghost, ghost_style) = ghost();
+    let (ghost, ghost_styles) = ghost()?;
 
     let shrink = scale(0.1)?;
     let shift = translation(Complex::new(-0.4, -0.15))?;
@@ -237,7 +237,7 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
         union(vec![
             style_geometry(red_lines, &circle_walk[..]),
             style_geometry(yellow_lines, &tiles[..]),
-            style_geometry(ghost_style, &gasket_walk[..]),
+            style_motifs(&gasket_walk[..], &ghost_styles),
         ]),
     )?;
 
@@ -254,7 +254,7 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
         union(vec![
             style_geometry(red_lines, &left_circle),
             style_geometry(yellow_lines, &subgroup_tiles[..]),
-            style_geometry(ghost_style, &subgroup_walk[..]),
+            style_motifs(&subgroup_walk[..], &ghost_styles),
         ]),
     )?;
 

@@ -20,7 +20,7 @@ fn circle_to_arcs(circle: Circle) -> (CircularArc, CircularArc) {
     (top, bottom)
 }
 
-pub fn ghost() -> (ClineArcTile, Style) {
+pub fn ghost() -> Result<(Motif<Polygon>, [Style; 2]), Box<dyn Error>> {
     const SIDE_HEIGHT: f64 = 1.5;
     const CIRCLE_SPACING: f64 = 2.0 / 5.0;
     const BOTTOM_CIRCLE_RADIUS: f64 = 1.0 / 5.0;
@@ -44,31 +44,40 @@ pub fn ghost() -> (ClineArcTile, Style) {
 
     let (upper, lower) = ArcAngles::semicircles();
 
-    let ghost = ClineArcTile::new(vec![
+    let ghost_body = Polygon::new(vec![
         // top of ghost head is a semi-circle
         CircularArc::new(head_circle, upper).into(),
         // Left side
         LineSegment::new(-Complex::ONE, Complex::new(-1.0, -SIDE_HEIGHT)).into(),
         // Five semi-circles for the bottom
         CircularArc::new(bottom_circles[0], lower).into(),
-        CircularArc::new(bottom_circles[1], upper).into(),
+        CircularArc::new(bottom_circles[1], upper.reverse()).into(),
         CircularArc::new(bottom_circles[2], lower).into(),
-        CircularArc::new(bottom_circles[3], upper).into(),
+        CircularArc::new(bottom_circles[3], upper.reverse()).into(),
         CircularArc::new(bottom_circles[4], lower).into(),
         // Right side
         LineSegment::new(Complex::new(1.0, -SIDE_HEIGHT), Complex::ONE).into(),
-        // Eyes and mouths are circles drawn as two semicircles
-        left_eye_top.into(),
-        left_eye_bottom.into(),
-        right_eye_top.into(),
-        right_eye_bottom.into(),
-        mouth_top.into(),
-        mouth_bottom.into(),
+    ])?;
+
+    let left_eye = Polygon::new(vec![left_eye_top.into(), left_eye_bottom.into()])?;
+    let right_eye = Polygon::new(vec![right_eye_top.into(), right_eye_bottom.into()])?;
+    let mouth = Polygon::new(vec![mouth_top.into(), mouth_bottom.into()])?;
+
+    let ghost = Motif::new(vec![
+        (ghost_body, 0),
+        (left_eye, 1),
+        (right_eye, 1),
+        (mouth, 1),
     ]);
 
-    let style = Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25);
+    let styles = [
+        // Ghostly blue body
+        Style::fill(0xc5, 0xf2, 0xfa),
+        // Black for the eyes and mouth
+        Style::fill(0, 0, 0),
+    ];
 
-    (ghost, style)
+    Ok((ghost, styles))
 }
 
 fn lerp(a: Complex, b: Complex, t: f64) -> Complex {
