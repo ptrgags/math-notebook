@@ -3,7 +3,9 @@ use thiserror::Error;
 use crate::{
     cline_arc::{ClineArc, ClineArcGeometry},
     geometry::DirectedEdge,
+    isogonal::Isogonal,
     rendering::{PathCommand, RenderPrimitive, Renderable},
+    transformable::Transformable,
 };
 
 #[derive(Debug, Error)]
@@ -56,6 +58,16 @@ impl Renderable for Polygon {
         }
 
         Ok(vec![RenderPrimitive::Polygon(commands)])
+    }
+}
+
+impl Transformable<Isogonal> for Polygon {
+    fn transform(&self, xform: Isogonal) -> Self {
+        let transformed_edges = self.edges.iter().map(|x| x.transform(xform)).collect();
+
+        Self {
+            edges: transformed_edges,
+        }
     }
 }
 
