@@ -86,7 +86,10 @@ pub fn bone_tree() -> Result<(), Box<dyn Error>> {
 
     let rot2 = rotation(PI)?;
     let shift_head = translation(Complex::new(0.0, 2.1))?;
-    let heads_will_roll = skull()?.transform(shift_head * rot2);
+    let roll = shift_head * rot2;
+    let (head, face) = skull()?;
+    let heads_will_roll = head.transform(roll);
+    let eyes_will_roll = face.transform(roll);
 
     let branch_angle = PI / 6.0;
     let scale_factor = 0.8;
@@ -102,15 +105,18 @@ pub fn bone_tree() -> Result<(), Box<dyn Error>> {
 
     let tree_ifs = MonoidIFS::new(vec![branch_left, branch_right]);
     let bone_branches = tree_ifs.apply(&trunk, 0, 6);
-    let skull_leaves = tree_ifs.apply(&heads_will_roll, 6, 6);
-    let white_lines = Style::stroke(255, 255, 255).with_width(0.25);
+    let head_leaves = tree_ifs.apply(&heads_will_roll, 6, 6);
+    let face_leaves = tree_ifs.apply(&eyes_will_roll, 6, 6);
+    let black = Style::fill(0, 0, 0).with_stroke(0, 0, 0).with_width(0.25);
+    let white_fill = Style::fill(255, 255, 255);
     render_views(
         "output",
         "bone_tree",
         &[View("", 0.0, 2.0, 3.5)],
         union(vec![
-            style_geometry(white_lines, &bone_branches[..]),
-            style_geometry(white_lines, &skull_leaves[..]),
+            style_geometry(white_fill, &bone_branches[..]),
+            style_geometry(white_fill, &head_leaves[..]),
+            style_geometry(black, &face_leaves[..]),
         ]),
     )?;
     Ok(())
@@ -120,21 +126,25 @@ pub fn rib_cage() -> Result<(), Box<dyn Error>> {
     // rib cage
     let smaller = scale(0.9)?;
     let shift_up = translation(Complex::new(0.0, 2.0))?;
-    let head = skull()?.transform(shift_up * smaller);
+    let (head, face) = skull()?;
+    let adjusted_head = head.transform(shift_up * smaller);
+    let adjusted_face = face.transform(shift_up * smaller);
     let rot4 = rotation(PI / 2.0)?;
     let rib = bone(20.0)?.transform(rot4 * smaller);
     let pull_left = hyperbolic(1.6)?;
     let pull_down = Mobius::sandwich(rot4, pull_left);
     let cage = GridIFS::new(vec![(pull_down, -10, 10)]);
     let rib_cage = cage.apply(&rib);
-    let white_lines = Style::stroke(255, 255, 255).with_width(0.25);
+    let white_fill = Style::fill(255, 255, 255);
+    let black = Style::fill(0, 0, 0).with_stroke(0, 0, 0).with_width(0.25);
     render_views(
         "output",
         "rib_cage",
         &[View("", 0.0, 1.0, 1.5)],
         union(vec![
-            style_geometry(white_lines, &rib_cage[..]),
-            style_geometry(white_lines, &head),
+            style_geometry(white_fill, &rib_cage[..]),
+            style_geometry(white_fill, &adjusted_head),
+            style_geometry(black, &adjusted_face),
         ]),
     )?;
     Ok(())

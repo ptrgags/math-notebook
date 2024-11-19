@@ -185,7 +185,7 @@ pub fn candy_corn() -> Result<(Motif<Polygon>, Vec<Style>), Box<dyn Error>> {
 /// Since that's rather large, this shrinks the result down so the epiphyses
 /// are at -i and i. So the length parameter really determines the length
 /// to width ratio in practice.
-pub fn bone(length: f64) -> Result<ClineArcTile, Box<dyn Error>> {
+pub fn bone(length: f64) -> Result<Polygon, Box<dyn Error>> {
     let half_width = Complex::ONE;
     let half_height = Complex::new(0.0, 0.5 * length);
 
@@ -222,14 +222,14 @@ pub fn bone(length: f64) -> Result<ClineArcTile, Box<dyn Error>> {
 
     // the bone line's connected to the bone arc
     // the bone arc's connected to the bone arc... 🎵
-    let big_bone = ClineArcTile::new(vec![
+    let big_bone = Polygon::new(vec![
         right_side.into(),
         arc_top_right.into(),
         arc_top_left.into(),
         left_side.into(),
         arc_bottom_left.into(),
         arc_bottom_right.into(),
-    ]);
+    ])?;
 
     let shrink = scale(2.0 / length)?;
 
@@ -292,7 +292,7 @@ pub fn witch_hat() -> Result<Motif<ClineArcTile>, Box<dyn Error>> {
 
 /// Create a skull motif that _nearly_ fits in the unit circle. the teeth
 /// stick out a tiny bit.
-pub fn skull() -> Result<ClineArcTile, Box<dyn Error>> {
+pub fn skull() -> Result<(Polygon, ClineArcTile), Box<dyn Error>> {
     let top_circle = Circle::new(Complex::Zero, 2.0);
     let left_circle = Circle::new(-Complex::ONE, 1.0);
     let right_circle = Circle::new(Complex::ONE, 1.0);
@@ -327,16 +327,20 @@ pub fn skull() -> Result<ClineArcTile, Box<dyn Error>> {
     let (left_eye_top, left_eye_bottom) = circle_to_arcs(left_eye);
     let (right_eye_top, right_eye_bottom) = circle_to_arcs(right_eye);
 
-    let skull = ClineArcTile::new(vec![
+    let skull = Polygon::new(vec![
         arc_right.into(),
         arc_top.into(),
         arc_left.into(),
-        teeth_bottom.into(),
         teeth_verticals[0].into(),
+        teeth_bottom.into(),
+        teeth_verticals[4].reverse().into(),
+    ])?;
+
+    // Detail for the eyes and teeth
+    let detail = ClineArcTile::new(vec![
         teeth_verticals[1].into(),
         teeth_verticals[2].into(),
         teeth_verticals[3].into(),
-        teeth_verticals[4].into(),
         left_eye_top.into(),
         left_eye_bottom.into(),
         right_eye_top.into(),
@@ -345,5 +349,5 @@ pub fn skull() -> Result<ClineArcTile, Box<dyn Error>> {
 
     let shrink = scale(0.5)?;
 
-    Ok(skull.transform(shrink))
+    Ok((skull.transform(shrink), detail.transform(shrink)))
 }
