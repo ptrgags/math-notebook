@@ -8,7 +8,7 @@ use svg::{
 
 use crate::{
     geometry::{ArcAngles, ArcDirection, Circle, CircularArc, DirectedEdge, LineSegment},
-    rendering::{RenderPrimitive, Renderable, Style},
+    rendering::{PathCommand, RenderPrimitive, Renderable, Style},
     transformable::{Cline, ClineTile, Motif},
     Complex,
 };
@@ -24,13 +24,9 @@ fn svg_circle(circle: Circle) -> Box<dyn Node> {
     )
 }
 
-fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
+fn svg_arc_parameters(arc: CircularArc) -> (f64, f64, f64, u8, u8, f64, f64) {
     let CircularArc { circle, angles } = arc;
     let ArcAngles(start_angle, end_angle) = angles;
-
-    let start = arc.start();
-    let start_x = start.real();
-    let start_y = start.imag();
 
     let counterclockwise = angles.direction() == ArcDirection::Counterclockwise;
     // ArcAngles guarantees that the total angle of the arc is in [0, 2pi). If it's
@@ -43,7 +39,8 @@ fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
 
     const NO_ROTATION: f64 = 0.0;
     let radius = circle.radius;
-    let data = Data::new().move_to((start_x, start_y)).elliptical_arc_to((
+
+    (
         radius,
         radius,
         NO_ROTATION,
@@ -51,7 +48,18 @@ fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
         counterclockwise as u8,
         end_x,
         end_y,
-    ));
+    )
+}
+
+fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
+    let start = arc.start();
+    let start_x = start.real();
+    let start_y = start.imag();
+
+    let arc_params = svg_arc_parameters(arc);
+    let data = Data::new()
+        .move_to((start_x, start_y))
+        .elliptical_arc_to(arc_params);
 
     Box::new(Path::new().set("d", data))
 }
@@ -77,6 +85,26 @@ fn svg_point(z: Complex) -> Box<dyn Node> {
     )
 }
 
+fn svg_polygon(commands: &[PathCommand]) -> Box<dyn Node> {
+    let mut path_data = Data::new();
+
+    for cmd in commands.iter() {
+        match cmd {
+            PathCommand::MoveTo(z) => path_data = path_data.move_to((z.real(), z.imag())),
+            PathCommand::LineTo(z) => path_data = path_data.move_to((z.real(), z.imag())),
+            PathCommand::ArcTo(arc) => {
+                let arc_params = svg_arc_parameters(*arc);
+                path_data = path_data.elliptical_arc_to(arc_params);
+            }
+        }
+    }
+
+    path_data = path_data.close();
+
+    let path = Path::new().set("d", path_data);
+    Box::new(path)
+}
+
 impl From<RenderPrimitive> for SvgNode {
     fn from(value: RenderPrimitive) -> Self {
         match value {
@@ -84,6 +112,7 @@ impl From<RenderPrimitive> for SvgNode {
             RenderPrimitive::Circle(circle) => SvgNode(svg_circle(circle)),
             RenderPrimitive::LineSegment(line_segment) => SvgNode(svg_line_segment(line_segment)),
             RenderPrimitive::CircularArc(circular_arc) => SvgNode(svg_circular_arc(circular_arc)),
+            RenderPrimitive::Polygon(commands) => SvgNode(svg_polygon(&commands)),
         }
     }
 }
@@ -108,7 +137,7 @@ impl From<Vec<SvgNode>> for SvgNodes {
 impl<T: Renderable> From<&T> for SvgNodes {
     fn from(value: &T) -> Self {
         let baked = value.bake_geometry().unwrap();
-        let nodes: Vec<SvgNode> = baked.iter().map(|x| SvgNode::from(*x)).collect();
+        let nodes: Vec<SvgNode> = baked.iter().map(|x| SvgNode::from(x.clone())).collect();
         nodes.into()
     }
 }
