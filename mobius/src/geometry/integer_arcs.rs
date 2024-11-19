@@ -27,7 +27,7 @@ pub enum IntegerArcError {
 }
 
 /// compute a circle with diameter between a and b on the real line
-pub fn integer_circle(a: i64, b: i64) -> Result<Circle, IntegerArcError> {
+pub fn circle_on_line(a: i64, b: i64) -> Result<Circle, IntegerArcError> {
     if a == b {
         return Err(IntegerArcError::DuplicateInt(a));
     }
@@ -44,12 +44,12 @@ pub fn integer_circle(a: i64, b: i64) -> Result<Circle, IntegerArcError> {
     })
 }
 
-pub fn integer_arc_by_direction(
+pub fn arc_on_line_by_direction(
     a: i64,
     b: i64,
     direction: ArcDirection,
 ) -> Result<CircularArc, IntegerArcError> {
-    let circle = integer_circle(a, b)?;
+    let circle = circle_on_line(a, b)?;
 
     let angles = match direction {
         ArcDirection::Counterclockwise if a < b => ArcAngles::new(PI, 2.0 * PI),
@@ -67,12 +67,12 @@ pub enum Hemisphere {
     South,
 }
 
-pub fn integer_arc_by_hemisphere(
+pub fn arc_on_line_by_hemisphere(
     a: i64,
     b: i64,
     hemisphere: Hemisphere,
 ) -> Result<CircularArc, IntegerArcError> {
-    let circle = integer_circle(a, b)?;
+    let circle = circle_on_line(a, b)?;
 
     let angles = match hemisphere {
         Hemisphere::North if a < b => ArcAngles::new(PI, 0.0),
@@ -108,12 +108,12 @@ fn cyclotomic_angles(a: i64, b: i64, n: usize) -> Result<ArcAngles, IntegerArcEr
     Ok(ArcAngles::new(a * step_size, b * step_size)?)
 }
 
-pub fn cyclotomic_circle(a: i64, b: i64, n: usize) -> Result<GeneralizedCircle, IntegerArcError> {
+pub fn circle_on_circle(a: i64, b: i64, n: usize) -> Result<GeneralizedCircle, IntegerArcError> {
     let angles = cyclotomic_angles(a, b, n)?;
     Ok(compute_orthogonal_circle(Circle::unit_circle(), angles))
 }
 
-pub fn cyclotomic_arc_by_direction(
+pub fn arc_on_circle_by_direction(
     a: i64,
     b: i64,
     n: usize,
@@ -142,7 +142,7 @@ pub fn cyclotomic_arc_by_direction(
     Ok(adjusted_arc)
 }
 
-pub fn cyclotomic_arc_by_hemisphere(
+pub fn arc_on_circle_by_hemisphere(
     a: i64,
     b: i64,
     n: usize,
@@ -191,8 +191,8 @@ mod test {
     use test_case::test_case;
 
     #[test]
-    pub fn integer_circle_with_duplicate_point_returns_error() {
-        let result = integer_circle(1, 1);
+    pub fn circle_on_line_with_duplicate_point_returns_error() {
+        let result = circle_on_line(1, 1);
 
         assert!(matches!(result, Err(IntegerArcError::DuplicateInt(_))))
     }
@@ -200,8 +200,8 @@ mod test {
     #[test_case(1, 2, Circle::new((1.5).into(), 0.5); "a less than b")]
     #[test_case(2, 1, Circle::new((1.5).into(), 0.5); "b less than a")]
     #[test_case(-4, 2, Circle::new((-1.0).into(), 3.0); "negative coords")]
-    pub fn integer_circle_computes_circle(a: i64, b: i64, expected: Circle) {
-        let result = integer_circle(a, b).unwrap();
+    pub fn circle_on_line_computes_circle(a: i64, b: i64, expected: Circle) {
+        let result = circle_on_line(a, b).unwrap();
 
         assert_eq!(result, expected);
     }

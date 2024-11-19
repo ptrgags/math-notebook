@@ -3,8 +3,7 @@ use std::{error::Error, f64::consts::PI};
 use clap::Parser;
 use mobius::{
     cline_arc::ClineArc,
-    geometry::integer_arcs::{cyclotomic_arc_by_hemisphere, integer_arc_by_hemisphere},
-    geometry::orthogonal_arcs::OrthogonalArc,
+    geometry::integer_arcs::{arc_on_circle_by_hemisphere, arc_on_line_by_hemisphere},
     rendering::Style,
     rotation,
     svg_plot::{render_views, style_geometry, union, View},
@@ -40,7 +39,7 @@ pub fn render_line(
     let arcs: Result<Vec<ClineArc>, Box<dyn Error>> = brackets
         .iter()
         .map(|(a, b, hemisphere)| -> Result<ClineArc, Box<dyn Error>> {
-            let arc = integer_arc_by_hemisphere(a, b, hemisphere)?;
+            let arc = arc_on_line_by_hemisphere(a, b, hemisphere)?;
             Ok(ClineArc::from(arc))
         })
         .collect();
@@ -81,7 +80,7 @@ pub fn render_circle(
     let arcs: Result<Vec<ClineArc>, Box<dyn Error>> = brackets
         .iter()
         .map(|(a, b, hemisphere)| -> Result<ClineArc, Box<dyn Error>> {
-            let arc = cyclotomic_arc_by_hemisphere(a, b, n, hemisphere)?;
+            let arc = arc_on_circle_by_hemisphere(a, b, n, hemisphere)?;
             Ok(ClineArc::from(arc))
         })
         .collect();
