@@ -183,10 +183,10 @@ pub fn ghost_double_spiral() -> Result<(), Box<dyn Error>> {
     let double_spiral = loxodromic(Complex::new(1.5, 1.1))?;
     let rotate90 = rotation(PI / 2.0)?;
     let vertical_spiral = Mobius::sandwich(rotate90, double_spiral);
-    let ellip4 = elliptic(PI / 2.0)?;
+    let ellip4 = elliptic(2.0 * PI / 3.0)?;
     let vertical_ellip = Mobius::sandwich(rotate90, ellip4);
 
-    let grid = GridIFS::new(vec![(vertical_spiral, -8, 8), (vertical_ellip, 0, 4)]);
+    let grid = GridIFS::new(vec![(vertical_spiral, -8, 8), (vertical_ellip, -1, 2)]);
 
     let double_spiral_walk = grid.apply(&small_ghost);
     render_views(
