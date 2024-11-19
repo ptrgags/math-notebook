@@ -1,4 +1,4 @@
-use std::{collections::HashSet, num::ParseIntError, str::FromStr};
+use std::{collections::HashSet, fmt::Display, num::ParseIntError, str::FromStr};
 
 use crate::permutation_error::PermutationError;
 
@@ -87,6 +87,29 @@ impl<const N: usize> FromStr for DisjointCycles<N> {
             .collect();
 
         Self::new(cycles?)
+    }
+}
+
+impl<const N: usize> Display for DisjointCycles<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self(cycles) = self;
+
+        // Identity
+        if cycles.is_empty() {
+            return write!(f, "I");
+        }
+
+        for cycle in cycles {
+            // cycles like (3) are not written in cycle notation
+            if cycle.len() == 1 {
+                continue;
+            }
+
+            let cycle_strs: Vec<String> = cycle.iter().map(|x| x.to_string()).collect();
+            write!(f, "({})", cycle_strs.join(" "))?;
+        }
+
+        Ok(())
     }
 }
 
@@ -212,5 +235,29 @@ mod test {
 
         let expected: Vec<Vec<usize>> = vec![vec![0, 3, 4], vec![1, 2]];
         assert_eq!(&cycles[..], &expected[..])
+    }
+
+    #[test]
+    pub fn to_string_with_empty_cycle_returns_identity() {
+        let cycles = DisjointCycles::<5>::new(vec![]).unwrap();
+
+        let result = cycles.to_string();
+        assert_eq!(result, "I")
+    }
+
+    #[test]
+    pub fn to_string_formats_cycles_nicely() {
+        let cycles = DisjointCycles::<5>::new(vec![vec![0, 1, 2], vec![3, 4]]).unwrap();
+
+        let result = cycles.to_string();
+        assert_eq!(result, "(0 1 2)(3 4)")
+    }
+
+    #[test]
+    pub fn to_string_ignores_one_cycles() {
+        let cycles = DisjointCycles::<5>::new(vec![vec![0, 2], vec![1], vec![3, 4]]).unwrap();
+
+        let result = cycles.to_string();
+        assert_eq!(result, "(0 2)(3 4)")
     }
 }

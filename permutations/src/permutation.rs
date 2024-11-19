@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Mul};
+use std::{collections::HashSet, fmt::Display, ops::Mul, str::FromStr};
 
 use abstraction::{Group, Monoid};
 
@@ -42,6 +42,49 @@ impl<const N: usize> Permutation<N> {
         }
 
         Self::new(combined)
+    }
+
+    /// Compute the cycle decomposition for the permutation.
+    pub fn cycle_decomposition(&self) -> DisjointCycles<N> {
+        let mut visited = [false; N];
+        let mut result = Vec::new();
+
+        for start_element in 0..N {
+            if visited[start_element] {
+                continue;
+            }
+            visited[start_element] = true;
+            let mut cycle = vec![start_element];
+
+            let mut current = self.values[start_element];
+            while current != start_element {
+                visited[current] = true;
+                cycle.push(current);
+                current = self.values[current];
+            }
+
+            if cycle.len() > 1 {
+                result.push(cycle);
+            }
+        }
+
+        DisjointCycles::new(result).expect("unable to create DisjointCycles from Permutation")
+    }
+}
+
+impl<const N: usize> FromStr for Permutation<N> {
+    type Err = PermutationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let disjoint_cycles = s.parse::<DisjointCycles<N>>()?;
+
+        Self::from_disjoint_cycles(disjoint_cycles)
+    }
+}
+
+impl<const N: usize> Display for Permutation<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.cycle_decomposition().fmt(f)
     }
 }
 
