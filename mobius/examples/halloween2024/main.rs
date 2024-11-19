@@ -1,6 +1,6 @@
 mod artworks;
 
-use std::io::Error;
+use std::error::Error;
 
 use artworks::{
     bone_tree, candy_corners, ghost_double_spiral, ghost_gasket, ghost_octahedral, hex_grid,
@@ -26,7 +26,7 @@ struct Cli {
     command: Option<Command>,
 }
 
-pub fn run_all() -> Result<(), Error> {
+pub fn run_all() -> Result<(), Box<dyn Error>> {
     println!("Candy Corners ======");
     candy_corners()?;
     println!("Hex Grid ======");
@@ -47,7 +47,7 @@ pub fn run_all() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn main() -> Result<(), Error> {
+pub fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     use Command::*;

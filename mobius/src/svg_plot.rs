@@ -136,7 +136,7 @@ impl From<Vec<SvgNode>> for SvgNodes {
 
 impl<T: Renderable> From<&T> for SvgNodes {
     fn from(value: &T) -> Self {
-        let baked = value.bake_geometry().unwrap();
+        let baked = value.bake_geometry().expect("couldn't bake primitive");
         let nodes: Vec<SvgNode> = baked.iter().map(|x| SvgNode::from(x.clone())).collect();
         nodes.into()
     }
@@ -193,7 +193,7 @@ pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
     svg
 }
 
-pub fn style_motif(motif: &Motif, styles: &[Style]) -> Group {
+pub fn style_motif<T: Renderable>(motif: &Motif<T>, styles: &[Style]) -> Group {
     let groups: Vec<Group> = motif
         .iter()
         .map(|(tile, style_id)| style_geometry(styles[*style_id], tile))
@@ -201,7 +201,7 @@ pub fn style_motif(motif: &Motif, styles: &[Style]) -> Group {
     union(groups)
 }
 
-pub fn style_motifs(motifs: &[Motif], styles: &[Style]) -> Group {
+pub fn style_motifs<T: Renderable>(motifs: &[Motif<T>], styles: &[Style]) -> Group {
     let groups: Vec<Group> = motifs
         .iter()
         .map(|motif| style_motif(motif, styles))

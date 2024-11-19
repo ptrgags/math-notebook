@@ -18,7 +18,7 @@ pub enum PolygonError {
     InfiniteEdge,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Polygon {
     edges: Vec<ClineArc>,
 }
@@ -32,6 +32,7 @@ impl Polygon {
 
         for (i, edge) in edges.iter().enumerate() {
             if edge.end() != edges[(i + 1) % n].start() {
+                println!("{}, {}", edge.end(), edges[(i + 1) % n].start());
                 return Err(PolygonError::Discontinuity);
             }
         }
