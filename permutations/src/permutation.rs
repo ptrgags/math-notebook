@@ -30,9 +30,7 @@ impl<const N: usize> Permutation<N> {
         disjoint_cycles: DisjointCycles<N>,
     ) -> Result<Self, PermutationError> {
         let mut combined = [0; N];
-        for i in 0..N {
-            combined[i] = i;
-        }
+        (0..N).for_each(|i| combined[i] = i);
 
         let DisjointCycles(cycles) = disjoint_cycles;
         for cycle in cycles.iter().rev() {

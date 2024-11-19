@@ -81,10 +81,8 @@ impl<const N: usize> FromStr for DisjointCycles<N> {
     /// disjoint_cycle = cycle*
     /// cycle = '(' USIZE* ')'
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let cycles: Result<Vec<Vec<usize>>, PermutationError> = parse_parentheses(s)?
-            .into_iter()
-            .map(|s| parse_cycle(s))
-            .collect();
+        let cycles: Result<Vec<Vec<usize>>, PermutationError> =
+            parse_parentheses(s)?.into_iter().map(parse_cycle).collect();
 
         Self::new(cycles?)
     }
