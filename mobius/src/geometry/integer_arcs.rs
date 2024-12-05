@@ -187,6 +187,8 @@ pub fn arc_on_circle_by_hemisphere(
 
 #[cfg(test)]
 mod test {
+    use crate::Complex;
+
     use super::*;
     use test_case::test_case;
 
@@ -204,5 +206,47 @@ mod test {
         let result = circle_on_line(a, b).unwrap();
 
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn arc_on_line_by_direction_with_duplicate_input_returns_error() {
+        let result = arc_on_line_by_direction(0, 0, ArcDirection::Clockwise);
+
+        assert!(matches!(result, Err(IntegerArcError::DuplicateInt(_))))
+    }
+
+    #[test_case(1, 2, ArcDirection::Counterclockwise, PI, 2.0 * PI; "a lt b, ccw")]
+    #[test_case(2, 1, ArcDirection::Counterclockwise, 0.0, PI; "a gt b, ccw")]
+    #[test_case(1, 2, ArcDirection::Clockwise, PI, 0.0; "a lt b, cw")]
+    #[test_case(2, 1, ArcDirection::Clockwise, 0.0, -PI; "a gt b, cw")]
+    pub fn arc_on_line_by_direction_computes_correct_arc(
+        a: i64,
+        b: i64,
+        direction: ArcDirection,
+        angle_a: f64,
+        angle_b: f64,
+    ) {
+        let result = arc_on_line_by_direction(a, b, direction).unwrap();
+
+        let expected_circle = Circle::new(Complex::new(1.5, 0.0), 0.5);
+        let expected_angles = ArcAngles::new(angle_a, angle_b).unwrap();
+        let expected = CircularArc::new(expected_circle, expected_angles);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn arc_on_line_by_direction_swapping_integers_returns_complement(
+    ) -> Result<(), IntegerArcError> {
+        let a = 3;
+        let b = 2;
+        let direction = ArcDirection::Counterclockwise;
+
+        let ab = arc_on_line_by_direction(a, b, direction)?;
+        let ba = arc_on_line_by_direction(b, a, direction)?;
+        let ab_complement = ab.complement();
+
+        assert_eq!(ba, ab_complement);
+        Ok(())
     }
 }
