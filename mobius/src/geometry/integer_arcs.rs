@@ -61,7 +61,7 @@ pub fn arc_on_line_by_direction(
     Ok(CircularArc { circle, angles })
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Hemisphere {
     North,
     South,
@@ -84,22 +84,21 @@ pub fn arc_on_line_by_hemisphere(
     Ok(CircularArc { circle, angles })
 }
 
-fn cyclotomic_angles(a: i64, b: i64, n: usize) -> Result<ArcAngles, IntegerArcError> {
+fn cyclotomic_angles(a: usize, b: usize, n: usize) -> Result<ArcAngles, IntegerArcError> {
     if n == 0 {
         return Err(IntegerArcError::ZeroPoints);
     }
 
-    let n = n as i64;
     if a >= n {
-        return Err(IntegerArcError::ValueOutOfRange("a".into(), a));
+        return Err(IntegerArcError::ValueOutOfRange("a".into(), a as i64));
     }
 
     if b >= n {
-        return Err(IntegerArcError::ValueOutOfRange("b".into(), b));
+        return Err(IntegerArcError::ValueOutOfRange("b".into(), b as i64));
     }
 
     if a == b {
-        return Err(IntegerArcError::DuplicateInt(a));
+        return Err(IntegerArcError::DuplicateInt(a as i64));
     }
     let a = a as f64;
     let b = b as f64;
@@ -108,14 +107,18 @@ fn cyclotomic_angles(a: i64, b: i64, n: usize) -> Result<ArcAngles, IntegerArcEr
     Ok(ArcAngles::new(a * step_size, b * step_size)?)
 }
 
-pub fn circle_on_circle(a: i64, b: i64, n: usize) -> Result<GeneralizedCircle, IntegerArcError> {
+pub fn circle_on_circle(
+    a: usize,
+    b: usize,
+    n: usize,
+) -> Result<GeneralizedCircle, IntegerArcError> {
     let angles = cyclotomic_angles(a, b, n)?;
     Ok(compute_orthogonal_circle(Circle::unit_circle(), angles))
 }
 
 pub fn arc_on_circle_by_direction(
-    a: i64,
-    b: i64,
+    a: usize,
+    b: usize,
     n: usize,
     direction: ArcDirection,
 ) -> Result<OrthogonalArc, IntegerArcError> {
@@ -143,8 +146,8 @@ pub fn arc_on_circle_by_direction(
 }
 
 pub fn arc_on_circle_by_hemisphere(
-    a: i64,
-    b: i64,
+    a: usize,
+    b: usize,
     n: usize,
     hemisphere: Hemisphere,
 ) -> Result<OrthogonalArc, IntegerArcError> {
@@ -187,10 +190,14 @@ pub fn arc_on_circle_by_hemisphere(
 
 #[cfg(test)]
 mod test {
-    use crate::Complex;
+    use std::error::Error;
+
+    use crate::{geometry::Line, unit_complex::UnitComplex, Complex};
 
     use super::*;
     use test_case::test_case;
+
+    type TestResult = Result<(), Box<dyn Error>>;
 
     #[test]
     pub fn circle_on_line_with_duplicate_point_returns_error() {
@@ -247,6 +254,97 @@ mod test {
         let ab_complement = ab.complement();
 
         assert_eq!(ba, ab_complement);
+        Ok(())
+    }
+
+    #[test]
+    pub fn arc_on_line_by_hemisphere_with_duplicate_input_returns_error() {
+        let result = arc_on_line_by_hemisphere(0, 0, Hemisphere::North);
+
+        assert!(matches!(result, Err(IntegerArcError::DuplicateInt(_))))
+    }
+
+    #[test_case(1, 2, Hemisphere::North, PI, 0.0; "a lt b, north")]
+    #[test_case(2, 1, Hemisphere::North, 0.0, PI; "a gt b, north")]
+    #[test_case(1, 2, Hemisphere::South, PI, 2.0 * PI; "a lt b, south")]
+    #[test_case(2, 1, Hemisphere::South, 0.0, -PI; "a gt b, south")]
+    pub fn arc_on_line_by_hemisphere_computes_correct_arc(
+        a: i64,
+        b: i64,
+        hemisphere: Hemisphere,
+        angle_a: f64,
+        angle_b: f64,
+    ) {
+        let result = arc_on_line_by_hemisphere(a, b, hemisphere).unwrap();
+
+        let expected_circle = Circle::new(Complex::new(1.5, 0.0), 0.5);
+        let expected_angles = ArcAngles::new(angle_a, angle_b).unwrap();
+        let expected = CircularArc::new(expected_circle, expected_angles);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn arc_on_line_by_hemisphere_swapping_integers_returns_reverse(
+    ) -> Result<(), IntegerArcError> {
+        let a = 3;
+        let b = 2;
+        let hemisphere = Hemisphere::South;
+
+        let ab = arc_on_line_by_hemisphere(a, b, hemisphere)?;
+        let ba = arc_on_line_by_hemisphere(b, a, hemisphere)?;
+        let ab_complement = ab.reverse();
+
+        assert_eq!(ba, ab_complement);
+        Ok(())
+    }
+
+    #[test]
+    pub fn circle_on_circle_with_n_zero_returns_error() {
+        let result = circle_on_circle(1, 2, 0);
+
+        assert!(matches!(result, Err(IntegerArcError::ZeroPoints)))
+    }
+
+    #[test_case(10, 3; "a out of range")]
+    #[test_case(3, 10; "b out of range")]
+    pub fn circle_on_circle_with_value_out_of_range_returns_error(a: usize, b: usize) {
+        let result = circle_on_circle(a, b, 5);
+
+        assert!(matches!(
+            result,
+            Err(IntegerArcError::ValueOutOfRange(_, _))
+        ))
+    }
+
+    #[test]
+    pub fn circle_on_circle_with_duplicate_points_returns_error() {
+        let result = circle_on_circle(0, 0, 5);
+
+        assert!(matches!(result, Err(IntegerArcError::DuplicateInt(_))))
+    }
+
+    #[test]
+    pub fn circle_on_circle_computes_correct_circle() {
+        let result = circle_on_circle(1, 2, 4).unwrap();
+
+        let expected_circle = Circle::new(Complex::new(-1.0, 1.0), 1.0);
+        match result {
+            GeneralizedCircle::Circle(circle) => assert_eq!(circle, expected_circle),
+            _ => panic!("expected circle, got a line!"),
+        }
+    }
+
+    #[test]
+    pub fn circle_on_circle_with_opposite_points_computes_line() -> TestResult {
+        let result = circle_on_circle(2, 8, 12)?;
+
+        let expected_line = Line::new(UnitComplex::from_angle(5.0 * PI / 6.0), 0.0)?;
+        match result {
+            GeneralizedCircle::Line(line) => assert_eq!(line, expected_line),
+            _ => panic!("expected line, got a circle!"),
+        }
+
         Ok(())
     }
 }
