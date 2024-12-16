@@ -3,7 +3,7 @@ use derive_more::derive::Display;
 use super::point::Point;
 use crate::cga_internals::vector::Vector;
 
-#[derive(Display)]
+#[derive(Display, Clone, Copy)]
 #[display("Line")]
 pub struct Line(pub Vector);
 

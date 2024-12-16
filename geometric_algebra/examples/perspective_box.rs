@@ -20,10 +20,10 @@ pub fn main() {
     println!("bottom: {}", bottom_side);
 
     // now let's compute the four corners
-    let top_left = top_side.meet(&left_side);
-    let top_right = top_side.meet(&right_side);
-    let bottom_left = bottom_side.meet(&left_side);
-    let bottom_right = bottom_side.meet(&right_side);
+    let top_left = top_side.meet(left_side);
+    let top_right = top_side.meet(right_side);
+    let bottom_left = bottom_side.meet(left_side);
+    let bottom_right = bottom_side.meet(right_side);
 
     println!("Corners:");
     println!("top left: {}", top_left);

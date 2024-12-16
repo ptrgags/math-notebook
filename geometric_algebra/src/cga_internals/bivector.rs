@@ -25,6 +25,10 @@ impl Neg for Bivector {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        todo!()
+        Self {
+            xy: -self.xy,
+            xo: -self.xo,
+            yo: -self.yo,
+        }
     }
 }
