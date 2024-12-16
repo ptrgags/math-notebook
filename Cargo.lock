@@ -139,6 +139,7 @@ name = "geometric_algebra"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "thiserror",
 ]
 
 [[package]]
