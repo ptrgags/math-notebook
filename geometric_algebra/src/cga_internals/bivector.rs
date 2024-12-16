@@ -1,6 +1,6 @@
 use std::ops::Neg;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Bivector {
     pub xy: f64,
     pub xo: f64,
@@ -16,7 +16,7 @@ impl Bivector {
         }
     }
 
-    pub fn new(xy: f64, xo: f64, yo: f64) -> Self {
+    pub const fn new(xy: f64, xo: f64, yo: f64) -> Self {
         Self { xy, xo, yo }
     }
 }
@@ -30,5 +30,21 @@ impl Neg for Bivector {
             xo: -self.xo,
             yo: -self.yo,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    pub fn neg_flips_signs_of_all_components() {
+        let bivec = Bivector::new(1.0, 2.0, 3.0);
+
+        let result = -bivec;
+
+        let expected = Bivector::new(-1.0, -2.0, -3.0);
+
+        assert_eq!(result, expected);
     }
 }

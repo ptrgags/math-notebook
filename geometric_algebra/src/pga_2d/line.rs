@@ -17,13 +17,13 @@ impl Line {
         let Line(line2) = other;
 
         let intersection = line1.wedge(line2);
-        return Point::from(intersection);
+        return Point::try_from(intersection).unwrap();
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::f64::consts::FRAC_1_SQRT_2;
+    use std::f64::consts::{FRAC_1_SQRT_2, SQRT_2};
 
     use super::*;
 
@@ -41,7 +41,7 @@ mod test {
     #[test]
     pub fn meet_with_other_lines_returns_intersection_point() {
         // Lines that cross at (1, 1)
-        let l1 = Line::new(FRAC_1_SQRT_2, FRAC_1_SQRT_2, FRAC_1_SQRT_2);
+        let l1 = Line::new(FRAC_1_SQRT_2, FRAC_1_SQRT_2, SQRT_2);
         let l2 = Line::new(-FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0.0);
 
         let result = l1.meet(l2);
