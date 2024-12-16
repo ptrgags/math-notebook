@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::Neg};
+use std::fmt::Display;
 
 use super::bivector::Bivector;
 
@@ -25,7 +25,22 @@ impl Vector {
     }
 
     pub fn wedge(self, b: Self) -> Bivector {
-        todo!();
+        let Self {
+            x: ax,
+            y: ay,
+            o: ao,
+        } = self;
+        let Self {
+            x: bx,
+            y: by,
+            o: bo,
+        } = b;
+
+        let xy = ax * by - ay * bx;
+        let xo = ax * bo - ao * bx;
+        let yo = ay * bo - ao * by;
+
+        Bivector::new(xy, xo, yo)
     }
 }
 

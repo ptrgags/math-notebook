@@ -10,6 +10,10 @@ impl Point {
     pub const fn origin() -> Self {
         todo!();
     }
+
+    pub const fn new(x: f64, y: f64) -> Self {
+        todo!();
+    }
 }
 
 impl From<Bivector> for Point {
