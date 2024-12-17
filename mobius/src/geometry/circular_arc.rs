@@ -4,12 +4,12 @@ use thiserror::Error;
 
 use crate::Complex;
 
-use super::{circle::Circle, ArcAngles, ArcAnglesParseError, ArcDirection, DirectedEdge, Geometry};
+use super::{circle::Circle, ArcAngles, ArcAnglesError, ArcDirection, DirectedEdge, Geometry};
 
 #[derive(Debug, Error)]
 pub enum CircularArcError {
     #[error("{0}")]
-    BadAngles(#[from] ArcAnglesParseError),
+    BadAngles(#[from] ArcAnglesError),
     #[error("duplicate point: {0}")]
     DuplicatePoint(Complex),
 }

@@ -74,6 +74,14 @@ impl Complex {
         is_nearly(self.real(), 0.0)
     }
 
+    pub fn is_finite(&self) -> bool {
+        if let Self::Infinity = self {
+            false
+        } else {
+            true
+        }
+    }
+
     pub fn norm(&self) -> f64 {
         match self {
             Complex::Zero => 0.0,
@@ -249,10 +257,10 @@ mod test {
         todo!("wedge tests");
     }
 
-    #[should_panic]
     #[test_case(-3.0, f64::NAN; "NaN in imaginary part")]
     #[test_case(f64::NAN, 3.0; "NaN in real part")]
     #[test_case(f64::NAN, f64::NAN; "NaN in both components")]
+    #[should_panic]
     pub fn new_panics_for_nan(real: f64, imag: f64) {
         Complex::new(real, imag);
     }
@@ -307,6 +315,27 @@ mod test {
         // but the radius of 2 clears the denominator
         let expected = Complex::Finite(1.0, (3.0f64).sqrt());
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn is_finite_with_infinity_returns_false() {
+        let result = Complex::Infinity.is_finite();
+
+        assert!(!result);
+    }
+
+    #[test]
+    pub fn is_finite_with_zero_returns_true() {
+        let result = Complex::Zero.is_finite();
+
+        assert!(result);
+    }
+
+    #[test]
+    pub fn is_finite_with_finite_complex_returns_true() {
+        let result = Complex::Finite(1.0, 2.0).is_finite();
+
+        assert!(result);
     }
 
     #[test]
