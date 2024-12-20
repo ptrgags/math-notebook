@@ -1,8 +1,10 @@
-use std::ops::Neg;
+use std::{fmt::Display, ops::Neg};
+
+use crate::{format_numbers::format_term_list, nearly::is_nearly};
 
 use super::vector::Vector;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Bivector {
     pub xy: f64,
     pub xo: f64,
@@ -45,6 +47,21 @@ impl Bivector {
     }
 }
 
+impl PartialEq for Bivector {
+    fn eq(&self, other: &Self) -> bool {
+        is_nearly(self.xy, other.xy) && is_nearly(self.xo, other.xo) && is_nearly(self.yo, other.yo)
+    }
+}
+
+impl Display for Bivector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let &Self { xy, xo, yo } = self;
+        let terms = format_term_list(&[(xy, "xy"), (xo, "xo"), (yo, "yo")]);
+
+        write!(f, "{}", terms)
+    }
+}
+
 impl Neg for Bivector {
     type Output = Self;
 
@@ -60,6 +77,46 @@ impl Neg for Bivector {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    pub fn to_string_with_zero_formats_zero() {
+        let zero = Bivector::zero();
+
+        let result = zero.to_string();
+
+        let expected = String::from("0");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn to_string_formats_vector() {
+        let v = Bivector::new(2.0, 3.0, 4.0);
+
+        let result = v.to_string();
+
+        let expected = String::from("2.000xy + 3.000xo + 4.000yo");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn to_string_omits_coeff_of_one() {
+        let v = Bivector::new(1.0, 2.0, 1.0);
+
+        let result = v.to_string();
+
+        let expected = String::from("xy + 2.000xo + yo");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn to_string_skips_zero_component() {
+        let v = Bivector::new(2.0, 0.0, 3.0);
+
+        let result = v.to_string();
+
+        let expected = String::from("2.000xy + 3.000yo");
+        assert_eq!(result, expected);
+    }
 
     #[test]
     pub fn neg_flips_signs_of_all_components() {

@@ -1,8 +1,10 @@
 use std::fmt::Display;
 
+use crate::{format_numbers::format_term_list, nearly::is_nearly};
+
 use super::bivector::Bivector;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vector {
     // Basis vectors, square to 1
     pub x: f64,
@@ -57,9 +59,19 @@ impl Vector {
     }
 }
 
+impl PartialEq for Vector {
+    fn eq(&self, other: &Self) -> bool {
+        is_nearly(self.x, other.x) && is_nearly(self.y, other.y) && is_nearly(self.o, other.o)
+    }
+}
+
 impl Display for Vector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let &Self { x, y, o } = self;
+
+        let terms = format_term_list(&[(x, "x"), (y, "y"), (o, "o")]);
+
+        write!(f, "{}", terms)
     }
 }
 
@@ -83,7 +95,7 @@ mod test {
 
         let result = v.to_string();
 
-        let expected = String::from("2.0x + 3.0y + 4.0o");
+        let expected = String::from("2.000x + 3.000y + 4.000o");
         assert_eq!(result, expected);
     }
 
@@ -93,7 +105,17 @@ mod test {
 
         let result = v.to_string();
 
-        let expected = String::from("x + 2.0y + o");
+        let expected = String::from("x + 2.000y + o");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn to_string_skips_zero_component() {
+        let v = Vector::new(2.0, 0.0, 3.0);
+
+        let result = v.to_string();
+
+        let expected = String::from("2.000x + 3.000o");
         assert_eq!(result, expected);
     }
 
@@ -104,16 +126,6 @@ mod test {
         let result = v.dual();
 
         let expected = Bivector::new(3.0, -2.0, 1.0);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    pub fn to_string_skips_zero_component() {
-        let v = Vector::new(2.0, 0.0, 3.0);
-
-        let result = v.to_string();
-
-        let expected = String::from("2.0x + 3.0o");
         assert_eq!(result, expected);
     }
 
