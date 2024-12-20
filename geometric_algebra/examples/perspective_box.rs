@@ -1,4 +1,4 @@
-use geometric_algebra::pga_2d::line::Line;
+use geometric_algebra::pga_2d::{line::Line, point::Point};
 
 pub fn main() {
     // The goal is to draw a perspective box room on a 2D piece of paper
@@ -30,4 +30,14 @@ pub fn main() {
     println!("top right: {}", top_right);
     println!("bottom left: {}", bottom_left);
     println!("bottom right: {}", bottom_right);
+
+    // Create a vanishing point
+    let vanish = Point::new(1.0, 2.0);
+    println!("vanishing point: {}", vanish);
+
+    // Now join the corners to the vanishing point
+    let top_left_diag = top_left.join(vanish);
+    let top_right_diag = top_right.join(vanish);
+    let bottom_left_diag = bottom_left.join(vanish);
+    let bottom_right_diag = bottom_right.join(vanish);
 }

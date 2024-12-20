@@ -3,7 +3,7 @@ use derive_more::derive::Display;
 use super::point::Point;
 use crate::cga_internals::vector::Vector;
 
-#[derive(Display, Clone, Copy)]
+#[derive(Debug, Display, Clone, Copy, PartialEq)]
 #[display("Line")]
 pub struct Line(pub Vector);
 
@@ -18,6 +18,12 @@ impl Line {
 
         let intersection = line1.wedge(line2);
         return Point::try_from(intersection).unwrap();
+    }
+}
+
+impl From<Vector> for Line {
+    fn from(value: Vector) -> Self {
+        Self(value)
     }
 }
 

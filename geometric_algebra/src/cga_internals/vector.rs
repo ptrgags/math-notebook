@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use super::bivector::Bivector;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector {
     // Basis vectors, square to 1
     pub x: f64,
@@ -22,6 +22,19 @@ impl Vector {
 
     pub const fn new(x: f64, y: f64, o: f64) -> Self {
         Self { x, y, o }
+    }
+
+    pub fn dual(self) -> Bivector {
+        let Self { x, y, o } = self;
+
+        // Using the definition that x * (x.dual()) = xyo (pseudoscalar)
+        // x * yo = xyo so x -> yo
+        // y * xo = -xyo so y -> -xo
+        // o * xy = xyo so o -> xy
+        let xy = o;
+        let xo = -y;
+        let yo = x;
+        Bivector::new(xy, xo, yo)
     }
 
     pub fn wedge(self, b: Self) -> Bivector {
@@ -81,6 +94,16 @@ mod test {
         let result = v.to_string();
 
         let expected = String::from("x + 2.0y + o");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn dual_computes_right_complement() {
+        let v = Vector::new(1.0, 2.0, 3.0);
+
+        let result = v.dual();
+
+        let expected = Bivector::new(3.0, -2.0, 1.0);
         assert_eq!(result, expected);
     }
 
