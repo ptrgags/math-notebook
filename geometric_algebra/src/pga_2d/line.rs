@@ -4,7 +4,7 @@ use super::point::Point;
 use crate::cga_internals::vector::Vector;
 
 #[derive(Debug, Display, Clone, Copy, PartialEq)]
-#[display("Line")]
+#[display("Line(n=({}, {}), d={})", self.0.x, self.0.y, self.0.o)]
 pub struct Line(pub Vector);
 
 impl Line {

@@ -40,4 +40,9 @@ pub fn main() {
     let top_right_diag = top_right.join(vanish);
     let bottom_left_diag = bottom_left.join(vanish);
     let bottom_right_diag = bottom_right.join(vanish);
+
+    println!("tl diag: {}", top_left_diag);
+    println!("tr diag: {}", top_right_diag);
+    println!("bl diag: {}", bottom_left_diag);
+    println!("br diag: {}", bottom_right_diag);
 }
