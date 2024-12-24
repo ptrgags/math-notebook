@@ -1,0 +1,6 @@
+[book]
+authors = ["Peter Gagliardi"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Everything is Mirrors"
