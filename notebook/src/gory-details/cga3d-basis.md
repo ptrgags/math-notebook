@@ -140,8 +140,8 @@ Note that this is true for vectors, but it changes a bit for other types of blad
 | \\(x\\)       | 1              | \\(xy\\)        | \\(xz\\)        | \\(x\infty\\)  | \\(xo\\)       |
 | \\(y\\)       | \\(-xy\\)      | 1               | \\(yz\\)        | \\(y\infty\\)  | \\(yo\\)       | 
 | \\(z\\)       | \\(-xz\\)      | \\(-yz\\)       | 1               | \\(z\infty\\)  | \\(zo\\)       |
-| \\(\infty \\) | \\(-x\infty\\) | \\(-\infty x\\) | \\(-\infty x\\) | 0              | -1 + \\(E_0\\) | 
-| \\( o \\)     | \\(-xo\\)      | \\(-yo\\)       | \\(-zo\\)       | -1 - \\(E_0\\) | 0              |
+| \\(\infty \\) | \\(-x\infty\\) | \\(-\infty x\\) | \\(-\infty x\\) | 0              | \\(-1 + E_0\\) | 
+| \\( o \\)     | \\(-xo\\)      | \\(-yo\\)       | \\(-zo\\)       | \\(-1 - E_0\\) | 0              |
 
 Observations:
 
@@ -152,3 +152,22 @@ Observations:
     - _parallel_ vectors commute. \\(ab = ba\\)
     - _orthogonal_ vectors anticommute. \\(ab = -ba\\)
     - For vectors that are not parallel nor orthogonal, there will be both dot and wedge terms.
+
+
+### Sandwich Product
+
+One product we'll see a lot is the sandwich product, as this is how we apply transformations. For vectors, \\(ab\tilde{a} = aba\\) since vectors are their own reverse.
+
+| \\(aba \\)| \\(x\\) | \\(y\\) | \\(z\\) | \\(\infty \\) | \\( o \\) |
+|---|---|---|---|---|---|
+| \\(x\\)       | \\(x\\)  | \\(-y\\) | \\(-z\\) | \\(-\infty\\)  | \\(-o\\) |
+| \\(y\\)       | \\(-x\\) | \\(y\\)  | \\(-z\\) | \\(-\infty\\)  | \\(-o\\) | 
+| \\(z\\)       | \\(-x\\) | \\(-y\\) | \\(z\\)  | \\(-\infty\\)  | \\(-o\\) |
+| \\(\infty \\) | 0 | 0 | 0 | 0                          | \\(-2\infty = \infty\\) (normalized) | 
+| \\( o \\)     | 0 | 0 | 0 | \\(-2o = o\\) (normalized) | 0              |
+
+Observations:
+
+- Real basis vectors act as reflections through that vector. It fixes the parallel direction, and negates everything else. 
+- \\(\infty\\) does something a little different. It collapses the entire space down to the point at infinity. TODO: is this a correct interpretation?
+- \\(o\\) is similar to \\(\infty\\) except it collapses down to the origin instead of infinity. TODO: Is this also true for spheres of radius 0 in general?
