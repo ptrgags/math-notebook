@@ -1,6 +1,6 @@
 # 3D CGA
 
-## It's All Spheres
+## It's All Just Spheres
 
 In 3D CGA, the basic primitive is a **sphere**. A sphere has a **center**
 and a **radius**. 
