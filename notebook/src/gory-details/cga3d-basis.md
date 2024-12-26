@@ -92,6 +92,20 @@ again, it explains that the coefficients are arbitrary, and this is the nicest c
 - A more symmetric choice would be to use \\( \left(\frac{1}{\sqrt{2}}, \frac{1}{\sqrt{2}}\right) \\). This is not ideal especially when using floating point math. \\((1/2, 1)\\) is more computer-friendly.
 - As for which term gets the \\(1/2\\)... pick your poison I guess?
 
+## Inverse Change of Basis
+
+I've yet to see a text that mentions the formulas for the other direction, going
+from high-level to low-level. Sometimes this is helpful to simplify equations,
+so here they are for reference:
+
+$$
+\begin{align}
+    p &= \frac{1}{2}\infty - o\\\\
+    n &= \frac{1}{2}\infty + o \\\\
+\end{align}
+$$
+
+
 ## Partial Multiplication Tables
 
 For reference, here are the multiplication tables for the high-level basis, as
