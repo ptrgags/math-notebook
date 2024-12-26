@@ -62,12 +62,12 @@ geometry we want to express.
 ## The High-level Basis
 
 The high-level basis replaces the \\(p, n\\) vectors with a different linear
-combination of them:
+combination of them to create null vectors (vectors that square to 0)
 
 | Basis Vector | In \\(p, n\\) basis | Squares to | Description |
 |---|---|---|---|
-| \\(\infty\\) | \\( n + p\\) | 0 | "Infinity" vector. This is associated with the point at infinity as well as stereographic projection. |
 | \\(o\\) | \\(\frac{1}{2} (n - p)\\) | 0 | "Origin" vector. This is associated with the origin as well as homogeneous coordinates. |
+| \\(\infty\\) | \\( n + p\\) | 0 | "Infinity" vector. This is associated with the point at infinity as well as stereographic projection. |
 
 This is a big cognitive leap! Let's pause here to expand on a few of these
 details.
@@ -83,3 +83,72 @@ Second, what do these particular dimensions represent?
 - The \\(o\\) vector represents the **origin point**
 - The \\(\infty \\) vector represents the **point at infinity**
 - TODO: Revisit this later once I explore the relationship between points, spheres and their duals.
+
+Finally, what's the deal with the coefficient of \\(1/2\\) in one of the two
+definitions? It feels strange and asymmetric. In [conformalgeometricalgebra.org](https://www.conformalgeometricalgebra.org/wiki/index.php?title=Main_Page) 
+again, it explains that the coefficients are arbitrary, and this is the nicest choice possible. Specifically:
+
+- It's convenient to have \\(\infty \wedge o = p \wedge n \\). To do this this means the product of coefficients must be 1/2. TODO: Proof?
+- A more symmetric choice would be to use \\( \left(\frac{1}{\sqrt{2}}, \frac{1}{\sqrt{2}}\right) \\). This is not ideal especially when using floating point math. \\((1/2, 1)\\) is more computer-friendly.
+- As for which term gets the \\(1/2\\)... pick your poison I guess?
+
+## Partial Multiplication Tables
+
+For reference, here are the multiplication tables for the high-level basis, as
+there will be a lot of calculations using these. 
+
+### Dot Product
+
+| \\(a \cdot b \\)| \\(x\\) | \\(y\\) | \\(z\\) | \\(\infty \\) | \\( o \\) |
+|---|---|---|---|---|---|
+| \\(x\\)       | 1 | 0 | 0 | 0  | 0 |
+| \\(y\\)       | 0 | 1 | 0 | 0  | 0 | 
+| \\(z\\)       | 0 | 0 | 1 | 0  | 0 |
+| \\(\infty \\) | 0 | 0 | 0 | 0  | -1 | 
+| \\( o \\)     | 0 | 0 | 0 | -1 | 0 |
+
+Observations:
+
+- The dot product of two real basis vectors is either 1 if the vectors are parallel, or 0 otherwise.
+- The dot product of a real basis vector and an auxillary basis vector is always 0.
+- The dot product of the auxillary vectors is unusual. The product is -1 only if the vectors are _perpendicular_! This is backwards from the typical case!
+- The dot product is commutative (even for auxillary vectors). Notice that entries are the same across the main diagonal.
+
+### Wedge Product
+
+| \\(a \wedge b \\)| \\(x\\) | \\(y\\) | \\(z\\) | \\(\infty \\) | \\( o \\) |
+|---|---|---|---|---|---|
+| \\(x\\)       | 0              | \\(xy\\)        | \\(xz\\)        | \\(x\infty\\)  | \\(xo\\)       |
+| \\(y\\)       | \\(-xy\\)      | 0               | \\(yz\\)        | \\(y\infty\\)  | \\(yo\\)       | 
+| \\(z\\)       | \\(-xz\\)      | \\(-yz\\)       | 0               | \\(z\infty\\)  | \\(zo\\)       |
+| \\(\infty \\) | \\(-x\infty\\) | \\(-\infty x\\) | \\(-\infty x\\) | 0              | \\(\infty o = E_0 = pn\\) | 
+| \\( o \\)     | \\(-xo\\)      | \\(-yo\\)       | \\(-zo\\)       | \\(- \infty o = -E_0 = -pn\\)      | 0              |
+
+Observations:
+
+- If the vectors are parallel, the wedge product is 0.
+- For every other product, combine the two vectors into a bivector. Swap vectors around (introducing a minus sign for every swap) until the vectors are in order. I like to sort the vectors following this order: \\(x, y, z, \infty,  o\\).
+- The wedge product is anticommutative. Notice that the entries are negated across the main diagonal of the table. 
+
+### Geometric Product
+
+The geometric product of vectors is the sum of the dot and wedge products. \\(ab = a \cdot b + a \wedge b\\).
+Note that this is true for vectors, but it changes a bit for other types of blades.
+
+| \\(ab \\)| \\(x\\) | \\(y\\) | \\(z\\) | \\(\infty \\) | \\( o \\) |
+|---|---|---|---|---|---|
+| \\(x\\)       | 1              | \\(xy\\)        | \\(xz\\)        | \\(x\infty\\)  | \\(xo\\)       |
+| \\(y\\)       | \\(-xy\\)      | 1               | \\(yz\\)        | \\(y\infty\\)  | \\(yo\\)       | 
+| \\(z\\)       | \\(-xz\\)      | \\(-yz\\)       | 1               | \\(z\infty\\)  | \\(zo\\)       |
+| \\(\infty \\) | \\(-x\infty\\) | \\(-\infty x\\) | \\(-\infty x\\) | 0              | -1 + \\(E_0\\) | 
+| \\( o \\)     | \\(-xo\\)      | \\(-yo\\)       | \\(-zo\\)       | -1 - \\(E_0\\) | 0              |
+
+Observations:
+
+- It's important to note that \\((\infty) (o) \ne \infty \wedge o = \infty o\\). There will always be both dot and wedge terms! This is why I use extra parentheses for the geometric product when it may be ambiguous.
+- For any pair of _orthogonal_ basis vectors, the geometric product is equal to the wedge product and thus can be used interchangeably.
+- For any pair of _parallel_ basis vectors, the geometric product are the same as the dot product and thus can be used interchangeably.
+- This means that in all cases except \\((\infty) (o)\\):
+    - _parallel_ vectors commute. \\(ab = ba\\)
+    - _orthogonal_ vectors anticommute. \\(ab = -ba\\)
+    - For vectors that are not parallel nor orthogonal, there will be both dot and wedge terms.
