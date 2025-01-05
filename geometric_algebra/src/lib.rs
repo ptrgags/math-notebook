@@ -5,3 +5,4 @@ pub mod scalar;
 pub mod trivector;
 pub mod vector;
 pub mod versor;
+pub mod xform;
