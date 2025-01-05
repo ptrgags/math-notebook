@@ -114,10 +114,39 @@ impl Add for Trivector {
     }
 }
 
+impl Mul<Scalar> for Trivector {
+    type Output = Trivector;
+
+    fn mul(self, rhs: Scalar) -> Self::Output {
+        let Scalar(s) = rhs;
+
+        Self {
+            xyz: s * self.xyz,
+            xyp: s * self.xyp,
+            xyn: s * self.xyn,
+            xzp: s * self.xzp,
+            xzn: s * self.xzn,
+            xpn: s * self.xpn,
+            yzp: s * self.yzp,
+            yzn: s * self.yzn,
+            ypn: s * self.ypn,
+            zpn: s * self.zpn,
+        }
+    }
+}
+
 impl Mul<Vector> for Trivector {
     type Output = (Bivector, Quadvector);
 
     fn mul(self, rhs: Vector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Bivector> for Trivector {
+    type Output = (Vector, Trivector, Pseudoscalar);
+
+    fn mul(self, rhs: Bivector) -> Self::Output {
         todo!()
     }
 }
@@ -130,10 +159,30 @@ impl Mul for Trivector {
     }
 }
 
+impl Mul<Quadvector> for Trivector {
+    type Output = (Vector, Trivector);
+
+    fn mul(self, rhs: Quadvector) -> Self::Output {
+        // T * Q = rev(rev(Q) * rev(T))
+        // rev(Q) = Q
+        // rev(T) = -T
+        // so we have rev(Q * -T)
+        // result is v + T, rev(v + T) = v - T
+        let (v, t) = rhs * -self;
+        (v, -t)
+    }
+}
+
 impl Mul<Pseudoscalar> for Trivector {
     type Output = Bivector;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        todo!()
+        // T * P = rev(rev(P) * rev(T))
+        // rev(P) = P
+        // rev(T) = -T
+        // so we have rev(P * -T)
+        // result is B, rev(B) = -B
+        // so we have -(P * -T) = P * T so P commutes
+        rhs * self
     }
 }

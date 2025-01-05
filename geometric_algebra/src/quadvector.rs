@@ -114,6 +114,12 @@ impl Mul<Pseudoscalar> for Quadvector {
     type Output = Vector;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        todo!()
+        // Q * P = rev(rev(P) * rev(Q))
+        // rev(P) = P
+        // rev(Q) = Q
+        // so we have rev(P * Q)
+        // result is v, rev(v) = v
+        // so Q and P commute
+        rhs * self
     }
 }

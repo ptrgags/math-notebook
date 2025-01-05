@@ -142,7 +142,13 @@ impl Mul<Trivector> for Bivector {
     type Output = (Vector, Trivector, Pseudoscalar);
 
     fn mul(self, rhs: Trivector) -> Self::Output {
-        todo!()
+        // B * T = rev(rev(T) * rev(B))
+        // rev(T) = -T
+        // rev(B) = -B
+        // so we have rev(-T * -B) = rev(T * B)
+        // result is v + T + P, rev(v + T + P) = v - T + P
+        let (v, t, p) = rhs * self;
+        (v, -t, p)
     }
 }
 
@@ -150,14 +156,27 @@ impl Mul<Quadvector> for Bivector {
     type Output = (Bivector, Quadvector);
 
     fn mul(self, rhs: Quadvector) -> Self::Output {
-        todo!()
+        // B * Q = rev(rev(Q) * rev(B))
+        // rev(Q) = Q
+        // rev(B) = -B
+        // so we have rev(Q * -B)
+        // result is B + Q, rev(B + Q) = -B + Q
+        let (b, q) = rhs * -self;
+        (-b, q)
     }
 }
 
 impl Mul<Pseudoscalar> for Bivector {
-    type Output = (Trivector);
+    type Output = Trivector;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        todo!()
+        // B * P = rev(rev(P) * rev(B))
+        // rev(P) = P
+        // rev(B) = -B
+        // so we have rev(P * -B)
+        // result is T so rev(T) = -T
+        // but this means we have -(P * -B) = P * B
+        // so B and P commute
+        rhs * self
     }
 }

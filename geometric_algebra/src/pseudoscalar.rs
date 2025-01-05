@@ -39,10 +39,43 @@ impl Add for Pseudoscalar {
     }
 }
 
+impl Mul<Scalar> for Pseudoscalar {
+    type Output = Pseudoscalar;
+
+    fn mul(self, rhs: Scalar) -> Self::Output {
+        let Self(p) = self;
+        let Scalar(s) = rhs;
+
+        Pseudoscalar(p * s)
+    }
+}
+
 impl Mul<Vector> for Pseudoscalar {
     type Output = Quadvector;
 
     fn mul(self, rhs: Vector) -> Self::Output {
+        let Pseudoscalar(ps) = self;
+        let Vector { x, y, z, p, n } = rhs;
+
+        Quadvector {
+            // xyzpn * n = xyzpnn = -xyzp so - (backwards because n^2 = -1)
+            xyzp: ps * -n,
+            // xyzpn * p = -xyzppn = -xyzn so -
+            xyzn: ps * -p,
+            // xyzpn * z = xyzzpn = xypn so +
+            xypn: ps * z,
+            // xyzpn * y = -xyyzpn = -xzpn so -
+            xzpn: ps * -y,
+            // xyzpn * x = xxyzpn = yzpn so +
+            yzpn: ps * x,
+        }
+    }
+}
+
+impl Mul<Bivector> for Pseudoscalar {
+    type Output = Trivector;
+
+    fn mul(self, rhs: Bivector) -> Self::Output {
         todo!()
     }
 }
@@ -51,6 +84,14 @@ impl Mul<Trivector> for Pseudoscalar {
     type Output = Bivector;
 
     fn mul(self, rhs: Trivector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Quadvector> for Pseudoscalar {
+    type Output = Vector;
+
+    fn mul(self, rhs: Quadvector) -> Self::Output {
         todo!()
     }
 }

@@ -58,7 +58,7 @@ impl Mul<Vector> for Scalar {
     type Output = Vector;
 
     fn mul(self, rhs: Vector) -> Self::Output {
-        // scalars commute with everything!
+        // s * v = v * s
         rhs * self
     }
 }
@@ -67,7 +67,8 @@ impl Mul<Bivector> for Scalar {
     type Output = Bivector;
 
     fn mul(self, rhs: Bivector) -> Self::Output {
-        todo!()
+        // s * B = B * s
+        rhs * self
     }
 }
 
@@ -75,7 +76,8 @@ impl Mul<Trivector> for Scalar {
     type Output = Trivector;
 
     fn mul(self, rhs: Trivector) -> Self::Output {
-        todo!()
+        // s * T = T * s
+        rhs * self
     }
 }
 
@@ -83,7 +85,8 @@ impl Mul<Quadvector> for Scalar {
     type Output = Quadvector;
 
     fn mul(self, rhs: Quadvector) -> Self::Output {
-        todo!()
+        // s * Q = Q * s
+        rhs * self
     }
 }
 
@@ -91,6 +94,7 @@ impl Mul<Pseudoscalar> for Scalar {
     type Output = Pseudoscalar;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        todo!()
+        // s * I = I * s
+        rhs * self
     }
 }

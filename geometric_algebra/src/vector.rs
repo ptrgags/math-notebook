@@ -104,6 +104,21 @@ impl Add for Vector {
     }
 }
 
+impl Mul<Scalar> for Vector {
+    type Output = Vector;
+
+    fn mul(self, rhs: Scalar) -> Self::Output {
+        let Scalar(s) = rhs;
+        Self {
+            x: s * self.x,
+            y: s * self.y,
+            z: s * self.z,
+            p: s * self.p,
+            n: s * self.n,
+        }
+    }
+}
+
 impl Mul for Vector {
     type Output = (Scalar, Bivector);
 
@@ -153,18 +168,17 @@ impl Mul for Vector {
     }
 }
 
-impl Mul<Scalar> for Vector {
-    type Output = Vector;
+impl Mul<Bivector> for Vector {
+    type Output = (Vector, Trivector);
 
-    fn mul(self, rhs: Scalar) -> Self::Output {
-        let Scalar(s) = rhs;
-        Self {
-            x: s * self.x,
-            y: s * self.y,
-            z: s * self.z,
-            p: s * self.p,
-            n: s * self.n,
-        }
+    fn mul(self, rhs: Bivector) -> Self::Output {
+        // v * B = rev(rev(B) * rev(v))
+        // rev(B) = -B
+        // rev(v) = v
+        // so we have rev(-B * v)
+        // result is v + T, rev(v + T) = v - T
+        let (v, t) = -rhs * self;
+        (v, -t)
     }
 }
 
@@ -172,7 +186,13 @@ impl Mul<Trivector> for Vector {
     type Output = (Bivector, Quadvector);
 
     fn mul(self, rhs: Trivector) -> Self::Output {
-        todo!()
+        // v * T = rev(rev(T) * rev(v))
+        // rev(T) = -T
+        // rev(v) = v
+        // so we have rev(-T * v)
+        // result is B + Q, rev(B + Q) = -B + Q
+        let (b, q) = -rhs * self;
+        (-b, q)
     }
 }
 
@@ -180,20 +200,11 @@ impl Mul<Pseudoscalar> for Vector {
     type Output = Quadvector;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        let Self { x, y, z, p, n } = self;
-        let Pseudoscalar(ps) = rhs;
-
-        Quadvector {
-            // n * xyzpn = xyzpnn = -xyzp so - (backwards because n^2 = -1)
-            xyzp: ps * -n,
-            // p * xyzpn = -xyzppn = -xyzn so -
-            xyzn: ps * -p,
-            // z * xyzpn = xyzzpn = xypn so +
-            xypn: ps * z,
-            // y * xyzpn = -xyyzpn = -xzpn so -
-            xzpn: ps * -y,
-            // x * xyzpn = yzpn so +
-            yzpn: ps * x,
-        }
+        // v * P = rev(rev(P) * rev(v))
+        // rev(P) = P
+        // rev(v) = v
+        // result is a quadvector, and rev(Q) = Q
+        // so v and P commute
+        rhs * self
     }
 }
