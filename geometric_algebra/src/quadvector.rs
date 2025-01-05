@@ -1,4 +1,9 @@
-use std::ops::Add;
+use std::ops::{Add, Mul};
+
+use crate::{
+    bivector::Bivector, pseudoscalar::Pseudoscalar, scalar::Scalar, trivector::Trivector,
+    vector::Vector,
+};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Quadvector {
@@ -62,5 +67,53 @@ impl Add for Quadvector {
             xzpn: axzpn + bxzpn,
             yzpn: ayzpn + byzpn,
         }
+    }
+}
+
+impl Mul<Scalar> for Quadvector {
+    type Output = Quadvector;
+
+    fn mul(self, rhs: Scalar) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Vector> for Quadvector {
+    type Output = (Trivector, Pseudoscalar);
+
+    fn mul(self, rhs: Vector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Bivector> for Quadvector {
+    type Output = (Bivector, Quadvector);
+
+    fn mul(self, rhs: Bivector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Trivector> for Quadvector {
+    type Output = (Vector, Trivector);
+
+    fn mul(self, rhs: Trivector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul for Quadvector {
+    type Output = (Scalar, Bivector);
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Pseudoscalar> for Quadvector {
+    type Output = Vector;
+
+    fn mul(self, rhs: Pseudoscalar) -> Self::Output {
+        todo!()
     }
 }

@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Add, Mul};
 
 use crate::{
     bivector::Bivector, pseudoscalar::Pseudoscalar, quadvector::Quadvector, scalar::Scalar,
@@ -69,6 +69,41 @@ impl Vector {
     }
 }
 
+impl Default for Vector {
+    fn default() -> Self {
+        Self::zero()
+    }
+}
+
+impl Add for Vector {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let Self {
+            x: ax,
+            y: ay,
+            z: az,
+            p: ap,
+            n: an,
+        } = self;
+        let Self {
+            x: bx,
+            y: by,
+            z: bz,
+            p: bp,
+            n: bn,
+        } = rhs;
+
+        Self {
+            x: ax + bx,
+            y: ay + by,
+            z: az + bz,
+            p: ap + bp,
+            n: an + bn,
+        }
+    }
+}
+
 impl Mul for Vector {
     type Output = (Scalar, Bivector);
 
@@ -118,6 +153,21 @@ impl Mul for Vector {
     }
 }
 
+impl Mul<Scalar> for Vector {
+    type Output = Vector;
+
+    fn mul(self, rhs: Scalar) -> Self::Output {
+        let Scalar(s) = rhs;
+        Self {
+            x: s * self.x,
+            y: s * self.y,
+            z: s * self.z,
+            p: s * self.p,
+            n: s * self.n,
+        }
+    }
+}
+
 impl Mul<Trivector> for Vector {
     type Output = (Bivector, Quadvector);
 
@@ -131,19 +181,19 @@ impl Mul<Pseudoscalar> for Vector {
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
         let Self { x, y, z, p, n } = self;
-        let Pseudoscalar(p) = rhs;
+        let Pseudoscalar(ps) = rhs;
 
         Quadvector {
             // n * xyzpn = xyzpnn = -xyzp so - (backwards because n^2 = -1)
-            xyzp: -n,
+            xyzp: ps * -n,
             // p * xyzpn = -xyzppn = -xyzn so -
-            xyzn: -p,
+            xyzn: ps * -p,
             // z * xyzpn = xyzzpn = xypn so +
-            xypn: z,
+            xypn: ps * z,
             // y * xyzpn = -xyyzpn = -xzpn so -
-            xzpn: -y,
+            xzpn: ps * -y,
             // x * xyzpn = yzpn so +
-            yzpn: x,
+            yzpn: ps * x,
         }
     }
 }

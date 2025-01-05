@@ -1,4 +1,4 @@
-use std::ops::{Mul, Neg};
+use std::ops::{Add, Mul, Neg};
 
 use crate::{
     bivector::Bivector, pseudoscalar::Pseudoscalar, quadvector::Quadvector, scalar::Scalar,
@@ -65,6 +65,51 @@ impl Neg for Trivector {
             yzn: -self.yzn,
             ypn: -self.ypn,
             zpn: -self.zpn,
+        }
+    }
+}
+
+impl Add for Trivector {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let Self {
+            xyz: axyz,
+            xyp: axyp,
+            xyn: axyn,
+            xzp: axzp,
+            xzn: axzn,
+            xpn: axpn,
+            yzp: ayzp,
+            yzn: ayzn,
+            ypn: aypn,
+            zpn: azpn,
+        } = self;
+
+        let Self {
+            xyz: bxyz,
+            xyp: bxyp,
+            xyn: bxyn,
+            xzp: bxzp,
+            xzn: bxzn,
+            xpn: bxpn,
+            yzp: byzp,
+            yzn: byzn,
+            ypn: bypn,
+            zpn: bzpn,
+        } = rhs;
+
+        Self {
+            xyz: axyz + bxyz,
+            xyp: axyp + bxyp,
+            xyn: axyn + bxyn,
+            xzp: axzp + bxzp,
+            xzn: axzn + bxzn,
+            xpn: axpn + bxpn,
+            yzp: ayzp + byzp,
+            yzn: ayzn + byzn,
+            ypn: aypn + bypn,
+            zpn: azpn + bzpn,
         }
     }
 }

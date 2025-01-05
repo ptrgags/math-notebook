@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Add, Mul};
 
 use crate::{
     bivector::Bivector, quadvector::Quadvector, scalar::Scalar, trivector::Trivector,
@@ -25,6 +25,17 @@ impl Pseudoscalar {
 impl Default for Pseudoscalar {
     fn default() -> Self {
         Self::zero()
+    }
+}
+
+impl Add for Pseudoscalar {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let Self(a) = self;
+        let Self(b) = rhs;
+
+        Self(a + b)
     }
 }
 

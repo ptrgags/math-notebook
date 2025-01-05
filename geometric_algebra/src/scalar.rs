@@ -1,4 +1,9 @@
-use std::ops::Add;
+use std::ops::{Add, Mul};
+
+use crate::{
+    bivector::Bivector, pseudoscalar::Pseudoscalar, quadvector::Quadvector, trivector::Trivector,
+    vector::Vector,
+};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Scalar(pub f64);
@@ -35,5 +40,57 @@ impl Add for Scalar {
         let Self(b) = rhs;
 
         Self(a + b)
+    }
+}
+
+impl Mul for Scalar {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let Self(a) = self;
+        let Self(b) = rhs;
+
+        Self(a + b)
+    }
+}
+
+impl Mul<Vector> for Scalar {
+    type Output = Vector;
+
+    fn mul(self, rhs: Vector) -> Self::Output {
+        // scalars commute with everything!
+        rhs * self
+    }
+}
+
+impl Mul<Bivector> for Scalar {
+    type Output = Bivector;
+
+    fn mul(self, rhs: Bivector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Trivector> for Scalar {
+    type Output = Trivector;
+
+    fn mul(self, rhs: Trivector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Quadvector> for Scalar {
+    type Output = Quadvector;
+
+    fn mul(self, rhs: Quadvector) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Pseudoscalar> for Scalar {
+    type Output = Pseudoscalar;
+
+    fn mul(self, rhs: Pseudoscalar) -> Self::Output {
+        todo!()
     }
 }

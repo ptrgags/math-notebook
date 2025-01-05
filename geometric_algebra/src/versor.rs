@@ -43,7 +43,36 @@ impl Mul for EvenVersor {
     type Output = EvenVersor;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        todo!()
+        let EvenVersor {
+            scalar: s1,
+            bivec: b1,
+            quadvec: q1,
+        } = self;
+        let EvenVersor {
+            scalar: s2,
+            bivec: b2,
+            quadvec: q2,
+        } = rhs;
+
+        let ss = maybe_mul(s1, s2).unwrap_or_default();
+        let sb = maybe_mul(s1, b2).unwrap_or_default();
+        let sq = maybe_mul(s1, q2).unwrap_or_default();
+        let bs = maybe_mul(b1, s2).unwrap_or_default();
+        let (bb_s, bb_b, bb_q) = maybe_mul(b1, b2).unwrap_or_default();
+        let (bq_b, bq_q) = maybe_mul(b1, q2).unwrap_or_default();
+        let qs = maybe_mul(q1, s2).unwrap_or_default();
+        let (qb_b, qb_q) = maybe_mul(q1, b2).unwrap_or_default();
+        let (qq_s, qq_b) = maybe_mul(q1, q2).unwrap_or_default();
+
+        let scalar_part = ss + bb_s + qq_s;
+        let bivector_part = sb + bs + bb_b + bq_b + qq_b + qb_b;
+        let quadvector_part = sq + bb_q + bq_q + qs + qb_q;
+
+        EvenVersor {
+            scalar: scalar_part.nonzero(),
+            bivec: bivector_part.nonzero(),
+            quadvec: quadvector_part.nonzero(),
+        }
     }
 }
 
@@ -51,7 +80,35 @@ impl Mul<OddVersor> for EvenVersor {
     type Output = OddVersor;
 
     fn mul(self, rhs: OddVersor) -> Self::Output {
-        todo!()
+        let EvenVersor {
+            scalar: s1,
+            bivec: b1,
+            quadvec: q1,
+        } = self;
+        let OddVersor {
+            vec: v2,
+            trivec: t2,
+            pseudoscalar: p2,
+        } = rhs;
+        let sv = maybe_mul(s1, v2).unwrap_or_default();
+        let st = maybe_mul(s1, t2).unwrap_or_default();
+        let sp = maybe_mul(s1, p2).unwrap_or_default();
+        let (bv_v, bv_t) = maybe_mul(b1, v2).unwrap_or_default();
+        let (bt_v, bt_t, bt_p) = maybe_mul(b1, t2).unwrap_or_default();
+        let bp = maybe_mul(b1, p2).unwrap_or_default();
+        let (qv_t, qv_p) = maybe_mul(q1, v2).unwrap_or_default();
+        let (qt_v, qt_t) = maybe_mul(q1, t2).unwrap_or_default();
+        let qp = maybe_mul(q1, p2).unwrap_or_default();
+
+        let vec_part = sv + bv_v + bt_v + qt_v + qp;
+        let trivec_part = st + bv_t + bv_t + bt_t + bp + qv_t + qt_t;
+        let ps_part = sp + bt_p + qv_p;
+
+        OddVersor {
+            vec: vec_part.nonzero(),
+            trivec: trivec_part.nonzero(),
+            pseudoscalar: ps_part.nonzero(),
+        }
     }
 }
 
