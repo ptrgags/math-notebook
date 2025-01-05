@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Mul, Neg};
 
 use crate::{
     bivector::Bivector, pseudoscalar::Pseudoscalar, quadvector::Quadvector, scalar::Scalar,
@@ -47,6 +47,25 @@ impl Trivector {
 impl Default for Trivector {
     fn default() -> Self {
         Self::zero()
+    }
+}
+
+impl Neg for Trivector {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            xyz: -self.xyz,
+            xyp: -self.xyp,
+            xyn: -self.xyn,
+            xzp: -self.xzp,
+            xzn: -self.xzn,
+            xpn: -self.xpn,
+            yzp: -self.yzp,
+            yzn: -self.yzn,
+            ypn: -self.ypn,
+            zpn: -self.zpn,
+        }
     }
 }
 

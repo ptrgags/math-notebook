@@ -20,6 +20,23 @@ impl EvenVersor {
             quadvec: None,
         }
     }
+
+    pub fn reverse(self) -> Self {
+        let Self {
+            scalar,
+            bivec,
+            quadvec,
+        } = self;
+
+        Self {
+            // Scalars are their own reverse
+            scalar,
+            // Bivectors are negated, as yx = -xy
+            bivec: bivec.map(|x| -x),
+            // pzyx = -zyxp = -yxzp = xyzp so no change
+            quadvec,
+        }
+    }
 }
 
 impl Mul for EvenVersor {
@@ -43,6 +60,25 @@ pub struct OddVersor {
     vec: Option<Vector>,
     trivec: Option<Trivector>,
     pseudoscalar: Option<Pseudoscalar>,
+}
+
+impl OddVersor {
+    pub fn reverse(self) -> Self {
+        let Self {
+            vec,
+            trivec,
+            pseudoscalar,
+        } = self;
+
+        Self {
+            // vectors are their own inverse, no change!
+            vec,
+            // zyx = yxz = -xyz so we need to flip the sign
+            trivec: trivec.map(|t| -t),
+            // npzyx = pzyxn = -zyxpn = -yxzpn = xyzpn so no change!
+            pseudoscalar,
+        }
+    }
 }
 
 impl From<Vector> for OddVersor {
@@ -105,7 +141,7 @@ impl Mul<EvenVersor> for OddVersor {
     type Output = OddVersor;
 
     fn mul(self, rhs: EvenVersor) -> Self::Output {
-        todo!()
+        (rhs.reverse() * self.reverse()).reverse()
     }
 }
 

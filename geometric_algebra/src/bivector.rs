@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Neg};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Bivector {
@@ -86,6 +86,25 @@ impl Add for Bivector {
             zp: azp + bzp,
             zn: azn + bzn,
             pn: apn + bpn,
+        }
+    }
+}
+
+impl Neg for Bivector {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            xy: -self.xy,
+            xz: -self.xz,
+            xp: -self.xp,
+            xn: -self.xn,
+            yz: -self.yz,
+            yp: -self.yp,
+            yn: -self.yn,
+            zp: -self.zp,
+            zn: -self.zn,
+            pn: -self.pn,
         }
     }
 }
