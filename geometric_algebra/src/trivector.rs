@@ -139,7 +139,46 @@ impl Mul<Vector> for Trivector {
     type Output = (Bivector, Quadvector);
 
     fn mul(self, rhs: Vector) -> Self::Output {
-        todo!()
+        let Trivector {
+            xyz,
+            xyp,
+            xyn,
+            xzp,
+            xzn,
+            xpn,
+            yzp,
+            yzn,
+            ypn,
+            zpn,
+        } = self;
+        let Vector { x, y, z, p, n } = rhs;
+
+        // 10 x 5 = 50 terms
+
+        // 1-overlap part (bivector) - 10 x ??? terms
+        let bivec_part = Bivector {
+            xy: todo!(),
+            xz: todo!(),
+            xp: todo!(),
+            xn: todo!(),
+            yz: todo!(),
+            yp: todo!(),
+            yn: todo!(),
+            zp: todo!(),
+            zn: todo!(),
+            pn: todo!(),
+        };
+
+        // 0-overlap part (quadvector) - 5 x ??? terms
+        let quadvec_part = Quadvector {
+            xyzp: todo!(),
+            xyzn: todo!(),
+            xypn: todo!(),
+            xzpn: todo!(),
+            yzpn: todo!(),
+        };
+
+        (bivec_part, quadvec_part)
     }
 }
 
@@ -147,7 +186,64 @@ impl Mul<Bivector> for Trivector {
     type Output = (Vector, Trivector, Pseudoscalar);
 
     fn mul(self, rhs: Bivector) -> Self::Output {
-        todo!()
+        let Trivector {
+            xyz,
+            xyp,
+            xyn,
+            xzp,
+            xzn,
+            xpn,
+            yzp,
+            yzn,
+            ypn,
+            zpn,
+        } = self;
+        let Bivector {
+            xy,
+            xz,
+            xp,
+            xn,
+            yz,
+            yp,
+            yn,
+            zp,
+            zn,
+            pn,
+        } = rhs;
+
+        // 10 x 10 = 100 terms
+
+        // 2-overlap (vector part) - 5 * 6 terms = 30
+        let vec_part = Vector {
+            x: -xyz * yz - xyp * yp + xyn * yn - xzp * zp + xzn * zn + xpn * pn,
+            y: todo!(),
+            z: todo!(),
+            p: todo!(),
+            n: todo!(),
+        };
+
+        // 1-overlap (trivector part) - 10 * 6 terms = 60
+        let trivec_part = Trivector {
+            xyz: todo!(),
+            xyp: todo!(),
+            xyn: todo!(),
+            xzp: todo!(),
+            xzn: todo!(),
+            xpn: todo!(),
+            yzp: todo!(),
+            yzn: todo!(),
+            ypn: todo!(),
+            zpn: todo!(),
+        };
+
+        // 0-overlap (pseudoscalar part) - 1 x 10 terms = 10
+        let ps_part = Pseudoscalar(
+            xyz * pn - xyp * zn + xyn * zp + xzp * yn - xzn * yp + xpn * yz - yzp * xn + yzn * xp
+                - ypn * xz
+                + zpn * xy,
+        );
+
+        (vec_part, trivec_part, ps_part)
     }
 }
 
@@ -155,7 +251,62 @@ impl Mul for Trivector {
     type Output = (Scalar, Bivector, Quadvector);
 
     fn mul(self, rhs: Self) -> Self::Output {
-        todo!()
+        let Trivector {
+            xyz: axyz,
+            xyp: axyp,
+            xyn: axyn,
+            xzp: axzp,
+            xzn: axzn,
+            xpn: axpn,
+            yzp: ayzp,
+            yzn: ayzn,
+            ypn: aypn,
+            zpn: azpn,
+        } = self;
+        let Trivector {
+            xyz: bxyz,
+            xyp: bxyp,
+            xyn: bxyn,
+            xzp: bxzp,
+            xzn: bxzn,
+            xpn: bxpn,
+            yzp: byzp,
+            yzn: byzn,
+            ypn: bypn,
+            zpn: bzpn,
+        } = rhs;
+
+        // 10 x 10 = 100 terms
+
+        // 3-overlap part (scalar) - 1 x 10 terms = 10
+        let scalar_part = Scalar(todo!());
+
+        // 2-overlap part (bivector) - 10 x ??? terms
+        let bivec_part = Bivector {
+            xy: todo!(),
+            xz: todo!(),
+            xp: todo!(),
+            xn: todo!(),
+            yz: todo!(),
+            yp: todo!(),
+            yn: todo!(),
+            zp: todo!(),
+            zn: todo!(),
+            pn: todo!(),
+        };
+
+        // 1-overlap part (quadvector) - 5 x ??? terms
+        let quadvec_part = Quadvector {
+            xyzp: todo!(),
+            xyzn: todo!(),
+            xypn: todo!(),
+            xzpn: todo!(),
+            yzpn: todo!(),
+        };
+
+        // 0-overlap part (hexavector) - N/A, we only have 5 dimensions!
+
+        (scalar_part, bivec_part, quadvec_part)
     }
 }
 

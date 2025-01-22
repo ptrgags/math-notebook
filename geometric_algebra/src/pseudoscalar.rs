@@ -76,7 +76,32 @@ impl Mul<Bivector> for Pseudoscalar {
     type Output = Trivector;
 
     fn mul(self, rhs: Bivector) -> Self::Output {
-        todo!()
+        let Pseudoscalar(ps) = self;
+        let Bivector {
+            xy,
+            xz,
+            xp,
+            xn,
+            yz,
+            yp,
+            yn,
+            zp,
+            zn,
+            pn,
+        } = rhs;
+
+        Trivector {
+            xyz: todo!(),
+            xyp: todo!(),
+            xyn: todo!(),
+            xzp: todo!(),
+            xzn: todo!(),
+            xpn: todo!(),
+            yzp: todo!(),
+            yzn: todo!(),
+            ypn: todo!(),
+            zpn: todo!(),
+        }
     }
 }
 
@@ -84,7 +109,32 @@ impl Mul<Trivector> for Pseudoscalar {
     type Output = Bivector;
 
     fn mul(self, rhs: Trivector) -> Self::Output {
-        todo!()
+        let Pseudoscalar(ps) = self;
+        let Trivector {
+            xyz,
+            xyp,
+            xyn,
+            xzp,
+            xzn,
+            xpn,
+            yzp,
+            yzn,
+            ypn,
+            zpn,
+        } = rhs;
+
+        Bivector {
+            xy: todo!(),
+            xz: todo!(),
+            xp: todo!(),
+            xn: todo!(),
+            yz: todo!(),
+            yp: todo!(),
+            yn: todo!(),
+            zp: todo!(),
+            zn: todo!(),
+            pn: todo!(),
+        }
     }
 }
 
@@ -92,7 +142,22 @@ impl Mul<Quadvector> for Pseudoscalar {
     type Output = Vector;
 
     fn mul(self, rhs: Quadvector) -> Self::Output {
-        todo!()
+        let Pseudoscalar(ps) = self;
+        let Quadvector {
+            xyzp,
+            xyzn,
+            xypn,
+            xzpn,
+            yzpn,
+        } = rhs;
+
+        Vector {
+            x: todo!(),
+            y: todo!(),
+            z: todo!(),
+            p: todo!(),
+            n: todo!(),
+        }
     }
 }
 
@@ -100,6 +165,10 @@ impl Mul for Pseudoscalar {
     type Output = Scalar;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        todo!()
+        let Pseudoscalar(a) = self;
+        let Pseudoscalar(b) = rhs;
+
+        // xyzpn * xyzpn = yzpn * yzpn = -zpn * zpn = -pn * pn = n^2 = -1
+        Scalar(-a * b)
     }
 }
