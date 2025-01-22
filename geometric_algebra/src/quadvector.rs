@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Neg};
 
 use crate::{
     bivector::Bivector, pseudoscalar::Pseudoscalar, scalar::Scalar, trivector::Trivector,
@@ -37,6 +37,20 @@ impl Quadvector {
 impl Default for Quadvector {
     fn default() -> Self {
         Self::zero()
+    }
+}
+
+impl Neg for Quadvector {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            xyzp: -self.xyzp,
+            xyzn: -self.xyzn,
+            xypn: -self.xypn,
+            xzpn: -self.xzpn,
+            yzpn: -self.yzpn,
+        }
     }
 }
 
@@ -285,12 +299,13 @@ impl Mul<Pseudoscalar> for Quadvector {
     type Output = Vector;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        // Q * P = rev(rev(P) * rev(Q))
-        // rev(P) = P
-        // rev(Q) = Q
-        // so we have rev(P * Q)
-        // result is v, rev(v) = v
-        // so Q and P commute
+        // only one blade odd, so even overlap parts commute
+
+        // 4-overlap part: vector (commute)
+        // 3-overlap part: N/A in 5D
+        // 2-overlap part: N/A in 5D
+        // 1-overlap part: N/A in 5D
+        // 0-overlap part: N/A in 5D
         rhs * self
     }
 }

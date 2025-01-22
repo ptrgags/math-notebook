@@ -314,13 +314,14 @@ impl Mul<Quadvector> for Trivector {
     type Output = (Vector, Trivector);
 
     fn mul(self, rhs: Quadvector) -> Self::Output {
-        // T * Q = rev(rev(Q) * rev(T))
-        // rev(Q) = Q
-        // rev(T) = -T
-        // so we have rev(Q * -T)
-        // result is v + T, rev(v + T) = v - T
-        let (v, t) = rhs * -self;
-        (v, -t)
+        // only one blade odd, so even overlap parts commute
+
+        // 3-overlap part: vector (anticommute)
+        // 2-overlap part: trivector (commute)
+        // 1-overlap part: N/A in 5D
+        // 0-overlap part: N/A in 5D
+        let (v, t) = rhs * self;
+        (-v, t)
     }
 }
 
@@ -328,12 +329,12 @@ impl Mul<Pseudoscalar> for Trivector {
     type Output = Bivector;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        // T * P = rev(rev(P) * rev(T))
-        // rev(P) = P
-        // rev(T) = -T
-        // so we have rev(P * -T)
-        // result is B, rev(B) = -B
-        // so we have -(P * -T) = P * T so P commutes
+        // both odd, so _odd_ overlap parts commute
+
+        // 3-overlap part: bivector (commute)
+        // 2-overlap part: N/A in 5D
+        // 1-overlap part: N/A in 5D
+        // 0-overlap part: N/A in 5D
         rhs * self
     }
 }

@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Neg};
 
 use crate::{
     bivector::Bivector, pseudoscalar::Pseudoscalar, quadvector::Quadvector, scalar::Scalar,
@@ -72,6 +72,20 @@ impl Vector {
 impl Default for Vector {
     fn default() -> Self {
         Self::zero()
+    }
+}
+
+impl Neg for Vector {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+            p: -self.p,
+            n: -self.n,
+        }
     }
 }
 
@@ -172,13 +186,12 @@ impl Mul<Bivector> for Vector {
     type Output = (Vector, Trivector);
 
     fn mul(self, rhs: Bivector) -> Self::Output {
-        // v * B = rev(rev(B) * rev(v))
-        // rev(B) = -B
-        // rev(v) = v
-        // so we have rev(-B * v)
-        // result is v + T, rev(v + T) = v - T
-        let (v, t) = -rhs * self;
-        (v, -t)
+        // only one blade odd, so even overlap parts commute
+
+        // 1-overlap: vector (anticommute)
+        // 0-overlap: trivector (commute)
+        let (v, t) = rhs * self;
+        (-v, t)
     }
 }
 
@@ -186,13 +199,25 @@ impl Mul<Trivector> for Vector {
     type Output = (Bivector, Quadvector);
 
     fn mul(self, rhs: Trivector) -> Self::Output {
-        // v * T = rev(rev(T) * rev(v))
-        // rev(T) = -T
-        // rev(v) = v
-        // so we have rev(-T * v)
-        // result is B + Q, rev(B + Q) = -B + Q
-        let (b, q) = -rhs * self;
-        (-b, q)
+        // both blades odd, so odd overlap parts commute
+
+        // 1-overlap: bivector (commute)
+        // 0-overlap: quadvector (anticommute)
+        let (b, q) = rhs * self;
+        (b, -q)
+    }
+}
+
+impl Mul<Quadvector> for Vector {
+    type Output = (Trivector, Pseudoscalar);
+
+    fn mul(self, rhs: Quadvector) -> Self::Output {
+        // only one blade odd, so even overlaps commute
+        //
+        // 1-overlap: trivector (anticommute)
+        // 0-overlap: pseudoscalar (commute)
+        let (t, ps) = rhs * self;
+        (-t, ps)
     }
 }
 
@@ -200,11 +225,10 @@ impl Mul<Pseudoscalar> for Vector {
     type Output = Quadvector;
 
     fn mul(self, rhs: Pseudoscalar) -> Self::Output {
-        // v * P = rev(rev(P) * rev(v))
-        // rev(P) = P
-        // rev(v) = v
-        // result is a quadvector, and rev(Q) = Q
-        // so v and P commute
+        // both vectors odd so _odd_ overlaps are commutative
+
+        // 1-overlap: quadvector (commute)
+        // 0-overlap: N/A in 5D
         rhs * self
     }
 }
