@@ -1,3 +1,5 @@
+pub mod dfs;
+
 use std::ops::Mul;
 
 pub struct PowerIterator<S: Monoid> {
