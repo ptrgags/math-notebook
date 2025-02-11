@@ -44,7 +44,7 @@ where
         let mut stack = vec![(start_index, vec![start_index])];
         while let Some((current_index, current_path)) = stack.pop() {
             let hash = self.traversal.hash(current_index);
-            if (visited.contains(&hash)) {
+            if visited.contains(&hash) {
                 continue;
             }
 
