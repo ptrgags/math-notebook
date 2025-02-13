@@ -110,6 +110,9 @@ pub trait Group: Monoid {
     }
 }
 
+pub trait GroupAction<X>: Group + Mul<X, Output = X> {}
+impl<G, X> GroupAction<X> for G where G: Group + Mul<X, Output = X> {}
+
 /// Test that identity * identity = identity (idempotent)
 /// Test that identity * x = x * identity = x for each x (identity law)
 #[macro_export]

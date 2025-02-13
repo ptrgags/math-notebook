@@ -3,8 +3,14 @@ use std::{f64::consts::PI, io::Error};
 use abstraction::Monoid;
 use mobius::{
     algorithms::{OrbitIFS, OrbitTile},
+    cline_arc::ClineArc,
+    geometry::LineSegment,
     isogonal::Isogonal,
-    rotation, translation, Complex,
+    rendering::Style,
+    rotation,
+    svg_plot::{render_views, style_geometry, union, View},
+    transformable::ClineArcTile,
+    translation, Complex,
 };
 
 fn main() -> Result<(), Error> {
@@ -23,18 +29,40 @@ fn main() -> Result<(), Error> {
 
     let test_point = Complex::new(0.5, 0.5);
 
-    //let initial_tile = OrbitTile::new(Isogonal::identity(), neighbor_tile_xforms, test_point);
-    //let ifs = OrbitIFS::new(initial_tile);
+    let initial_tile = OrbitTile::new(Isogonal::identity(), neighbor_tile_xforms, test_point);
+    let ifs = OrbitIFS::new(initial_tile);
 
-    let right = neighbor_tile_xforms[0] * test_point;
-    let up = neighbor_tile_xforms[1] * test_point;
-    let left = neighbor_tile_xforms[2] * test_point;
-    let down = neighbor_tile_xforms[3] * test_point;
+    let flag_bottom_height = 0.6;
+    let flagpole = LineSegment::new(Complex::new(0.1, 0.1), Complex::new(0.1, 0.9));
+    let flag_bottom = LineSegment::new(
+        Complex::new(0.1, flag_bottom_height),
+        Complex::new(0.9, flag_bottom_height),
+    );
+    let flag_end = LineSegment::new(
+        Complex::new(0.9, flag_bottom_height),
+        Complex::new(0.9, 0.9),
+    );
+    let flag_top = LineSegment::new(Complex::new(0.1, 0.9), Complex::new(0.9, 0.9));
+    let fundamental_domain = ClineArcTile::new(vec![
+        ClineArc::from(flagpole),
+        ClineArc::from(flag_bottom),
+        ClineArc::from(flag_end),
+        ClineArc::from(flag_top),
+    ]);
 
-    println!("Right: {}", right);
-    println!("Up: {}", up);
-    println!("Left: {}", left);
-    println!("Down: {}", down);
+    let flags = ifs.apply(&fundamental_domain, 3);
+    let style = Style::stroke(255, 63, 63).with_width(0.5);
+    let style_original = Style::stroke(255, 255, 255).with_width(0.5);
+
+    render_views(
+        "output",
+        "mirror_tiling",
+        &[View("", 0.0, 0.0, 5.0)],
+        union(vec![
+            style_geometry(style, &flags[..]),
+            style_geometry(style_original, &fundamental_domain),
+        ]),
+    )?;
 
     Ok(())
 }

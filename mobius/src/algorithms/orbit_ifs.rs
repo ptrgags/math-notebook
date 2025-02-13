@@ -1,20 +1,13 @@
 use std::collections::HashSet;
 
-use abstraction::Group;
+use abstraction::{Group, GroupAction};
 
 use crate::{quantized_hash::QuantizedHash, transformable::Transformable};
 
 const QUANTIZE_BITS: i32 = 16;
 
-// A point that can be transformed by the group operation, and also can be
-// hashed for use in a hash set. This is used to detect equivalent
-// transformations
-pub trait OrbitPoint<G>: Transformable<G> + Clone + QuantizedHash {}
-
-impl<G> OrbitPoint<G> for G where G: Transformable<G> + Clone + QuantizedHash {}
-
 #[derive(Clone)]
-pub struct OrbitTile<G: Group, P: OrbitPoint<G>> {
+pub struct OrbitTile<G, P> {
     xform: G,
     neighbor_xforms: Vec<G>,
     // Pick one point in the interior of the fundamental domain of the tile.
@@ -24,7 +17,11 @@ pub struct OrbitTile<G: Group, P: OrbitPoint<G>> {
     representative: P,
 }
 
-impl<G: Group, P: OrbitPoint<G>> OrbitTile<G, P> {
+impl<G, P> OrbitTile<G, P>
+where
+    G: Group + GroupAction<P>,
+    P: Clone,
+{
     pub fn new(xform: G, neighbor_xforms: Vec<G>, representative: P) -> Self {
         Self {
             xform,
@@ -37,7 +34,7 @@ impl<G: Group, P: OrbitPoint<G>> OrbitTile<G, P> {
         // All points in the tile are transformed (including the representative)
         // transform directly
         let xform = to_neighbor.clone() * self.xform.clone();
-        let representative = self.representative.transform(to_neighbor.clone());
+        let representative = to_neighbor.clone() * self.representative.clone();
 
         // To find the corresponding arrows in the neighbor tile, we have to
         // conjugate
@@ -65,7 +62,10 @@ impl<G: Group, P: OrbitPoint<G>> OrbitTile<G, P> {
 }
 
 // The tile's hash is its representative
-impl<G: Group, P: OrbitPoint<G>> QuantizedHash for OrbitTile<G, P> {
+impl<G, P> QuantizedHash for OrbitTile<G, P>
+where
+    P: QuantizedHash,
+{
     type QuantizedType = P::QuantizedType;
 
     fn quantize(&self, quantize_bits: i32) -> Self::QuantizedType {
@@ -73,11 +73,15 @@ impl<G: Group, P: OrbitPoint<G>> QuantizedHash for OrbitTile<G, P> {
     }
 }
 
-pub struct OrbitIFS<G: Group, P: OrbitPoint<G>> {
+pub struct OrbitIFS<G, P> {
     initial_tile: OrbitTile<G, P>,
 }
 
-impl<G: Group, P: OrbitPoint<G>> OrbitIFS<G, P> {
+impl<G, P> OrbitIFS<G, P>
+where
+    G: Group + GroupAction<P>,
+    P: Clone + QuantizedHash,
+{
     pub fn new(initial_tile: OrbitTile<G, P>) -> Self {
         Self { initial_tile }
     }
@@ -85,16 +89,25 @@ impl<G: Group, P: OrbitPoint<G>> OrbitIFS<G, P> {
     pub fn orbit(&self, max_depth: usize) -> OrbitIFSIterator<G, P> {
         OrbitIFSIterator::new(self.initial_tile.clone(), max_depth)
     }
+
+    pub fn apply<T: Transformable<G>>(&self, primitive: &T, max_depth: usize) -> Vec<T> {
+        self.orbit(max_depth)
+            .map(|xform| primitive.transform(xform))
+            .collect()
+    }
 }
 
-pub struct OrbitIFSIterator<G: Group, P: OrbitPoint<G>> {
+pub struct OrbitIFSIterator<G, P: QuantizedHash> {
     max_depth: usize,
     // Stack contains pairs of (depth, tile)
     stack: Vec<(usize, OrbitTile<G, P>)>,
     visited: HashSet<P::QuantizedType>,
 }
 
-impl<G: Group, P: OrbitPoint<G>> OrbitIFSIterator<G, P> {
+impl<G, P> OrbitIFSIterator<G, P>
+where
+    P: QuantizedHash,
+{
     fn new(initial_tile: OrbitTile<G, P>, max_depth: usize) -> Self {
         Self {
             max_depth,
@@ -113,14 +126,18 @@ impl<G: Group, P: OrbitPoint<G>> OrbitIFSIterator<G, P> {
                 continue;
             }
 
-            Some((depth, tile));
+            return Some((depth, tile));
         }
 
         None
     }
 }
 
-impl<G: Group, P: OrbitPoint<G>> Iterator for OrbitIFSIterator<G, P> {
+impl<G, P> Iterator for OrbitIFSIterator<G, P>
+where
+    G: Group + GroupAction<P>,
+    P: Clone + QuantizedHash,
+{
     type Item = G;
 
     fn next(&mut self) -> Option<Self::Item> {
