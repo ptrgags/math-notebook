@@ -1,13 +1,17 @@
-use std::{collections::HashSet, hash::Hash};
+use std::collections::HashSet;
 
 use abstraction::Group;
 
-use crate::transformable::Transformable;
+use crate::{quantized_hash::QuantizedHash, transformable::Transformable};
+
+const QUANTIZE_BITS: i32 = 16;
 
 // A point that can be transformed by the group operation, and also can be
 // hashed for use in a hash set. This is used to detect equivalent
 // transformations
-pub trait OrbitPoint<G>: Transformable<G> + Clone + Eq + Hash {}
+pub trait OrbitPoint<G>: Transformable<G> + Clone + QuantizedHash {}
+
+impl<G> OrbitPoint<G> for G where G: Transformable<G> + Clone + QuantizedHash {}
 
 #[derive(Clone)]
 pub struct OrbitTile<G: Group, P: OrbitPoint<G>> {
@@ -29,14 +33,7 @@ impl<G: Group, P: OrbitPoint<G>> OrbitTile<G, P> {
         }
     }
 
-    pub fn get_neighbor(&self, index: usize) -> Option<Self> {
-        if index >= self.neighbor_xforms.len() {
-            return None;
-        }
-
-        // Get the transform to step into the neighbor tile
-        let to_neighbor = self.neighbor_xforms[index].clone();
-
+    fn get_neighbor(&self, to_neighbor: G) -> Self {
         // All points in the tile are transformed (including the representative)
         // transform directly
         let xform = to_neighbor.clone() * self.xform.clone();
@@ -51,11 +48,28 @@ impl<G: Group, P: OrbitPoint<G>> OrbitTile<G, P> {
             .map(|x| G::sandwich(to_neighbor.clone(), x))
             .collect();
 
-        Some(Self {
+        Self {
             xform,
             neighbor_xforms,
             representative,
-        })
+        }
+    }
+
+    pub fn get_neighbors(&self) -> Vec<Self> {
+        self.neighbor_xforms
+            .iter()
+            .cloned()
+            .map(|xform| self.get_neighbor(xform))
+            .collect()
+    }
+}
+
+// The tile's hash is its representative
+impl<G: Group, P: OrbitPoint<G>> QuantizedHash for OrbitTile<G, P> {
+    type QuantizedType = P::QuantizedType;
+
+    fn quantize(&self, quantize_bits: i32) -> Self::QuantizedType {
+        self.representative.quantize(quantize_bits)
     }
 }
 
@@ -67,22 +81,24 @@ impl<G: Group, P: OrbitPoint<G>> OrbitIFS<G, P> {
     pub fn new(initial_tile: OrbitTile<G, P>) -> Self {
         Self { initial_tile }
     }
+
+    pub fn orbit(&self, max_depth: usize) -> OrbitIFSIterator<G, P> {
+        OrbitIFSIterator::new(self.initial_tile.clone(), max_depth)
+    }
 }
 
-pub struct OrbitIFSIterator<'a, G: Group, P: OrbitPoint<G>> {
-    ifs: &'a OrbitIFS<G, P>,
+pub struct OrbitIFSIterator<G: Group, P: OrbitPoint<G>> {
     max_depth: usize,
-    stack: Vec<OrbitTile<G, P>>,
-    visited: HashSet<P>,
+    // Stack contains pairs of (depth, tile)
+    stack: Vec<(usize, OrbitTile<G, P>)>,
+    visited: HashSet<P::QuantizedType>,
 }
 
-impl<'a, G: Group, P: OrbitPoint<G>> OrbitIFSIterator<'a, G, P> {
-    fn new(ifs: &'a OrbitIFS<G, P>, max_depth: usize) -> Self {
-        let initial_tile = ifs.initial_tile.clone();
+impl<G: Group, P: OrbitPoint<G>> OrbitIFSIterator<G, P> {
+    fn new(initial_tile: OrbitTile<G, P>, max_depth: usize) -> Self {
         Self {
-            ifs,
             max_depth,
-            stack: vec![initial_tile],
+            stack: vec![(0, initial_tile)],
             visited: HashSet::new(),
         }
     }
@@ -91,24 +107,42 @@ impl<'a, G: Group, P: OrbitPoint<G>> OrbitIFSIterator<'a, G, P> {
     /// there's a chance that a stack entry will have already been visited
     /// by the time it gets popped. So keep popping until we find something
     /// unvisited or exhaust the stack.
-    pub fn pop_next_unvisited(&mut self) -> Option<OrbitTile<G, P>> {
-        while let Some(tile) = self.stack.pop() {
-            if self.visited.contains(&tile.representative) {
+    pub fn pop_next_unvisited(&mut self) -> Option<(usize, OrbitTile<G, P>)> {
+        while let Some((depth, tile)) = self.stack.pop() {
+            if self.visited.contains(&tile.quantize(QUANTIZE_BITS)) {
                 continue;
             }
 
-            Some(tile);
+            Some((depth, tile));
         }
 
         None
     }
 }
 
-impl<'a, G: Group, P: OrbitPoint<G>> Iterator for OrbitIFSIterator<'a, G, P> {
+impl<G: Group, P: OrbitPoint<G>> Iterator for OrbitIFSIterator<G, P> {
     type Item = G;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(tile) = self.pop_next_unvisited() {}
-        None
+        if let Some((depth, tile)) = self.pop_next_unvisited() {
+            let hash = tile.quantize(QUANTIZE_BITS);
+            self.visited.insert(hash);
+
+            if depth < self.max_depth {
+                let unvisited_neighbors: Vec<OrbitTile<G, P>> = tile
+                    .get_neighbors()
+                    .into_iter()
+                    .filter(|neighbor| !self.visited.contains(&neighbor.quantize(QUANTIZE_BITS)))
+                    .collect();
+
+                for neighbor in unvisited_neighbors {
+                    self.stack.push((depth + 1, neighbor));
+                }
+            }
+
+            Some(tile.xform)
+        } else {
+            None
+        }
     }
 }

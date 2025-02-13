@@ -1,9 +1,13 @@
 use std::{f64::consts::PI, io::Error};
 
-use mobius::{isogonal::Isogonal, rotation, translation, Complex};
+use abstraction::Monoid;
+use mobius::{
+    algorithms::{OrbitIFS, OrbitTile},
+    isogonal::Isogonal,
+    rotation, translation, Complex,
+};
 
 fn main() -> Result<(), Error> {
-    let test_point = Complex::new(0.5, 0.5);
     let mirror_x = Isogonal::conj();
     let r180: Isogonal = rotation(PI).unwrap().into();
     let mirror_y = r180 * mirror_x;
@@ -16,6 +20,11 @@ fn main() -> Result<(), Error> {
         mirror_y,
         mirror_x,
     ];
+
+    let test_point = Complex::new(0.5, 0.5);
+
+    //let initial_tile = OrbitTile::new(Isogonal::identity(), neighbor_tile_xforms, test_point);
+    //let ifs = OrbitIFS::new(initial_tile);
 
     let right = neighbor_tile_xforms[0] * test_point;
     let up = neighbor_tile_xforms[1] * test_point;
