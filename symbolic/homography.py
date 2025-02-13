@@ -45,9 +45,56 @@ output = sympy.Matrix([
     [p * Ey, q * Fy, r * Gy, s * Hy],
     [p, q, r, s],
 ])
-sympy.pprint(H * uv_input - output)
 
 coordinate_constraints = H * uv_input - output
+sympy.pprint(coordinate_constraints)
+
+no_i_in_matrix = coordinate_constraints.subs(i, p)
+sympy.pprint(no_i_in_matrix)
+
+
+sympy.pprint(H * uv_input)
+
+substitutions = [
+    (i, p),
+    (h, s - p),
+    (g, q - p),
+    (c, Ex * p),
+    (f, Ey * p),
+    (a, Fx * q - Ex * p),
+    (d, Fy * q - Ey * p),
+    (b, Gx * r - Fx * q),
+    (e, Gy * r - Fy * q),
+]
+
+simpler_matrix = (H * uv_input).subs(substitutions) - output
+simpler_constraints = [
+    simpler_matrix[0, 3],
+    simpler_matrix[1, 3],
+    simpler_matrix[2, 2]
+]
+sympy.pprint(simpler_constraints)
+results = sympy.solve(simpler_constraints, [p, q, r])
+
+# For some reason this is the common denominator of p, q and r
+efg = sympy.Matrix([
+    [Ex, Fx, Gx],
+    [Ey, Fy, Gy],
+    [1, 1, 1]
+])
+denominator = efg.det()
+sympy.pprint(denominator)
+
+# looks like p,q,r are (det(fgh), det(egh), det(efh)) * s / det(efg) respectively... why?
+for var, expr in results.items():
+    sympy.pprint(var)
+    numerator = sympy.simplify(sympy.collect(expr, s) * denominator / s)
+    sympy.pprint(numerator)
+
+another_det = sympy.simplify(H.subs(substitutions).det())
+sympy.pprint(another_det)
+
+'''
 det_constraint = H.det() - 1
 
 results = sympy.solve(coordinate_constraints, [
@@ -63,6 +110,7 @@ efg = sympy.Matrix([
     [1, 1, 1]
 ])
 denominator = efg.det()
+'''
 
 '''
 new_s = sympy.solve(det_constraint.subs(results), s)
@@ -70,11 +118,13 @@ print(len(new_s))
 sympy.pprint(sympy.simplify(new_s[0]))
 '''
 
+'''
 for var, expr in results.items():
     factor_out_s = sympy.collect(expr, s)
     numerator = sympy.simplify(factor_out_s * denominator / s)
     sympy.pprint(var)
     sympy.pprint(numerator)
+    '''
 
 # solve() is incredibly slow when you put all the equations together.
 #
