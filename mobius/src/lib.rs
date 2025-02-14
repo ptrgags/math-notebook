@@ -7,6 +7,7 @@ pub mod float_error;
 pub mod geometry;
 pub mod interpolation;
 pub mod isogonal;
+pub mod isogonal_recipes;
 mod mobius;
 pub mod motifs;
 mod nearly;
