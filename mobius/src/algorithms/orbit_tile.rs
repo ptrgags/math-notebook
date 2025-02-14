@@ -71,39 +71,38 @@ where
 
 #[cfg(test)]
 mod test {
-    use std::f64::consts::FRAC_PI_2;
 
     use abstraction::Monoid;
 
     use crate::{
-        isogonal::Isogonal, isogonal_recipes::reflect_y, rotation, translation, Complex, Mobius,
+        isogonal::Isogonal, isogonal_recipes::reflect_y, point_reflection, translation, Complex,
     };
 
     use super::*;
 
-    fn make_pmg_tile() -> OrbitTile<Isogonal, Complex> {
+    fn make_pmg_xforms() -> [Isogonal; 4] {
         // wallpaper group pmg - see https://en.wikipedia.org/wiki/Wallpaper_group#Group_pmg_(22*)
         // fundamental domain: [0, 1]^2
         // the left and right edges are mirrors
         // the top and bottom edges are 180 degree rotations
-        let r90: Isogonal = rotation(FRAC_PI_2).unwrap().into();
-        let r180: Isogonal = rotation(FRAC_PI_2).unwrap().into();
+        let r180: Isogonal = Isogonal::from(point_reflection());
         let tx: Isogonal = translation(Complex::ONE).unwrap().into();
         let t_top_center = translation(Complex::new(0.5, 1.0)).unwrap().into();
         let t_bottom_center = translation(Complex::new(0.5, 0.0)).unwrap().into();
 
-        let left = Isogonal::sandwich(r90, Isogonal::conj());
+        let left = reflect_y();
         let right = Isogonal::sandwich(tx, left);
         let up = Isogonal::sandwich(t_top_center, r180);
         let down = Isogonal::sandwich(t_bottom_center, r180);
 
-        let tile_center = Complex::new(0.5, 0.5);
+        [right, up, left, down]
+    }
 
-        OrbitTile::new(
-            Isogonal::identity(),
-            vec![right, up, left, down],
-            tile_center,
-        )
+    fn make_pmg_tile() -> OrbitTile<Isogonal, Complex> {
+        let tile_center = Complex::new(0.5, 0.5);
+        let neighbor_xforms = make_pmg_xforms().to_vec();
+
+        OrbitTile::new(Isogonal::identity(), neighbor_xforms, tile_center)
     }
 
     #[test]
@@ -127,19 +126,18 @@ mod test {
     }
 
     #[test]
-    fn get_neighbors_with_pmg_group_computes_correct_transforms() {
+    fn get_neighbors_with_pmg_group_computes_correct_transforms() -> Result<(), String> {
         let tile = make_pmg_tile();
 
         let neighbors = tile.get_neighbors();
         let result: Vec<Isogonal> = neighbors.iter().map(|x| x.xform).collect();
 
-        let mirror_y = reflect_y();
-
-        let expected = vec![];
+        let expected = make_pmg_xforms().to_vec();
 
         for (actual_val, expected_val) in result.iter().zip(expected.iter()) {
             assert_eq!(actual_val, expected_val);
         }
+        Ok(())
     }
 
     #[test]
@@ -152,15 +150,43 @@ mod test {
             .map(|x| x.neighbor_xforms.clone())
             .collect();
 
-        let left = tile.neighbor_xforms[0].clone();
-        let up = tile.neighbor_xforms[1].clone();
-        let left = tile.neighbor_xforms[2].clone();
-        let down = tile.neighbor_xforms[3].clone();
+        let [right, up, left, down] = make_pmg_xforms();
+        let expected = vec![
+            // Neighbor to right
+            vec![
+                right,
+                Isogonal::sandwich(right, up),
+                Isogonal::sandwich(right, left),
+                Isogonal::sandwich(right, down),
+            ],
+            // neighbor above
+            vec![
+                Isogonal::sandwich(up, right),
+                up,
+                Isogonal::sandwich(up, left),
+                Isogonal::sandwich(up, down),
+            ],
+            vec![
+                Isogonal::sandwich(left, right),
+                Isogonal::sandwich(left, up),
+                left,
+                Isogonal::sandwich(left, down),
+            ],
+            vec![
+                Isogonal::sandwich(down, right),
+                Isogonal::sandwich(down, up),
+                Isogonal::sandwich(down, left),
+                down,
+            ],
+        ];
 
-        let expected = vec![vec![]];
-
-        for (actual_val, expected_val) in result.iter().zip(expected.iter()) {
-            assert_eq!(actual_val, expected_val);
+        assert_eq!(result.len(), expected.len());
+        for (actual_neighbors, expected_neighbors) in result.iter().zip(expected.iter()) {
+            assert_eq!(actual_neighbors.len(), expected_neighbors.len());
+            for (actual_val, expected_val) in actual_neighbors.iter().zip(expected_neighbors.iter())
+            {
+                assert_eq!(actual_val, expected_val);
+            }
         }
     }
 }
