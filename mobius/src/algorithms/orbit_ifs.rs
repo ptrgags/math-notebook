@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 
 use abstraction::{Group, GroupAction};
 
@@ -34,8 +34,8 @@ where
 
 pub struct OrbitIFSIterator<G, P: QuantizedHash> {
     max_depth: usize,
-    // Stack contains pairs of (depth, tile)
-    stack: Vec<(usize, OrbitTile<G, P>)>,
+    // Queue contains pairs of (depth, tile)
+    queue: VecDeque<(usize, OrbitTile<G, P>)>,
     visited: HashSet<P::QuantizedType>,
 }
 
@@ -46,25 +46,9 @@ where
     fn new(initial_tile: OrbitTile<G, P>, max_depth: usize) -> Self {
         Self {
             max_depth,
-            stack: vec![(0, initial_tile)],
+            queue: VecDeque::from([(0, initial_tile)]),
             visited: HashSet::new(),
         }
-    }
-
-    /// It's often possible to reach the same tile from multiple paths, so
-    /// there's a chance that a stack entry will have already been visited
-    /// by the time it gets popped. So keep popping until we find something
-    /// unvisited or exhaust the stack.
-    pub fn pop_next_unvisited(&mut self) -> Option<(usize, OrbitTile<G, P>)> {
-        while let Some((depth, tile)) = self.stack.pop() {
-            if self.visited.contains(&tile.quantize(QUANTIZE_BITS)) {
-                continue;
-            }
-
-            return Some((depth, tile));
-        }
-
-        None
     }
 }
 
@@ -76,7 +60,7 @@ where
     type Item = G;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((depth, tile)) = self.pop_next_unvisited() {
+        if let Some((depth, tile)) = self.queue.pop_front() {
             let hash = tile.quantize(QUANTIZE_BITS);
             self.visited.insert(hash);
 
@@ -88,10 +72,9 @@ where
                     .collect();
 
                 for neighbor in unvisited_neighbors {
-                    self.stack.push((depth + 1, neighbor));
+                    self.queue.push_back((depth + 1, neighbor));
                 }
             }
-
             Some(tile.xform)
         } else {
             None
