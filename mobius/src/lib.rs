@@ -12,6 +12,7 @@ mod mobius;
 pub mod motifs;
 mod nearly;
 pub mod orthogonal_arcs;
+pub mod quantize;
 pub mod quantized_hash;
 mod recipes;
 pub mod rendering;

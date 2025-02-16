@@ -3,6 +3,7 @@ use std::fmt::{self, Display};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::nearly::is_nearly;
+use crate::quantize::quantize;
 use crate::quantized_hash::QuantizedHash;
 
 #[derive(Copy, Clone, Debug)]
@@ -10,10 +11,6 @@ pub enum Complex {
     Zero,
     Finite(f64, f64),
     Infinity,
-}
-
-fn quantize(a: f64, n: i32) -> isize {
-    (a * (2.0f64.powi(n))).floor() as isize
 }
 
 impl Complex {

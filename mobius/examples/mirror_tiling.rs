@@ -6,6 +6,7 @@ use mobius::{
     cline_arc::ClineArc,
     geometry::LineSegment,
     isogonal::Isogonal,
+    quantized_hash::QuantizedHash,
     rendering::Style,
     rotation,
     svg_plot::{render_views, style_geometry, union, View},
@@ -50,7 +51,7 @@ fn main() -> Result<(), Error> {
         ClineArc::from(flag_top),
     ]);
 
-    let flags = ifs.apply(&fundamental_domain, 3);
+    let flags = ifs.apply(&fundamental_domain, 3, 2);
     let style = Style::stroke(255, 63, 63).with_width(0.5);
     let style_original = Style::stroke(255, 255, 255).with_width(0.5);
 
@@ -63,6 +64,12 @@ fn main() -> Result<(), Error> {
             style_geometry(style_original, &fundamental_domain),
         ]),
     )?;
+
+    for xform in ifs.orbit(3, 8) {
+        let point = xform * test_point;
+        println!("{}, {}", xform, point);
+        println!("{:?}", point.quantize(4));
+    }
 
     Ok(())
 }
