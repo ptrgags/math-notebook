@@ -28,7 +28,7 @@ fn main() -> Result<(), Error> {
         mirror_x,
     ];
 
-    let test_point = Complex::new(0.5, 0.5);
+    let test_point = Complex::new(0.51, 0.51);
 
     let initial_tile = OrbitTile::new(Isogonal::identity(), neighbor_tile_xforms, test_point);
     let ifs = OrbitIFS::new(initial_tile);
@@ -65,10 +65,9 @@ fn main() -> Result<(), Error> {
         ]),
     )?;
 
-    for xform in ifs.orbit(3, 8) {
+    for (i, xform) in ifs.orbit(3, 8).enumerate() {
         let point = xform * test_point;
-        println!("{}, {}", xform, point);
-        println!("{:?}", point.quantize(4));
+        println!("{}: {} -> {:?}", i, point, point.quantize(4));
     }
 
     Ok(())

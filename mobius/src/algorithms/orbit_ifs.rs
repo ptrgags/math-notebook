@@ -55,6 +55,18 @@ where
             quantize_bits,
         }
     }
+
+    fn pop_next_unvisited(&mut self) -> Option<(usize, OrbitTile<G, P>)> {
+        while let Some((depth, tile)) = self.queue.pop_front() {
+            let hash = tile.quantize(self.quantize_bits);
+            if self.visited.contains(&hash) {
+                continue;
+            }
+            return Some((depth, tile));
+        }
+
+        return None;
+    }
 }
 
 impl<G, P> Iterator for OrbitIFSIterator<G, P>
@@ -65,18 +77,18 @@ where
     type Item = G;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((depth, tile)) = self.queue.pop_front() {
+        if let Some((depth, tile)) = self.pop_next_unvisited() {
             let hash = tile.quantize(self.quantize_bits);
-            self.visited.insert(hash);
+            let modified = self.visited.insert(hash);
+            assert!(modified);
 
             if depth < self.max_depth {
                 let unvisited_neighbors: Vec<OrbitTile<G, P>> = tile
                     .get_neighbors()
                     .into_iter()
                     .filter(|neighbor| {
-                        !self
-                            .visited
-                            .contains(&neighbor.quantize(self.quantize_bits))
+                        let neighbor_hash = neighbor.quantize(self.quantize_bits);
+                        !self.visited.contains(&neighbor_hash)
                     })
                     .collect();
 
