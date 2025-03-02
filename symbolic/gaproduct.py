@@ -3,9 +3,14 @@ import argparse
 
 
 def display_componentwise(multivec, basis):
+    '''
     for index, value in zip(multivec.keys(), multivec.values()):
         component = value * basis[index]
         print(component)
+    '''
+    for x in multivec.grades:
+        grade_str = str(multivec.grade(x))
+        print(grade_str.replace("+ (", "\n("))
 
 
 BINARY_PRODUCT_FUNCS = {
@@ -52,23 +57,14 @@ BINARY_PRODUCT_FUNCS = {
 }
 
 
-def display_binary_product(algebra, product):
+def display_binary_product(algebra, product, input_a, input_b):
     basis = algebra.basis
-    even_a = algebra.make_even('A')
-    even_b = algebra.make_even('B')
-    odd_a = algebra.make_odd('A')
-    odd_b = algebra.make_odd('B')
 
     func = product['func']
     print(product['label'], "========================")
-    print("Even, Even")
-    display_componentwise(func(even_a, even_b), basis)
-    print("Even, Odd")
-    display_componentwise(func(even_a, odd_b), basis)
-    print("Odd, Even")
-    display_componentwise(func(odd_a, even_b), basis)
-    print("Odd, Odd")
-    display_componentwise(func(odd_a, odd_b), basis)
+    print("A:", input_a)
+    print("B:", input_b)
+    display_componentwise(func(input_a, input_b), basis)
 
 
 PRODUCT_CHOICES = BINARY_PRODUCT_FUNCS.keys()
@@ -253,12 +249,45 @@ ALGEBRAS = {
 
 ALGEBRA_CHOICES = ALGEBRAS.keys()
 
+INPUT_CHOICES = [
+    "even", "odd", "scalar", "vec", "bivec", "trivec", "quadvec", "pentavec"
+]
+
+
+def get_input(label, algebra, input_type):
+    even = algebra.make_even(label)
+    odd = algebra.make_odd(label)
+    match input_type:
+        case "even":
+            return even
+        case "odd":
+            return odd
+        case "scalar":
+            return even.grade(0)
+        case "vec":
+            return odd.grade(1)
+        case "bivec":
+            return even.grade(2)
+        case "trivec":
+            return odd.grade(3)
+        case "quadvec":
+            return even.grade(4)
+        case "pentavec":
+            return odd.grade(5)
+        case _:
+            raise Exception("invalid input type")
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("algebra", choices=ALGEBRA_CHOICES)
     parser.add_argument("product", choices=PRODUCT_CHOICES)
+    parser.add_argument("input_a", choices=INPUT_CHOICES)
+    parser.add_argument("input_b", choices=INPUT_CHOICES)
     args = parser.parse_args()
 
     algebra = ALGEBRAS[args.algebra]
     product = BINARY_PRODUCT_FUNCS[args.product]
-    display_binary_product(algebra, product)
+    input_a = get_input("A", algebra, args.input_a)
+    input_b = get_input("B", algebra, args.input_b)
+    display_binary_product(algebra, product, input_a, input_b)
