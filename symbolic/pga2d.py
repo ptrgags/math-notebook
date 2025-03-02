@@ -1,4 +1,5 @@
 import kingdon
+import argparse
 
 pga2d = kingdon.Algebra(2, 0, 1)
 BASIS = list(pga2d.blades.values())
@@ -23,6 +24,7 @@ even_b = even('B')
 odd_a = odd('A')
 odd_b = odd('B')
 
+'''
 print("Geometric Product ======================")
 print("Even, Even = Even")
 display_componentwise(even_a * even_b)
@@ -47,3 +49,4 @@ print("opposite order:")
 display_componentwise(sandwich(odd_b, even_a))
 print("Odd, Odd = Even")
 display_componentwise(sandwich(odd_a, odd_b))
+'''
