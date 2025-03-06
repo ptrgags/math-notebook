@@ -18,15 +18,15 @@ BINARY_PRODUCT_FUNCS = {
         'label': "Geometric Product",
         'func': lambda a, b: a * b
     },
-    'inner': {
+    'dot': {
         'label': "Inner Product",
         'func': lambda a, b: a | b
     },
-    'outer': {
+    'wedge': {
         'label': 'Outer Product',
         'func': lambda a, b: a ^ b
     },
-    'regressive': {
+    'vee': {
         'label': 'Regressive Product',
         'func': lambda a, b: a & b,
     },
