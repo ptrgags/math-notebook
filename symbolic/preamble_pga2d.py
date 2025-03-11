@@ -1,3 +1,4 @@
+import math
 import kingdon
 alg = kingdon.Algebra(2, 0, 1)
 
@@ -24,3 +25,8 @@ def line(nx, ny, d):
 
 def lerp(a, b, t):
     return (1.0 - t) * a + t * b
+
+
+def rotation(point, angle):
+    half_angle = 0.5 * angle
+    return alg.multivector(e=math.cos(half_angle)) + math.sin(half_angle) * point
