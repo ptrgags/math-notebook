@@ -1,70 +1,56 @@
 use std::collections::VecDeque;
 
-use abstraction::{Group, GroupAction};
+use abstraction::GroupAction;
 
-use crate::{quantized_hash::QuantizedHash, transformable::Transformable};
+use crate::{isogonal::Isogonal, transformable::Transformable};
 
-use super::{orbit_tile::OrbitTile, point_set::Set};
+use super::{
+    point_set::{PointSet, Set},
+    IsogonalTile,
+};
 
-pub struct OrbitIFS<G, P> {
-    initial_tile: OrbitTile<G, P>,
+pub struct OrbitIFS {
+    initial_tile: IsogonalTile,
 }
 
-impl<G, P> OrbitIFS<G, P>
-where
-    G: Group + GroupAction<P>,
-    P: Clone + QuantizedHash,
-{
-    pub fn new(initial_tile: OrbitTile<G, P>) -> Self {
+impl OrbitIFS {
+    pub fn new(initial_tile: IsogonalTile) -> Self {
         Self { initial_tile }
     }
 
-    pub fn orbit<S: Set<P>>(
-        &self,
-        max_depth: usize,
-        quantize_bits: i32,
-    ) -> OrbitIFSIterator<G, S, P> {
+    pub fn orbit(&self, max_depth: usize, quantize_bits: i32) -> OrbitIFSIterator {
         OrbitIFSIterator::new(self.initial_tile.clone(), max_depth, quantize_bits)
     }
 
-    pub fn apply<T: Transformable<G>, S: Set<P>>(
+    pub fn apply<T: Transformable<Isogonal>>(
         &self,
         primitive: &T,
         max_depth: usize,
         quantize_bits: i32,
     ) -> Vec<T> {
-        self.orbit::<S>(max_depth, quantize_bits)
+        self.orbit(max_depth, quantize_bits)
             .map(|xform| primitive.transform(xform))
             .collect()
     }
 }
 
-pub struct OrbitIFSIterator<G, S, P>
-where
-    S: Set<P>,
-{
+pub struct OrbitIFSIterator {
     max_depth: usize,
     // Queue contains pairs of (depth, tile)
-    queue: VecDeque<(usize, OrbitTile<G, P>)>,
-    visited: S,
-    quantize_bits: i32,
+    queue: VecDeque<(usize, IsogonalTile)>,
+    visited: PointSet,
 }
 
-impl<G, S, P> OrbitIFSIterator<G, S, P>
-where
-    S: Set<P>,
-    P: Clone,
-{
-    fn new(initial_tile: OrbitTile<G, P>, max_depth: usize, quantize_bits: i32) -> Self {
+impl OrbitIFSIterator {
+    fn new(initial_tile: IsogonalTile, max_depth: usize, quantize_bits: i32) -> Self {
         Self {
             max_depth,
             queue: VecDeque::from([(0, initial_tile)]),
-            visited: Default::default(),
-            quantize_bits,
+            visited: PointSet::new(quantize_bits),
         }
     }
 
-    fn pop_next_unvisited(&mut self) -> Option<(usize, OrbitTile<G, P>)> {
+    fn pop_next_unvisited(&mut self) -> Option<(usize, IsogonalTile)> {
         while let Some((depth, tile)) = self.queue.pop_front() {
             if self.visited.contains(&tile.representative) {
                 continue;
@@ -76,20 +62,15 @@ where
     }
 }
 
-impl<G, P, S> Iterator for OrbitIFSIterator<G, S, P>
-where
-    G: Group + GroupAction<P>,
-    S: Set<P>,
-    P: Clone,
-{
-    type Item = G;
+impl Iterator for OrbitIFSIterator {
+    type Item = Isogonal;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((depth, tile)) = self.pop_next_unvisited() {
             self.visited.insert(tile.representative.clone());
 
             if depth < self.max_depth {
-                let unvisited_neighbors: Vec<OrbitTile<G, P>> = tile
+                let unvisited_neighbors: Vec<IsogonalTile> = tile
                     .get_neighbors()
                     .into_iter()
                     .filter(|neighbor| !self.visited.contains(&neighbor.representative))

@@ -28,7 +28,7 @@ fn main() -> Result<(), Error> {
         mirror_x,
     ];
 
-    let test_point = Complex::new(0.51, 0.51);
+    let test_point = Complex::new(0.5, 0.5);
 
     let initial_tile = OrbitTile::new(Isogonal::identity(), neighbor_tile_xforms, test_point);
     let ifs = OrbitIFS::new(initial_tile);
@@ -51,7 +51,9 @@ fn main() -> Result<(), Error> {
         ClineArc::from(flag_top),
     ]);
 
-    let flags = ifs.apply(&fundamental_domain, 3, 2);
+    const DEPTH: usize = 6;
+
+    let flags = ifs.apply(&fundamental_domain, DEPTH, 2);
     let style = Style::stroke(255, 63, 63).with_width(0.5);
     let style_original = Style::stroke(255, 255, 255).with_width(0.5);
 
@@ -65,7 +67,7 @@ fn main() -> Result<(), Error> {
         ]),
     )?;
 
-    for (i, xform) in ifs.orbit(3, 8).enumerate() {
+    for (i, xform) in ifs.orbit(DEPTH, 8).enumerate() {
         let point = xform * test_point;
         println!("{}: {} -> {:?}", i, point, point.quantize(4));
     }

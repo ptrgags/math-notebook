@@ -1,6 +1,6 @@
 use abstraction::{Group, GroupAction};
 
-use crate::quantized_hash::QuantizedHash;
+use crate::{isogonal::Isogonal, Complex};
 
 #[derive(Clone)]
 pub struct OrbitTile<G, P> {
@@ -57,17 +57,7 @@ where
     }
 }
 
-// The tile's hash is its representative
-impl<G, P> QuantizedHash for OrbitTile<G, P>
-where
-    P: QuantizedHash,
-{
-    type QuantizedType = P::QuantizedType;
-
-    fn quantize(&self, quantize_bits: i32) -> Self::QuantizedType {
-        self.representative.quantize(quantize_bits)
-    }
-}
+pub type IsogonalTile = OrbitTile<Isogonal, Complex>;
 
 #[cfg(test)]
 mod test {
