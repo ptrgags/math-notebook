@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{complex, quantize, quantized_hash::QuantizedHash, Complex};
+use crate::{quantized_hash::QuantizedHash, Complex};
 
 pub trait Set<V>: Default {
     fn len(&self) -> usize;
