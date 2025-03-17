@@ -5,14 +5,49 @@ use mobius::{
     algorithms::{OrbitIFS, OrbitTile},
     cline_arc::ClineArc,
     geometry::LineSegment,
+    hyperbolic_tilings::{get_fundamental_region, reflection_group},
     isogonal::Isogonal,
+    motifs::candy_corn,
     quantized_hash::QuantizedHash,
     rendering::Style,
-    rotation,
-    svg_plot::{render_views, style_geometry, union, View},
-    transformable::ClineArcTile,
+    rotation, scale,
+    svg_plot::{render_views, style_geometry, style_motifs, union, View},
+    transformable::{ClineArcTile, Transformable},
     translation, Complex,
 };
+
+pub fn better_candy_corners() -> Result<(), Error> {
+    let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();
+
+    let complex = e2_conj * Complex::Zero;
+    let dist_to_edge = 0.5 * (complex).real();
+    let (corn, styles) = candy_corn();
+    let (fundamental_domain, (_, _, vertex)) = get_fundamental_region(3, 7).unwrap();
+    let displacement = vertex * Complex::from(0.4);
+    let shift = translation(displacement).unwrap();
+    let shrink = scale(dist_to_edge * 0.8).unwrap();
+    let rot60 = rotation(PI / 3.0).unwrap();
+    let tiny_corn = corn.transform(shift * rot60 * shrink);
+
+    const DEPTH: usize = 6;
+    const QUANTIZE_BITS: i32 = 16;
+
+    let neighbor_xforms = vec![conj, r_conj, e2_conj];
+    let representative = Complex::new(0.1, 0.25);
+    let orbit_tile = OrbitTile::new(Isogonal::identity(), neighbor_xforms, representative);
+    let ifs = OrbitIFS::new(orbit_tile);
+
+    let style = Style::stroke(0, 127, 35).with_width(0.25);
+    let candy_corners = ifs.apply(&fundamental_domain, DEPTH, QUANTIZE_BITS);
+    render_views(
+        "output",
+        "candy_corners_orbit",
+        &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
+        union(vec![style_geometry(style, &candy_corners[..])]),
+    )?;
+
+    Ok(())
+}
 
 fn main() -> Result<(), Error> {
     let mirror_x = Isogonal::conj();
@@ -52,8 +87,9 @@ fn main() -> Result<(), Error> {
     ]);
 
     const DEPTH: usize = 6;
+    const QUANTIZE_BITS: i32 = 16;
 
-    let flags = ifs.apply(&fundamental_domain, DEPTH, 2);
+    let flags = ifs.apply(&fundamental_domain, DEPTH, QUANTIZE_BITS);
     let style = Style::stroke(255, 63, 63).with_width(0.5);
     let style_original = Style::stroke(255, 255, 255).with_width(0.5);
 
@@ -71,6 +107,8 @@ fn main() -> Result<(), Error> {
         let point = xform * test_point;
         println!("{}: {} -> {:?}", i, point, point.quantize(4));
     }
+
+    better_candy_corners()?;
 
     Ok(())
 }
