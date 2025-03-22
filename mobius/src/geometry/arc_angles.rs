@@ -8,7 +8,7 @@ use thiserror::Error;
 use crate::{float_error::FloatError, interpolation::lerp, nearly::is_nearly};
 
 #[derive(Debug, Error)]
-pub enum ArcAnglesParseError {
+pub enum ArcAnglesError {
     #[error("{0}")]
     BadFloat(#[from] FloatError),
     #[error("arc angles must be distinct: {0}")]
@@ -53,16 +53,16 @@ fn reduce_angles(a: f64, b: f64) -> (f64, f64) {
 }
 
 impl ArcAngles {
-    pub fn new(a: f64, b: f64) -> Result<Self, ArcAnglesParseError> {
+    pub fn new(a: f64, b: f64) -> Result<Self, ArcAnglesError> {
         FloatError::require_finite("a", a)?;
         FloatError::require_finite("b", b)?;
 
         if a == b {
-            return Err(ArcAnglesParseError::DegenerateArc(a));
+            return Err(ArcAnglesError::DegenerateArc(a));
         }
 
         if (b - a).abs() >= TAU {
-            return Err(ArcAnglesParseError::BigArcNotSupported(a, b));
+            return Err(ArcAnglesError::BigArcNotSupported(a, b));
         }
 
         let (reduced_a, reduced_b) = reduce_angles(a, b);
@@ -177,10 +177,8 @@ mod test {
     #[test_case(1.0, INFINITY; "inf b")]
     pub fn new_with_non_finite_returns_error(a: f64, b: f64) {
         let result = ArcAngles::new(a, b);
-        assert!(result.is_err_and(|x| matches!(
-            x,
-            ArcAnglesParseError::BadFloat(FloatError::NonFinite(_, _))
-        )));
+        assert!(result
+            .is_err_and(|x| matches!(x, ArcAnglesError::BadFloat(FloatError::NonFinite(_, _)))));
     }
 
     #[test]
@@ -189,7 +187,7 @@ mod test {
 
         let result = ArcAngles::new(angle, angle);
 
-        assert!(result.is_err_and(|x| matches!(x, ArcAnglesParseError::DegenerateArc(_))));
+        assert!(result.is_err_and(|x| matches!(x, ArcAnglesError::DegenerateArc(_))));
     }
 
     #[test_case(0.0, TAU; "full circle")]
@@ -197,7 +195,7 @@ mod test {
     #[test_case(0.0, -2.0 * TAU; "big clockwise arc")]
     pub fn new_with_big_angle_returns_error(a: f64, b: f64) {
         let result = ArcAngles::new(a, b);
-        assert!(result.is_err_and(|x| matches!(x, ArcAnglesParseError::BigArcNotSupported(_, _))));
+        assert!(result.is_err_and(|x| matches!(x, ArcAnglesError::BigArcNotSupported(_, _))));
     }
 
     #[test_case(0.0, PI; "ccw arc")]

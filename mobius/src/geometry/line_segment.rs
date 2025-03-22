@@ -1,4 +1,4 @@
-use crate::Complex;
+use crate::{interpolation::lerp_complex, Complex};
 
 use super::{DirectedEdge, Geometry};
 
@@ -11,6 +11,18 @@ pub struct LineSegment {
 impl LineSegment {
     pub fn new(start: Complex, end: Complex) -> Self {
         Self { start, end }
+    }
+
+    pub fn reverse(&self) -> Self {
+        let &Self { start, end } = self;
+        Self {
+            start: end,
+            end: start,
+        }
+    }
+
+    pub fn interpolate(&self, t: f64) -> Complex {
+        lerp_complex(self.start, self.end, t)
     }
 }
 

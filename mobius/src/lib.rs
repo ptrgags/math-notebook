@@ -10,7 +10,6 @@ pub mod isogonal;
 mod mobius;
 pub mod motifs;
 mod nearly;
-pub mod orthogonal_arcs;
 mod recipes;
 pub mod rendering;
 pub mod svg_plot;

@@ -2,7 +2,8 @@ use std::f64::consts::{PI, TAU};
 
 use crate::{
     geometry::{
-        ArcAngles, Circle, CircularArc, DirectedEdge, GeneralizedCircle, Line, LineSegment,
+        ArcAngles, Circle, CircularArc, DirectedEdge, DoubleRay, GeneralizedCircle, Line,
+        LineSegment,
     },
     nearly::is_nearly,
     Complex,
@@ -62,11 +63,40 @@ pub fn compute_orthogonal_circle(
     GeneralizedCircle::Circle(orthog_circle)
 }
 
-pub fn compute_orthogonal_arc(arc: CircularArc) -> CircularArc {
+/// Similar to ClineArcGeometry, but the cases are a little more
+/// restricted since both endpoints are finite.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum OrthogonalArc {
+    Arc(CircularArc),
+    Diameter(LineSegment),
+    /// Part of the diameter line outside the circle.
+    /// see integer_arc.rs
+    DiameterOutside(DoubleRay),
+}
+
+impl OrthogonalArc {
+    pub fn reverse(&self) -> Self {
+        match self {
+            OrthogonalArc::Arc(circular_arc) => OrthogonalArc::Arc(circular_arc.reverse()),
+            OrthogonalArc::Diameter(line_segment) => {
+                OrthogonalArc::Diameter(line_segment.reverse())
+            }
+            OrthogonalArc::DiameterOutside(double_ray) => {
+                OrthogonalArc::DiameterOutside(double_ray.reverse())
+            }
+        }
+    }
+}
+
+pub fn compute_orthogonal_arc(arc: CircularArc) -> OrthogonalArc {
     let circle = arc.circle;
     let orthog_circle = match compute_orthogonal_circle(circle, arc.angles) {
         GeneralizedCircle::Circle(sub_circle) => sub_circle,
-        GeneralizedCircle::Line(_) => panic!("Not implemented: sub arc that's a line"),
+        GeneralizedCircle::Line(_) => {
+            let a = arc.start();
+            let b = arc.end();
+            return OrthogonalArc::Diameter(LineSegment::new(a, b));
+        }
     };
 
     // Compute the arc from b -> a that's inside the original circle. This will
@@ -75,25 +105,23 @@ pub fn compute_orthogonal_arc(arc: CircularArc) -> CircularArc {
     let angle_a_raw = orthog_circle.get_angle(arc.start()).unwrap();
     let angle_b_raw = orthog_circle.get_angle(arc.end()).unwrap();
     let mut sub_angles = ArcAngles::from_raw_angles(angle_b_raw, angle_a_raw, arc.direction());
-    if sub_angles.central_angle() > PI {
-        sub_angles = sub_angles.complement();
+    if arc.angles.central_angle() > PI {
+        sub_angles = sub_angles.complement().reverse();
     }
 
-    CircularArc::new(orthog_circle, sub_angles)
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum OrthogonalArc {
-    Arc(CircularArc),
-    Segment(LineSegment),
+    OrthogonalArc::Arc(CircularArc::new(orthog_circle, sub_angles))
 }
 
 #[cfg(test)]
 mod test {
+    use std::error::Error;
+
     use crate::{geometry::Line, unit_complex::UnitComplex};
 
     use super::*;
     use test_case::test_case;
+
+    type Res = Result<(), Box<dyn Error>>;
 
     fn make_circle() -> Circle {
         Circle::new(Complex::new(1.0, 2.0), 4.0)
@@ -135,5 +163,59 @@ mod test {
             GeneralizedCircle::Circle(circle) => panic!("not a line! {}", circle),
             GeneralizedCircle::Line(line) => assert_eq!(line, expected),
         }
+    }
+
+    #[test]
+    pub fn compute_orthogonal_arc_with_semicircle_returns_diameter() -> Res {
+        let semicircle = CircularArc::new(Circle::unit_circle(), ArcAngles::new(0.0, PI)?);
+
+        let result = compute_orthogonal_arc(semicircle);
+
+        let expected = LineSegment::new(Complex::ONE, -Complex::ONE);
+        match result {
+            OrthogonalArc::Diameter(line_segment) => assert_eq!(line_segment, expected),
+            x => panic!("not a diameter: {:?}", x),
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    pub fn compute_orthogonal_arc_with_small_arc_returns_arc_inside_circle() -> Res {
+        let small_arc = CircularArc::new(Circle::unit_circle(), ArcAngles::new(PI / 2.0, PI)?);
+
+        let result = compute_orthogonal_arc(small_arc);
+
+        let expected = CircularArc::new(
+            Circle::new(Complex::new(-1.0, 1.0), 1.0),
+            ArcAngles::new(3.0 * PI / 2.0, 2.0 * PI)?,
+        );
+
+        match result {
+            OrthogonalArc::Arc(circular_arc) => assert_eq!(circular_arc, expected),
+            x => panic!("expected an arc: {:?}", x),
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    pub fn compute_orthogonal_arc_with_large_arc_returns_arc_inside_circle() -> Res {
+        let large_arc =
+            CircularArc::new(Circle::unit_circle(), ArcAngles::new(PI / 2.0, 2.0 * PI)?);
+
+        let result = compute_orthogonal_arc(large_arc);
+
+        let expected = CircularArc::new(
+            Circle::new(Complex::new(1.0, 1.0), 1.0),
+            ArcAngles::new(3.0 * PI / 2.0, PI)?,
+        );
+
+        match result {
+            OrthogonalArc::Arc(circular_arc) => assert_eq!(circular_arc, expected),
+            x => panic!("expected an arc: {:?}", x),
+        }
+
+        Ok(())
     }
 }

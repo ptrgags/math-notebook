@@ -3,8 +3,10 @@ pub mod circle;
 pub mod circular_arc;
 pub mod double_ray;
 pub mod generalized_circle;
+pub mod integer_arcs;
 pub mod line;
 pub mod line_segment;
+pub mod orthogonal_arcs;
 pub mod ray;
 
 use crate::Complex;
