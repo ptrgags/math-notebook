@@ -4,11 +4,19 @@ use crate::{
 };
 
 #[derive(Clone, Copy)]
+pub enum PathCommand {
+    MoveTo(Complex),
+    LineTo(Complex),
+    ArcTo(CircularArc),
+}
+
+#[derive(Clone)]
 pub enum RenderPrimitive {
     Point(Complex),
     Circle(Circle),
     LineSegment(LineSegment),
     CircularArc(CircularArc),
+    Polygon(Vec<PathCommand>),
 }
 
 const FAR_AWAY: f64 = 10000.0;

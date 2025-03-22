@@ -34,6 +34,30 @@ impl Style {
         }
     }
 
+    pub fn with_stroke(&self, r: u8, g: u8, b: u8) -> Self {
+        Self {
+            stroke: Some(ColorRGB(r, g, b)),
+            fill: self.fill,
+            width_percent: self.width_percent,
+        }
+    }
+
+    pub fn fill(r: u8, g: u8, b: u8) -> Self {
+        Self {
+            stroke: None,
+            fill: Some(ColorRGB(r, g, b)),
+            width_percent: None,
+        }
+    }
+
+    pub fn with_fill(&self, r: u8, g: u8, b: u8) -> Self {
+        Self {
+            stroke: self.stroke,
+            fill: Some(ColorRGB(r, g, b)),
+            width_percent: self.width_percent,
+        }
+    }
+
     pub fn with_width(&self, width: f64) -> Self {
         Self {
             stroke: self.stroke,
