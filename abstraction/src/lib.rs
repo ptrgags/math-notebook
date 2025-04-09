@@ -1,3 +1,5 @@
+pub mod dfs;
+
 use std::ops::Mul;
 
 pub struct PowerIterator<S: Monoid> {
@@ -107,6 +109,9 @@ pub trait Group: Monoid {
         a.clone() * b.clone() * a.inverse() * b.inverse()
     }
 }
+
+pub trait GroupAction<X>: Group + Mul<X, Output = X> {}
+impl<G, X> GroupAction<X> for G where G: Group + Mul<X, Output = X> {}
 
 /// Test that identity * identity = identity (idempotent)
 /// Test that identity * x = x * identity = x for each x (identity law)

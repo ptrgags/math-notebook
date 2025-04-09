@@ -3,6 +3,8 @@ use std::fmt::{self, Display};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::nearly::is_nearly;
+use crate::quantize::quantize;
+use crate::quantized_hash::QuantizedHash;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Complex {
@@ -243,6 +245,18 @@ impl PartialEq for Complex {
             (Self::Zero, Self::Zero) => true,
             (Self::Infinity, Self::Infinity) => true,
             _ => false,
+        }
+    }
+}
+
+impl QuantizedHash for Complex {
+    type QuantizedType = (isize, isize);
+
+    fn quantize(&self, quantize_bits: i32) -> Self::QuantizedType {
+        match self {
+            Complex::Zero => (0, 0),
+            Complex::Finite(a, b) => (quantize(*a, quantize_bits), quantize(*b, quantize_bits)),
+            Complex::Infinity => (isize::MAX, isize::MAX),
         }
     }
 }
