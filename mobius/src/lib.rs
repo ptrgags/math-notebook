@@ -11,6 +11,7 @@ pub mod isogonal_recipes;
 mod mobius;
 pub mod motifs;
 mod nearly;
+pub mod polygon;
 pub mod quantize;
 pub mod quantized_hash;
 mod recipes;

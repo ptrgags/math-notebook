@@ -1,7 +1,11 @@
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, PI, SQRT_2, TAU};
+use std::{
+    error::Error,
+    f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, PI, SQRT_2, TAU},
+};
 
 use crate::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
+    polygon::Polygon,
     rendering::Style,
     scale,
     transformable::{ClineArcTile, Motif, Transformable},
@@ -16,7 +20,7 @@ fn circle_to_arcs(circle: Circle) -> (CircularArc, CircularArc) {
     (top, bottom)
 }
 
-pub fn ghost() -> (ClineArcTile, Style) {
+pub fn ghost() -> Result<(Motif<Polygon>, [Style; 2]), Box<dyn Error>> {
     const SIDE_HEIGHT: f64 = 1.5;
     const CIRCLE_SPACING: f64 = 2.0 / 5.0;
     const BOTTOM_CIRCLE_RADIUS: f64 = 1.0 / 5.0;
@@ -40,31 +44,40 @@ pub fn ghost() -> (ClineArcTile, Style) {
 
     let (upper, lower) = ArcAngles::semicircles();
 
-    let ghost = ClineArcTile::new(vec![
+    let ghost_body = Polygon::new(vec![
         // top of ghost head is a semi-circle
         CircularArc::new(head_circle, upper).into(),
         // Left side
         LineSegment::new(-Complex::ONE, Complex::new(-1.0, -SIDE_HEIGHT)).into(),
         // Five semi-circles for the bottom
         CircularArc::new(bottom_circles[0], lower).into(),
-        CircularArc::new(bottom_circles[1], upper).into(),
+        CircularArc::new(bottom_circles[1], upper.reverse()).into(),
         CircularArc::new(bottom_circles[2], lower).into(),
-        CircularArc::new(bottom_circles[3], upper).into(),
+        CircularArc::new(bottom_circles[3], upper.reverse()).into(),
         CircularArc::new(bottom_circles[4], lower).into(),
         // Right side
         LineSegment::new(Complex::new(1.0, -SIDE_HEIGHT), Complex::ONE).into(),
-        // Eyes and mouths are circles drawn as two semicircles
-        left_eye_top.into(),
-        left_eye_bottom.into(),
-        right_eye_top.into(),
-        right_eye_bottom.into(),
-        mouth_top.into(),
-        mouth_bottom.into(),
+    ])?;
+
+    let left_eye = Polygon::new(vec![left_eye_top.into(), left_eye_bottom.into()])?;
+    let right_eye = Polygon::new(vec![right_eye_top.into(), right_eye_bottom.into()])?;
+    let mouth = Polygon::new(vec![mouth_top.into(), mouth_bottom.into()])?;
+
+    let ghost = Motif::new(vec![
+        (ghost_body, 0),
+        (left_eye, 1),
+        (right_eye, 1),
+        (mouth, 1),
     ]);
 
-    let style = Style::stroke(0xc5, 0xf2, 0xfa).with_width(0.25);
+    let styles = [
+        // Ghostly blue body
+        Style::fill(0xc5, 0xf2, 0xfa),
+        // Black for the eyes and mouth
+        Style::fill(0, 0, 0),
+    ];
 
-    (ghost, style)
+    Ok((ghost, styles))
 }
 
 fn lerp(a: Complex, b: Complex, t: f64) -> Complex {
@@ -74,7 +87,7 @@ fn lerp(a: Complex, b: Complex, t: f64) -> Complex {
 /// Make a candy corn motif
 /// See my [desmos sketch](https://www.desmos.com/calculator/4gidpmhf7c) for
 /// an illustration
-pub fn candy_corn() -> (Motif, Vec<Style>) {
+pub fn candy_corn() -> Result<(Motif<Polygon>, Vec<Style>), Box<dyn Error>> {
     // Start with a triangle at the third roots of unity
     let a = Complex::ONE;
     let b = Complex::from_polar(1.0, 2.0 * FRAC_PI_3);
@@ -122,9 +135,9 @@ pub fn candy_corn() -> (Motif, Vec<Style>) {
     let circle_a = Circle::new(center_a, radius);
     let circle_b = Circle::new(center_b, radius);
     let circle_c = Circle::new(center_c, radius);
-    let angles_a = ArcAngles::new(-FRAC_PI_3, FRAC_PI_3).unwrap();
-    let angles_b = ArcAngles::new(FRAC_PI_3, PI).unwrap();
-    let angles_c = ArcAngles::new(-PI, -FRAC_PI_3).unwrap();
+    let angles_a = ArcAngles::new(-FRAC_PI_3, FRAC_PI_3)?;
+    let angles_b = ArcAngles::new(FRAC_PI_3, PI)?;
+    let angles_c = ArcAngles::new(-PI, -FRAC_PI_3)?;
     let arc_a = CircularArc::new(circle_a, angles_a);
     let arc_b = CircularArc::new(circle_b, angles_b);
     let arc_c = CircularArc::new(circle_c, angles_c);
@@ -135,44 +148,44 @@ pub fn candy_corn() -> (Motif, Vec<Style>) {
     let radius2 = 2.0 * radius1;
     let circle1 = Circle::new(a, radius1);
     let circle2 = Circle::new(a, radius2);
-    let divider_angles = ArcAngles::new(5.0 * FRAC_PI_6, 7.0 * FRAC_PI_6).unwrap();
+    let divider_angles = ArcAngles::new(5.0 * FRAC_PI_6, 7.0 * FRAC_PI_6)?;
     let arc1 = CircularArc::new(circle1, divider_angles);
     let arc2 = CircularArc::new(circle2, divider_angles);
 
     // Build the three parts of the candy corn
-    let base = ClineArcTile::new(vec![
+    let base = Polygon::new(vec![
         line_ab2_b.into(),
         arc_b.into(),
         line_bc.into(),
         arc_c.into(),
         line_c_ac2.into(),
-        arc2.into(),
-    ]);
-    let mid = ClineArcTile::new(vec![
+        arc2.reverse().into(),
+    ])?;
+    let mid = Polygon::new(vec![
         line_ab1_ab2.into(),
         arc2.into(),
         line_ac2_ac1.into(),
-        arc1.into(),
-    ]);
-    let tip = ClineArcTile::new(vec![
+        arc1.reverse().into(),
+    ])?;
+    let tip = Polygon::new(vec![
         arc_a.into(),
         line_a_ab1.into(),
         arc1.into(),
         line_ac1_a.into(),
-    ]);
+    ])?;
 
     let styles = vec![
         // Yellow base
-        Style::stroke(255, 255, 0).with_width(0.25),
+        Style::fill(255, 255, 0).with_width(0.25),
         // Orange middle
-        Style::stroke(255, 127, 0).with_width(0.25),
+        Style::fill(255, 127, 0).with_width(0.25),
         // White tip
-        Style::stroke(255, 255, 255).with_width(0.25),
+        Style::fill(255, 255, 255).with_width(0.25),
     ];
 
     let candy_corn = Motif::new(vec![(base, 0), (mid, 1), (tip, 2)]);
 
-    (candy_corn, styles)
+    Ok((candy_corn, styles))
 }
 
 /// Create a vertical cartoon bone that fits in [-2, 2] x [- (length/2 + 1), (length/2 + 1)]
@@ -181,7 +194,7 @@ pub fn candy_corn() -> (Motif, Vec<Style>) {
 /// Since that's rather large, this shrinks the result down so the epiphyses
 /// are at -i and i. So the length parameter really determines the length
 /// to width ratio in practice.
-pub fn bone(length: f64) -> ClineArcTile {
+pub fn bone(length: f64) -> Result<Polygon, Box<dyn Error>> {
     let half_width = Complex::ONE;
     let half_height = Complex::new(0.0, 0.5 * length);
 
@@ -198,10 +211,10 @@ pub fn bone(length: f64) -> ClineArcTile {
     let circle_bottom_left = Circle::new(center_bottom_left, 1.0);
     let circle_bottom_right = Circle::new(center_bottom_right, 1.0);
 
-    let angles_top_left = ArcAngles::new(0.0, 3.0 * FRAC_PI_2).unwrap();
-    let angles_top_right = ArcAngles::new(-FRAC_PI_2, PI).unwrap();
-    let angles_bottom_left = ArcAngles::new(FRAC_PI_2, TAU).unwrap();
-    let angles_bottom_right = ArcAngles::new(-PI, FRAC_PI_2).unwrap();
+    let angles_top_left = ArcAngles::new(0.0, 3.0 * FRAC_PI_2)?;
+    let angles_top_right = ArcAngles::new(-FRAC_PI_2, PI)?;
+    let angles_bottom_left = ArcAngles::new(FRAC_PI_2, TAU)?;
+    let angles_bottom_right = ArcAngles::new(-PI, FRAC_PI_2)?;
     let arc_top_left = CircularArc::new(circle_top_left, angles_top_left);
     let arc_top_right = CircularArc::new(circle_top_right, angles_top_right);
     let arc_bottom_left = CircularArc::new(circle_bottom_left, angles_bottom_left);
@@ -218,23 +231,23 @@ pub fn bone(length: f64) -> ClineArcTile {
 
     // the bone line's connected to the bone arc
     // the bone arc's connected to the bone arc... 🎵
-    let big_bone = ClineArcTile::new(vec![
+    let big_bone = Polygon::new(vec![
         right_side.into(),
         arc_top_right.into(),
         arc_top_left.into(),
         left_side.into(),
         arc_bottom_left.into(),
         arc_bottom_right.into(),
-    ]);
+    ])?;
 
-    let shrink = scale(2.0 / length).unwrap();
+    let shrink = scale(2.0 / length)?;
 
-    big_bone.transform(shrink)
+    Ok(big_bone.transform(shrink))
 }
 
 /// Create a motif shaped like a witch's hat.
 /// It's normalized so it fits in the unit circle
-pub fn witch_hat() -> Motif {
+pub fn witch_hat() -> Result<Motif<ClineArcTile>, Box<dyn Error>> {
     // The circles can be found at https://www.desmos.com/calculator/nrdpneh58g
     // The brim of the hat is made from 3 circular arcs
     let circle_brim_bottom = Circle::new(Complex::Zero, 2.0);
@@ -245,11 +258,11 @@ pub fn witch_hat() -> Motif {
     let circle_point_top = Circle::new(Complex::new(1.0, 1.0), 2.0);
 
     // Outline the outside of the hat
-    let angles_brim_left = ArcAngles::new(FRAC_PI_2, PI).unwrap();
-    let angles_brim_bottom = ArcAngles::new(-PI, 0.0).unwrap();
-    let angles_brim_right = ArcAngles::new(0.0, FRAC_PI_2).unwrap();
-    let angles_point_bottom = ArcAngles::new(PI, 0.0).unwrap();
-    let angles_point_top = ArcAngles::new(0.0, PI).unwrap();
+    let angles_brim_left = ArcAngles::new(FRAC_PI_2, PI)?;
+    let angles_brim_bottom = ArcAngles::new(-PI, 0.0)?;
+    let angles_brim_right = ArcAngles::new(0.0, FRAC_PI_2)?;
+    let angles_point_bottom = ArcAngles::new(PI, 0.0)?;
+    let angles_point_top = ArcAngles::new(0.0, PI)?;
     let arc_brim_left = CircularArc::new(circle_brim_left, angles_brim_left);
     let arc_brim_bottom = CircularArc::new(circle_brim_bottom, angles_brim_bottom);
     let arc_brim_right = CircularArc::new(circle_brim_right, angles_brim_right);
@@ -268,7 +281,7 @@ pub fn witch_hat() -> Motif {
     let circle_band_top = Circle::new(Complex::new(0.0, 2.0), SQRT_2);
     let circle_band_bottom = Circle::new(Complex::I, SQRT_2);
 
-    let angles_band = ArcAngles::new(-FRAC_PI_4, -3.0 * FRAC_PI_4).unwrap();
+    let angles_band = ArcAngles::new(-FRAC_PI_4, -3.0 * FRAC_PI_4)?;
     let arc_band_top = CircularArc::new(circle_band_top, angles_band);
     let band_left = LineSegment::new(Complex::new(-1.0, 1.0), -Complex::ONE);
     let arc_band_bottom = CircularArc::new(circle_band_bottom, angles_band.reverse());
@@ -281,21 +294,21 @@ pub fn witch_hat() -> Motif {
         band_right.into(),
     ]);
 
-    let shrink = scale(1.0 / 4.0).unwrap();
+    let shrink = scale(1.0 / 4.0)?;
 
-    Motif::new(vec![(outside, 0), (band, 1)]).transform(shrink)
+    Ok(Motif::new(vec![(outside, 0), (band, 1)]).transform(shrink))
 }
 
 /// Create a skull motif that _nearly_ fits in the unit circle. the teeth
 /// stick out a tiny bit.
-pub fn skull() -> ClineArcTile {
+pub fn skull() -> Result<(Polygon, ClineArcTile), Box<dyn Error>> {
     let top_circle = Circle::new(Complex::Zero, 2.0);
     let left_circle = Circle::new(-Complex::ONE, 1.0);
     let right_circle = Circle::new(Complex::ONE, 1.0);
 
-    let angles_top = ArcAngles::new(0.0, PI).unwrap();
-    let angles_left = ArcAngles::new(PI, 3.0 * FRAC_PI_2).unwrap();
-    let angles_right = ArcAngles::new(-FRAC_PI_2, 0.0).unwrap();
+    let angles_top = ArcAngles::new(0.0, PI)?;
+    let angles_left = ArcAngles::new(PI, 3.0 * FRAC_PI_2)?;
+    let angles_right = ArcAngles::new(-FRAC_PI_2, 0.0)?;
     let arc_top = CircularArc::new(top_circle, angles_top);
     let arc_left = CircularArc::new(left_circle, angles_left);
     let arc_right = CircularArc::new(right_circle, angles_right);
@@ -323,23 +336,27 @@ pub fn skull() -> ClineArcTile {
     let (left_eye_top, left_eye_bottom) = circle_to_arcs(left_eye);
     let (right_eye_top, right_eye_bottom) = circle_to_arcs(right_eye);
 
-    let skull = ClineArcTile::new(vec![
+    let skull = Polygon::new(vec![
         arc_right.into(),
         arc_top.into(),
         arc_left.into(),
-        teeth_bottom.into(),
         teeth_verticals[0].into(),
+        teeth_bottom.into(),
+        teeth_verticals[4].reverse().into(),
+    ])?;
+
+    // Detail for the eyes and teeth
+    let detail = ClineArcTile::new(vec![
         teeth_verticals[1].into(),
         teeth_verticals[2].into(),
         teeth_verticals[3].into(),
-        teeth_verticals[4].into(),
         left_eye_top.into(),
         left_eye_bottom.into(),
         right_eye_top.into(),
         right_eye_bottom.into(),
     ]);
 
-    let shrink = scale(0.5).unwrap();
+    let shrink = scale(0.5)?;
 
-    skull.transform(shrink)
+    Ok((skull.transform(shrink), detail.transform(shrink)))
 }

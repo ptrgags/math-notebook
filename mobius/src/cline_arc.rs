@@ -3,8 +3,8 @@ use std::fmt::Display;
 use crate::{
     complex_error::ComplexError,
     geometry::{
-        orthogonal_arcs::OrthogonalArc, ArcAngles, ArcDirection, Circle, CircularArc, DoubleRay,
-        GeneralizedCircle, Line, LineSegment, Ray,
+        orthogonal_arcs::OrthogonalArc, ArcAngles, ArcDirection, Circle, CircularArc, DirectedEdge,
+        DoubleRay, GeneralizedCircle, Line, LineSegment, Ray,
     },
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
@@ -219,6 +219,16 @@ impl From<OrthogonalArc> for ClineArc {
             OrthogonalArc::Diameter(line_segment) => ClineArc::from(line_segment),
             OrthogonalArc::DiameterOutside(double_ray) => ClineArc::from(double_ray),
         }
+    }
+}
+
+impl DirectedEdge for ClineArc {
+    fn start(&self) -> Complex {
+        self.a
+    }
+
+    fn end(&self) -> Complex {
+        self.c
     }
 }
 
