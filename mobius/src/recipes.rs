@@ -38,6 +38,16 @@ pub fn scale(k: f64) -> Result<Mobius, String> {
     )
 }
 
+// equivalent to scale(-1.0), but expressed exactly
+pub fn point_reflection() -> Mobius {
+    Mobius {
+        a: Complex::I,
+        b: Complex::Zero,
+        c: Complex::Zero,
+        d: -Complex::I,
+    }
+}
+
 pub fn parabolic(d: Complex) -> Result<Mobius, String> {
     Mobius::new(Complex::ONE, Complex::Zero, Complex::ONE / d, Complex::ONE)
 }
@@ -301,6 +311,29 @@ mod test {
 
         assert_eq!(xform_type, MobiusType::Hyperbolic);
         Ok(())
+    }
+
+    #[test]
+    pub fn scale_scales_components() -> Result<(), String> {
+        let scale = scale(4.0)?;
+        let point = Complex::new(2.0, -3.0);
+
+        let result = scale * point;
+
+        let expected = Complex::new(8.0, -12.0);
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    pub fn point_reflection_flips_components() {
+        let negate = point_reflection();
+
+        let point = Complex::new(1.0, -2.0);
+        let result = negate * point;
+
+        let expected = -point;
+        assert_eq!(result, expected);
     }
 
     #[test]

@@ -39,7 +39,7 @@ pub fn render_line(
     let arcs: Result<Vec<ClineArc>, Box<dyn Error>> = brackets
         .iter()
         .map(|(a, b, hemisphere)| -> Result<ClineArc, Box<dyn Error>> {
-            let arc = arc_on_line_by_hemisphere(a, b, hemisphere)?;
+            let arc = arc_on_line_by_hemisphere(a as i64, b as i64, hemisphere)?;
             Ok(ClineArc::from(arc))
         })
         .collect();
@@ -80,7 +80,7 @@ pub fn render_circle(
     let arcs: Result<Vec<ClineArc>, Box<dyn Error>> = brackets
         .iter()
         .map(|(a, b, hemisphere)| -> Result<ClineArc, Box<dyn Error>> {
-            let arc = arc_on_circle_by_hemisphere(a, b, n, hemisphere)?;
+            let arc = arc_on_circle_by_hemisphere(a as usize, b as usize, n, hemisphere)?;
             Ok(ClineArc::from(arc))
         })
         .collect();

@@ -23,7 +23,7 @@ pub struct BalancedBrackets {
 
 impl BalancedBrackets {
     pub fn new(bracket_string: &str) -> Result<Self, BracketError> {
-        let mut depth: i32 = 0;
+        let mut depth: i64 = 0;
         let mut brackets = Vec::new();
         for c in bracket_string.chars() {
             match c {
@@ -53,7 +53,7 @@ impl BalancedBrackets {
         self.brackets.len()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (i64, i64)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = (usize, usize)> + '_ {
         BracketIterator::new(&self.brackets)
     }
 }
@@ -61,7 +61,7 @@ impl BalancedBrackets {
 struct BracketIterator<'a> {
     brackets: &'a [Bracket],
     index: usize,
-    stack: Vec<i64>,
+    stack: Vec<usize>,
 }
 
 impl<'a> BracketIterator<'a> {
@@ -75,7 +75,7 @@ impl<'a> BracketIterator<'a> {
 }
 
 impl<'a> Iterator for BracketIterator<'a> {
-    type Item = (i64, i64);
+    type Item = (usize, usize);
 
     fn next(&mut self) -> Option<Self::Item> {
         while self.index < self.brackets.len() {
@@ -84,10 +84,10 @@ impl<'a> Iterator for BracketIterator<'a> {
             self.index += 1;
 
             match self.brackets[current] {
-                Bracket::Left => self.stack.push(current as i64),
+                Bracket::Left => self.stack.push(current),
                 Bracket::Right => {
                     let a = self.stack.pop().unwrap();
-                    let b = current as i64;
+                    let b = current;
                     return Some((a, b));
                 }
             }
@@ -114,7 +114,7 @@ impl MatchedBalancedBrackets {
         self.0.len()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (i64, i64, Hemisphere)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = (usize, usize, Hemisphere)> + '_ {
         let Self(north, south) = self;
         let labeled_north = north.iter().map(|(a, b)| (a, b, Hemisphere::North));
         let labeled_south = south.iter().map(|(a, b)| (a, b, Hemisphere::South));
