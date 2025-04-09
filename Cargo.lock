@@ -157,6 +157,7 @@ dependencies = [
  "abstraction",
  "clap",
  "derive_more",
+ "permutations",
  "pretty_assertions",
  "svg",
  "test-case",
@@ -168,6 +169,7 @@ name = "permutations"
 version = "0.1.0"
 dependencies = [
  "abstraction",
+ "thiserror",
 ]
 
 [[package]]
