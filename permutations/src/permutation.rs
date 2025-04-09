@@ -42,7 +42,31 @@ impl<const N: usize> Permutation<N> {
         Self::new(combined)
     }
 
-    /// Compute the cycle decomposition for the permutation.
+    pub fn order(&self) -> usize {
+        let id = Self::identity();
+        let mut current = *self;
+        for power in 1.. {
+            if current == id {
+                return power;
+            }
+
+            current = *self * current;
+        }
+
+        unreachable!();
+    }
+
+    pub fn out_of_place(&self) -> usize {
+        let mut count: usize = 0;
+        for (i, value) in self.values.iter().enumerate() {
+            if *value != i {
+                count += 1;
+            }
+        }
+
+        count
+    }
+
     pub fn cycle_decomposition(&self) -> DisjointCycles<N> {
         let mut visited = [false; N];
         let mut result = Vec::new();
