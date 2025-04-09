@@ -1,6 +1,8 @@
-use std::{collections::HashSet, ops::Mul};
+use std::{collections::HashSet, fmt::Display, ops::Mul, str::FromStr};
 
 use abstraction::{Group, Monoid};
+
+use crate::{disjoint_cycles::DisjointCycles, permutation_error::PermutationError};
 
 /// Mathematical permutation of N elements. An element of the symmetric group S_N
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
@@ -9,19 +11,78 @@ pub struct Permutation<const N: usize> {
 }
 
 impl<const N: usize> Permutation<N> {
-    pub fn new(values: [usize; N]) -> Result<Self, String> {
+    pub fn new(values: [usize; N]) -> Result<Self, PermutationError> {
         let unique_values: HashSet<usize> = HashSet::from_iter(values.iter().cloned());
         if unique_values.len() < values.len() {
-            return Err(String::from("values must not have repeat elements"));
+            return Err(PermutationError::RepeatElement);
         }
 
         for value in values {
-            if value > values.len() {
-                return Err(String::from("values must be less than length of slice"));
+            if value >= N {
+                return Err(PermutationError::ValueOutOfRange(value, N));
             }
         }
 
         Ok(Self { values })
+    }
+
+    pub fn from_disjoint_cycles(
+        disjoint_cycles: DisjointCycles<N>,
+    ) -> Result<Self, PermutationError> {
+        let mut combined = [0; N];
+        (0..N).for_each(|i| combined[i] = i);
+
+        let DisjointCycles(cycles) = disjoint_cycles;
+        for cycle in cycles.iter().rev() {
+            for (i, &element) in cycle.iter().enumerate() {
+                combined[element] = cycle[(i + 1) % cycle.len()];
+            }
+        }
+
+        Self::new(combined)
+    }
+
+    /// Compute the cycle decomposition for the permutation.
+    pub fn cycle_decomposition(&self) -> DisjointCycles<N> {
+        let mut visited = [false; N];
+        let mut result = Vec::new();
+
+        for start_element in 0..N {
+            if visited[start_element] {
+                continue;
+            }
+            visited[start_element] = true;
+            let mut cycle = vec![start_element];
+
+            let mut current = self.values[start_element];
+            while current != start_element {
+                visited[current] = true;
+                cycle.push(current);
+                current = self.values[current];
+            }
+
+            if cycle.len() > 1 {
+                result.push(cycle);
+            }
+        }
+
+        DisjointCycles::new(result).expect("unable to create DisjointCycles from Permutation")
+    }
+}
+
+impl<const N: usize> FromStr for Permutation<N> {
+    type Err = PermutationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let disjoint_cycles = s.parse::<DisjointCycles<N>>()?;
+
+        Self::from_disjoint_cycles(disjoint_cycles)
+    }
+}
+
+impl<const N: usize> Display for Permutation<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.cycle_decomposition().fmt(f)
     }
 }
 
@@ -69,17 +130,20 @@ mod test {
     use super::*;
 
     #[test]
-    pub fn new_returns_error_for_out_of_range_element() {
+    pub fn new_with_out_of_range_element_returns_error() {
         let result = Permutation::new([0, 1, 2, 10]);
 
-        assert!(result.is_err_and(|e| e.contains("values must be less than length of slice")));
+        assert!(matches!(
+            result,
+            Err(PermutationError::ValueOutOfRange(_, _))
+        ));
     }
 
     #[test]
-    pub fn new_returns_error_for_duplicate_element() {
+    pub fn new_with_duplicate_element_returns_error() {
         let result = Permutation::new([0, 2, 2, 1]);
 
-        assert!(result.is_err_and(|e| e.contains("values must not have repeat elements")));
+        assert!(matches!(result, Err(PermutationError::RepeatElement)));
     }
 
     #[test]
@@ -87,6 +151,18 @@ mod test {
         let result = Permutation::new([0, 2, 3, 1]);
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    pub fn from_disjoint_cycles_computes_correct_permutation() {
+        // (0 2)(3 4)(1 5)
+        // is the same as
+        // [0 1 2 3 4 5]
+        // [2 5 0 4 3 1]
+        let cycles = DisjointCycles::<6>::new(vec![vec![0, 2], vec![3, 4], vec![1, 5]]).unwrap();
+        let result = Permutation::from_disjoint_cycles(cycles).unwrap();
+        let expected = Permutation::new([2, 5, 0, 4, 3, 1]).unwrap();
+        assert_eq!(result, expected);
     }
 
     #[test]
