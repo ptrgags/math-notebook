@@ -23,6 +23,7 @@ cargo run --example EXAMPLE_NAME [ARGS]
 
 ## Code
 
+- ⚠️ I need to organize this part of the repo better. There's a mix of complex numbers, SVG rendering and other things in here
 - `algorithms` - this includes different algorithms for making fractals with iterated function systems
 - `geometry` - geometric objects that can be transformed with this math code
-- `motifs` - Basic shapes used in the examples ()
+- `motifs` - Basic shapes used in the examples ⚠️ This should go with the examples then?
