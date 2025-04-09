@@ -1,5 +1,5 @@
 use abstraction::Group;
-use permutations::Permutation;
+use permutations::{DisjointCycles, Permutation};
 
 // Two faces of a 2x2 cube
 type TwoFaces = Permutation<18>;
@@ -10,18 +10,21 @@ fn display(label: &str, x: &TwoFaces) {
     println!("out of place: {}", x.out_of_place());
 }
 
+// This example explores different sequences of rotating two adjacent faces of a
+// 2x2 twisty cube. This permutes 18 out of the 24 facelets of the cube, leaving
+// the far edge's 6 faces unchanged
 pub fn main() {
-    let a: TwoFaces = Permutation::from_cycles(vec![
+    let a: TwoFaces = Permutation::from_disjoint_cycles(DisjointCycles(vec![
         vec![0, 1, 2, 3],
         vec![4, 8, 10, 12],
         vec![7, 9, 11, 13],
-    ])
+    ]))
     .unwrap();
-    let b: TwoFaces = Permutation::from_cycles(vec![
+    let b: TwoFaces = Permutation::from_disjoint_cycles(DisjointCycles(vec![
         vec![1, 14, 16, 8],
         vec![2, 13, 15, 17],
         vec![4, 5, 6, 7],
-    ])
+    ]))
     .unwrap();
 
     let commutator_ab = Permutation::commutator(a, b);
