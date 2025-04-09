@@ -15,7 +15,7 @@ type BigPermutation = Permutation<50>;
 
 #[derive(Parser)]
 struct Cli {
-    #[arg(value_parser=BigPermutation::from_str, help="Permutation in cycle notation with at most 100 elements. e.g. (1 2 3)(4 5)")]
+    #[arg(value_parser=BigPermutation::from_str, help="Permutation in cycle notation with at most 50 elements. e.g. (1 2 3)(4 5)")]
     permutation: BigPermutation,
 }
 
