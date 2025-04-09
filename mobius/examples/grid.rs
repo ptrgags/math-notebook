@@ -1,7 +1,7 @@
 use core::f64;
 use std::io::Error;
 
-use abstraction::{Group, Semigroup};
+use abstraction::{Group, Monoid};
 use mobius::{
     elliptic, hyperbolic,
     rendering::Style,

@@ -1,33 +1,15 @@
 use std::{error::Error, fmt::Display};
 
 use crate::{
-    geometry::{Circle, Line},
+    complex_error::ComplexError,
+    geometry::{Circle, GeneralizedCircle, Line},
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
+    unit_complex::UnitComplex,
     Complex, Mobius,
 };
 
 use super::Transformable;
-
-// Simpler data structure for representing clines in human-understandable
-// format.
-#[derive(PartialEq, Debug)]
-pub enum GeneralizedCircle {
-    Circle(Circle),
-    Line(Line),
-}
-
-impl Display for GeneralizedCircle {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            GeneralizedCircle::Circle(circle) => circle.fmt(f),
-            GeneralizedCircle::Line(Line {
-                unit_normal,
-                distance,
-            }) => write!(f, "Line({}, {:.3})", unit_normal, distance),
-        }
-    }
-}
 
 /// Generalized circle/line, sometimes called a "cline"
 /// See https://en.wikipedia.org/wiki/Generalised_circle
@@ -64,12 +46,12 @@ impl Cline {
         Line::imag_axis().into()
     }
 
-    pub fn classify(&self) -> GeneralizedCircle {
+    pub fn classify(&self) -> Result<GeneralizedCircle, ComplexError> {
         let &Cline { a, b: _, c, d } = self;
 
-        if a == Complex::Zero {
+        let gen_circle = if a == Complex::Zero {
             // Line n.conj() z + n * z.conj() - 2d = 0
-            let unit_normal = c;
+            let unit_normal = UnitComplex::normalize(c)?;
             let distance = d / (-2.0).into();
 
             GeneralizedCircle::Line(Line {
@@ -85,7 +67,9 @@ impl Cline {
             let radius = (center.norm() - d.real()).sqrt();
 
             GeneralizedCircle::Circle(Circle { center, radius })
-        }
+        };
+
+        Ok(gen_circle)
     }
 
     pub fn complex_conjugate(&self) -> Self {
@@ -192,6 +176,8 @@ impl From<Line> for Cline {
             distance,
         } = value;
 
+        let &n = unit_normal.get();
+
         // A line can be expressed as the implicit equation
         // dot(n, z) = d
         // Re(n.conj() * z) = d
@@ -205,8 +191,8 @@ impl From<Line> for Cline {
         // D = -2d
         Self {
             a: Complex::Zero,
-            b: unit_normal.conj(),
-            c: unit_normal,
+            b: n.conj(),
+            c: n,
             d: (-2.0 * distance).into(),
         }
     }
@@ -230,7 +216,7 @@ impl Transformable<Isogonal> for Cline {
 
 impl Renderable for Cline {
     fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn Error>> {
-        let primitive = match self.classify() {
+        let primitive = match self.classify()? {
             GeneralizedCircle::Circle(circle) => RenderPrimitive::Circle(circle),
             GeneralizedCircle::Line(line) => RenderPrimitive::make_line(line),
         };
@@ -251,10 +237,10 @@ mod test {
     use super::*;
 
     #[test]
-    pub fn classify_identifies_unit_circle() {
+    pub fn classify_identifies_unit_circle() -> Result<(), ComplexError> {
         let unit_circle = Cline::unit_circle();
 
-        let result = unit_circle.classify();
+        let result = unit_circle.classify()?;
 
         assert_eq!(
             result,
@@ -262,36 +248,42 @@ mod test {
                 center: Complex::Zero,
                 radius: 1.0
             })
-        )
+        );
+
+        Ok(())
     }
 
     #[test]
-    pub fn classify_identifies_real_axis() {
+    pub fn classify_identifies_real_axis() -> Result<(), ComplexError> {
         let real_axis = Cline::real_axis();
 
-        let result = real_axis.classify();
+        let result = real_axis.classify()?;
 
         assert_eq!(
             result,
             GeneralizedCircle::Line(Line {
-                unit_normal: Complex::I,
+                unit_normal: UnitComplex::I,
                 distance: 0.0
             })
-        )
+        );
+
+        Ok(())
     }
 
     #[test]
-    pub fn classify_identifies_imaginary_axis() {
+    pub fn classify_identifies_imaginary_axis() -> Result<(), ComplexError> {
         let imag_axis = Cline::imag_axis();
 
-        let result = imag_axis.classify();
+        let result = imag_axis.classify()?;
 
         assert_eq!(
             result,
             GeneralizedCircle::Line(Line {
-                unit_normal: Complex::ONE,
+                unit_normal: UnitComplex::ONE,
                 distance: 0.0
             })
-        )
+        );
+
+        Ok(())
     }
 }

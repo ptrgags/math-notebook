@@ -1,8 +1,18 @@
 use std::fmt::Display;
 
+use thiserror::Error;
+
 use crate::Complex;
 
-use super::{circle::Circle, ArcAngles, DirectedEdge, Geometry};
+use super::{circle::Circle, ArcAngles, ArcAnglesError, ArcDirection, DirectedEdge, Geometry};
+
+#[derive(Debug, Error)]
+pub enum CircularArcError {
+    #[error("{0}")]
+    BadAngles(#[from] ArcAnglesError),
+    #[error("duplicate point: {0}")]
+    DuplicatePoint(Complex),
+}
 
 // Directed circular arc through 3 points on a circular arc
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -14,6 +24,28 @@ pub struct CircularArc {
 impl CircularArc {
     pub fn new(circle: Circle, angles: ArcAngles) -> Self {
         Self { circle, angles }
+    }
+
+    pub fn direction(&self) -> ArcDirection {
+        self.angles.direction()
+    }
+
+    pub fn interpolate(&self, t: f64) -> Complex {
+        self.circle.get_point(self.angles.interpolate(t))
+    }
+
+    pub fn reverse(&self) -> Self {
+        Self {
+            circle: self.circle,
+            angles: self.angles.reverse(),
+        }
+    }
+
+    pub fn complement(&self) -> Self {
+        Self {
+            circle: self.circle,
+            angles: self.angles.complement(),
+        }
     }
 }
 

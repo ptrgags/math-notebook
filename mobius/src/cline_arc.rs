@@ -1,38 +1,17 @@
-use std::{error::Error, f64::consts::TAU, fmt::Display};
+use std::fmt::Display;
 
 use crate::{
+    complex_error::ComplexError,
     geometry::{
-        ArcAngles, ArcAnglesParseError, Circle, CircularArc, DoubleRay, Line, LineSegment, Ray,
+        orthogonal_arcs::OrthogonalArc, ArcAngles, ArcDirection, Circle, CircularArc, DoubleRay,
+        GeneralizedCircle, Line, LineSegment, Ray,
     },
     isogonal::Isogonal,
     rendering::{RenderPrimitive, Renderable},
-    transformable::{Cline, GeneralizedCircle, Transformable},
+    transformable::{Cline, Transformable},
+    unit_complex::UnitComplex,
     Complex,
 };
-
-#[derive(Debug)]
-pub enum ClineArcError {
-    // To reduce the size of the enum, the first parameter is a pretty-printed
-    // string representation of the cline such that you can see the numeric
-    // values for debugging
-    PossiblePrecisionError(String, Box<dyn Error + 'static>),
-}
-
-impl Display for ClineArcError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::PossiblePrecisionError(cline_formatted, inner_error) => {
-                write!(
-                    f,
-                    "possible precision issue for ClineArc:\n{}\ncaused by: {}",
-                    cline_formatted, inner_error
-                )
-            }
-        }
-    }
-}
-
-impl Error for ClineArcError {}
 
 #[derive(Clone, Copy, Debug)]
 pub enum ClineArcGeometry {
@@ -80,51 +59,31 @@ pub struct ClineArc {
     c: Complex,
 }
 
-fn compute_ccw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParseError> {
-    // Compute angles in the CCW direction
-    let delta_b = (b - a).rem_euclid(TAU);
-    let delta_c = (c - b).rem_euclid(TAU);
-
-    let adjusted_b = a + delta_b;
-    let adjusted_c = adjusted_b + delta_c;
-    ArcAngles::new(a, adjusted_c)
-}
-
-fn compute_cw_angles(a: f64, b: f64, c: f64) -> Result<ArcAngles, ArcAnglesParseError> {
-    // Compute angles in the CW direction
-    let delta_b = (a - b).rem_euclid(TAU);
-    let delta_c = (b - c).rem_euclid(TAU);
-
-    let adjusted_b = a - delta_b;
-    let adjusted_c = adjusted_b - delta_c;
-    ArcAngles::new(a, adjusted_c)
-}
-
 impl ClineArc {
-    fn compute_line_geometry(&self) -> ClineArcGeometry {
+    fn compute_line_geometry(&self) -> Result<ClineArcGeometry, ComplexError> {
         if let Complex::Infinity = self.a {
             // ray goes inf -> b -> c
             // but it looks like inf <- c
-            let to_infinity = (self.b - self.c).normalize().unwrap();
-            return ClineArcGeometry::FromInfinity(Ray {
+            let to_infinity = UnitComplex::normalize(self.b - self.c)?;
+            return Ok(ClineArcGeometry::FromInfinity(Ray {
                 start: self.c,
                 unit_dir: to_infinity,
-            });
+            }));
         }
 
         if let Complex::Infinity = self.c {
             // ray goes a -> b -> inf
-            let to_infinity = (self.b - self.a).normalize().unwrap();
-            return ClineArcGeometry::ToInfinity(Ray {
+            let to_infinity = UnitComplex::normalize(self.b - self.a)?;
+            return Ok(ClineArcGeometry::ToInfinity(Ray {
                 start: self.a,
                 unit_dir: to_infinity,
-            });
+            }));
         }
 
         if let Complex::Infinity = self.b {
             // ray goes    inf <- a    c -> inf
-            let ac = (self.c - self.a).normalize().unwrap();
-            return ClineArcGeometry::ThruInfinity(DoubleRay(
+            let ac = UnitComplex::normalize(self.c - self.a)?;
+            return Ok(ClineArcGeometry::ThruInfinity(DoubleRay(
                 Ray {
                     start: self.a,
                     unit_dir: -ac,
@@ -133,7 +92,7 @@ impl ClineArc {
                     start: self.c,
                     unit_dir: ac,
                 },
-            ));
+            )));
         }
 
         // All three points are finite so now we we need to check if
@@ -148,13 +107,13 @@ impl ClineArc {
         let in_order = Complex::dot(self.b - self.a, self.c - self.b) > 0.0;
 
         if in_order {
-            ClineArcGeometry::LineSegment(LineSegment {
+            Ok(ClineArcGeometry::LineSegment(LineSegment {
                 start: self.a,
                 end: self.c,
-            })
+            }))
         } else {
-            let ac = (self.c - self.a).normalize().unwrap();
-            ClineArcGeometry::ThruInfinity(DoubleRay(
+            let ac = UnitComplex::normalize(self.c - self.a).unwrap();
+            Ok(ClineArcGeometry::ThruInfinity(DoubleRay(
                 Ray {
                     start: self.a,
                     unit_dir: -ac,
@@ -163,49 +122,43 @@ impl ClineArc {
                     start: self.c,
                     unit_dir: ac,
                 },
-            ))
+            )))
         }
     }
 
-    fn compute_circle_geometry(&self, circle: Circle) -> Result<ClineArcGeometry, ClineArcError> {
+    /// Implementation detail - to go from the ClineArc representation
+    /// to a CircularArc, it requires computing the arc a -> b -> c. the middle
+    /// point is necessary to disambiguate clockwise from counter-clockwise
+    fn compute_circle_geometry(&self, circle: Circle) -> ClineArcGeometry {
+        let &Self { a, b, c, .. } = self;
+
         // Determine if the 3 points circulate counterclockwise or
         // clockwise by forming a triangle ABC and computing
         // (the magnitude of) the wedge product.
-        let ab = self.b - self.a;
-        let ac = self.c - self.a;
+        let ab = b - a;
+        let ac = c - a;
         let ccw = Complex::wedge(ab, ac) > 0.0;
 
         // Get the raw angles
-        let theta_a = circle.get_angle(self.a).unwrap();
-        let theta_b = circle.get_angle(self.b).unwrap();
-        let theta_c = circle.get_angle(self.c).unwrap();
+        let theta_a = circle.get_angle(a).unwrap();
+        let theta_c = circle.get_angle(c).unwrap();
 
-        let angles = if ccw {
-            compute_ccw_angles(theta_a, theta_b, theta_c)
+        let direction = if ccw {
+            ArcDirection::Counterclockwise
         } else {
-            compute_cw_angles(theta_a, theta_b, theta_c)
+            ArcDirection::Clockwise
         };
 
-        match angles {
-            Ok(angles) => Ok(ClineArcGeometry::CircularArc(CircularArc {
-                circle,
-                angles,
-            })),
-            Err(err) => {
-                let ClineArc { cline, a, b, c } = self;
-                let message = format!("cline={}\n(a, b, c) = ({}, {}, {})", cline, a, b, c);
-                Err(ClineArcError::PossiblePrecisionError(
-                    message,
-                    Box::new(err),
-                ))
-            }
-        }
+        let angles = ArcAngles::from_raw_angles(theta_a, theta_c, direction);
+        let arc = CircularArc::new(circle, angles);
+
+        ClineArcGeometry::CircularArc(arc)
     }
 
-    pub fn classify(&self) -> Result<ClineArcGeometry, ClineArcError> {
-        match self.cline.classify() {
-            GeneralizedCircle::Line(_) => Ok(self.compute_line_geometry()),
-            GeneralizedCircle::Circle(circle) => self.compute_circle_geometry(circle),
+    pub fn classify(&self) -> Result<ClineArcGeometry, ComplexError> {
+        match self.cline.classify()? {
+            GeneralizedCircle::Line(_) => self.compute_line_geometry(),
+            GeneralizedCircle::Circle(circle) => Ok(self.compute_circle_geometry(circle)),
         }
     }
 }
@@ -232,12 +185,7 @@ impl From<LineSegment> for ClineArc {
     fn from(value: LineSegment) -> Self {
         let LineSegment { start, end } = value;
 
-        let unit_tangent = (end - start).normalize().unwrap();
-        let unit_normal = Complex::I * unit_tangent;
-
-        let distance = Complex::dot(unit_normal, start);
-        let line = Line::new(unit_normal, distance).unwrap();
-
+        let line = Line::from(value);
         let midpoint = (start + end) * (0.5).into();
 
         Self {
@@ -245,6 +193,31 @@ impl From<LineSegment> for ClineArc {
             a: start,
             b: midpoint,
             c: end,
+        }
+    }
+}
+
+impl From<DoubleRay> for ClineArc {
+    fn from(value: DoubleRay) -> Self {
+        let DoubleRay(ray_a, ray_b) = value;
+
+        let line = Line::from_points(ray_a.start, ray_b.start).unwrap();
+
+        Self {
+            cline: line.into(),
+            a: ray_a.start,
+            b: Complex::Infinity,
+            c: ray_b.start,
+        }
+    }
+}
+
+impl From<OrthogonalArc> for ClineArc {
+    fn from(value: OrthogonalArc) -> Self {
+        match value {
+            OrthogonalArc::Arc(circular_arc) => ClineArc::from(circular_arc),
+            OrthogonalArc::Diameter(line_segment) => ClineArc::from(line_segment),
+            OrthogonalArc::DiameterOutside(double_ray) => ClineArc::from(double_ray),
         }
     }
 }
@@ -258,7 +231,7 @@ impl Transformable<Isogonal> for ClineArc {
                 self,
                 xform,
                 transformed,
-                transformed.classify()
+                transformed.classify().unwrap()
             );
         }
 
@@ -275,8 +248,7 @@ impl Renderable for ClineArc {
     fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn std::error::Error>> {
         let mut result = Vec::new();
 
-        let geom = self.classify()?;
-        let (first, maybe_second) = match geom {
+        let (first, maybe_second) = match self.classify()? {
             ClineArcGeometry::CircularArc(arc) => (RenderPrimitive::CircularArc(arc), None),
             ClineArcGeometry::LineSegment(line_segment) => {
                 (RenderPrimitive::LineSegment(line_segment), None)
@@ -301,7 +273,9 @@ impl Renderable for ClineArc {
 
 impl Display for ClineArc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let geom = self.classify().unwrap();
-        geom.fmt(f)
+        match self.classify() {
+            Ok(x) => x.fmt(f),
+            _ => Err(std::fmt::Error),
+        }
     }
 }

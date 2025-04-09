@@ -1,10 +1,10 @@
 use std::fmt::Display;
 
-use crate::Complex;
+use crate::{nearly::is_nearly, Complex};
 
 use super::Geometry;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Circle {
     pub center: Complex,
     pub radius: f64,
@@ -28,6 +28,16 @@ impl Circle {
 
     pub fn get_angle(&self, point: Complex) -> Option<f64> {
         (point - self.center).arg()
+    }
+
+    pub fn point_inside(&self, point: Complex) -> bool {
+        (point - self.center).norm() <= self.radius * self.radius
+    }
+}
+
+impl PartialEq for Circle {
+    fn eq(&self, other: &Self) -> bool {
+        self.center == other.center && is_nearly(self.radius, other.radius)
     }
 }
 

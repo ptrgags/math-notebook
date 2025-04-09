@@ -1,12 +1,12 @@
 use std::ops::Mul;
 
-pub struct PowerIterator<S: Semigroup> {
+pub struct PowerIterator<S: Monoid> {
     element: S,
     current: S,
     power: usize,
 }
 
-impl<S: Semigroup> PowerIterator<S> {
+impl<S: Monoid> PowerIterator<S> {
     pub fn new(element: S) -> Self {
         Self {
             element,
@@ -16,7 +16,7 @@ impl<S: Semigroup> PowerIterator<S> {
     }
 }
 
-impl<S: Semigroup> Iterator for PowerIterator<S> {
+impl<S: Monoid> Iterator for PowerIterator<S> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -32,13 +32,13 @@ impl<S: Semigroup> Iterator for PowerIterator<S> {
     }
 }
 
-/// A semigroup is a set S along with a binary operation (*) such that
+/// A monoid is a set S along with a binary operation (*) such that
 /// - S is closed under *. This is realized as requiring Mul<S, Output=S>
 /// - S has an identity element I, such that I * x = x * I = x for all x in S
 /// - the binary operation is associative. a(bc) = (ab)c for all a, b, c in S
 ///   This isn't easily representable in a type, so it's up to the
 ///   implementation to make sure this is valid.
-pub trait Semigroup: PartialEq + Clone + Mul<Self, Output = Self> {
+pub trait Monoid: PartialEq + Clone + Mul<Self, Output = Self> {
     /// The identity element. This must satisfy
     /// T::identity() * element = element
     /// element * T::identity() = element
@@ -66,9 +66,9 @@ pub trait Semigroup: PartialEq + Clone + Mul<Self, Output = Self> {
     }
 }
 
-/// A group is a semigroup with the additional requirement that elements
+/// A group is a monoid with the additional requirement that elements
 /// must have inverses.
-pub trait Group: Semigroup {
+pub trait Group: Monoid {
     /// Multiplicative inverse a^-1 such that
     /// a * a^-1 = a^-1 * a = I
     fn inverse(&self) -> Self;
@@ -77,9 +77,9 @@ pub trait Group: Semigroup {
     /// inverse element instead.
     fn pow(&self, exponent: isize) -> Self {
         if exponent < 0 {
-            Semigroup::pow(&self.inverse(), -exponent as usize)
+            Monoid::pow(&self.inverse(), -exponent as usize)
         } else {
-            Semigroup::pow(self, exponent as usize)
+            Monoid::pow(self, exponent as usize)
         }
     }
 

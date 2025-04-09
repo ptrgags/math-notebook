@@ -2,8 +2,10 @@ pub mod address;
 pub mod algorithms;
 pub mod cline_arc;
 mod complex;
+pub mod complex_error;
 pub mod float_error;
 pub mod geometry;
+pub mod interpolation;
 pub mod isogonal;
 mod mobius;
 pub mod motifs;
@@ -12,6 +14,7 @@ mod recipes;
 pub mod rendering;
 pub mod svg_plot;
 pub mod transformable;
+pub mod unit_complex;
 
 pub mod hyperbolic_tilings;
 

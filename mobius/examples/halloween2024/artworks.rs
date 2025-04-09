@@ -2,7 +2,7 @@ use std::{f64::consts::PI, io::Error};
 
 use abstraction::Group;
 use mobius::{
-    algorithms::{GridIFS, GroupIFS, SemigroupIFS},
+    algorithms::{GridIFS, GroupIFS, MonoidIFS},
     cline_arc::ClineArc,
     elliptic, gasket_group,
     geometry::{Circle, LineSegment},
@@ -29,7 +29,7 @@ pub fn candy_corners() -> Result<(), Error> {
     let shrink = scale(dist_to_edge * 0.8).unwrap();
     let rot60 = rotation(PI / 3.0).unwrap();
     let tiny_corn = corn.transform(shift * rot60 * shrink);
-    let ifs = SemigroupIFS::new(vec![r, e2, eq]);
+    let ifs = MonoidIFS::new(vec![r, e2, eq]);
     let candy_corners = ifs.apply(&tiny_corn, 0, 7);
     render_views(
         "output",
@@ -100,7 +100,7 @@ pub fn bone_tree() -> Result<(), Error> {
     let branch_left = shift_up_left * rotate_left * shrink_branch;
     let branch_right = shift_up_right * rotate_right * shrink_branch;
 
-    let tree_ifs = SemigroupIFS::new(vec![branch_left, branch_right]);
+    let tree_ifs = MonoidIFS::new(vec![branch_left, branch_right]);
     let bone_branches = tree_ifs.apply(&trunk, 0, 6);
     let skull_leaves = tree_ifs.apply(&heads_will_roll, 6, 6);
     let white_lines = Style::stroke(255, 255, 255).with_width(0.25);
@@ -152,7 +152,7 @@ pub fn ghost_octahedral() -> Result<(), Error> {
     let swirl2 = Mobius::sandwich(rotate90, swirl);
     let to_the_left = translation(Complex::new(-0.5, 0.0)).unwrap();
     let shifted_ghost = small_ghost.transform(to_the_left);
-    let ifs = SemigroupIFS::new(vec![swirl, swirl2]);
+    let ifs = MonoidIFS::new(vec![swirl, swirl2]);
     let swirl_walk = ifs.apply(&shifted_ghost, 0, 8);
     render_views(
         "output",
