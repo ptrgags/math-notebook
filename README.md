@@ -41,3 +41,14 @@ and the group theory behind them.
 Right now the only example is computing the Cayley table for the octahedral
 rotation group (the rotation symmetries of an octahedron or cube). This is
 one small subproblem in understanding e.g. a 2x2x2 cube.
+
+## Repo Layout
+
+I'm reorganizing the repo. READMEs still in progress, but you can find
+them in the respective folders
+
+- [`abstraction`](./abstraction/README.md) - Traits for abstract math concepts
+- [`mobius`](./mobius/README.md) - complex numbers and Mobius transformations
+- [`permutations`](./permutations/README.md) - permutations
+- [`symbolic`](./symbolic/README.md) - symbolic computation, mostly geometric algebra stuff so far
+- [`geometric_algebra`](./geometric_algebra/README.md) - Geometric Algebra ⚠️Needs cleanup
