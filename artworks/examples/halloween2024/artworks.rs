@@ -8,14 +8,11 @@ use mobius::{
     geometry::{Circle, LineSegment},
     hyperbolic,
     hyperbolic_tilings::{corner_rotation_group, get_fundamental_region, reflection_group},
-    loxodromic,
-    motifs::{bone, candy_corn, ghost, skull, witch_hat},
-    rendering::Style,
-    rotation, scale,
-    svg_plot::{render_views, style_geometry, style_motifs, union, View},
+    loxodromic, rotation, scale,
     transformable::{ClineArcTile, ClineTile, Motif, Transformable},
     translation, Complex, Mobius,
 };
+use rendering::{render_svg, style::Style, View};
 
 pub fn candy_corners() -> Result<(), Box<dyn Error>> {
     let (corn, styles) = candy_corn()?;
@@ -31,7 +28,7 @@ pub fn candy_corners() -> Result<(), Box<dyn Error>> {
     let tiny_corn = corn.transform(shift * rot60 * shrink);
     let ifs = MonoidIFS::new(vec![r, e2, eq]);
     let candy_corners = ifs.apply(&tiny_corn, 0, 7);
-    render_views(
+    render_svg(
         "output",
         "candy_corners_take2",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
@@ -66,7 +63,7 @@ pub fn hex_grid() -> Result<(), Box<dyn Error>> {
         Style::stroke(0x92, 0x61, 0xba).with_width(0.25),
         Style::stroke(255, 255, 0).with_width(0.25),
     ];
-    render_views(
+    render_svg(
         "output",
         "hex_tiles",
         &[View("", 0.0, 0.0, 3.5)],
@@ -109,7 +106,7 @@ pub fn bone_tree() -> Result<(), Box<dyn Error>> {
     let face_leaves = tree_ifs.apply(&eyes_will_roll, 6, 6);
     let black = Style::fill(0, 0, 0).with_stroke(0, 0, 0).with_width(0.25);
     let white_fill = Style::fill(255, 255, 255);
-    render_views(
+    render_svg(
         "output",
         "bone_tree",
         &[View("", 0.0, 2.0, 3.5)],
@@ -137,7 +134,7 @@ pub fn rib_cage() -> Result<(), Box<dyn Error>> {
     let rib_cage = cage.apply(&rib);
     let white_fill = Style::fill(255, 255, 255);
     let black = Style::fill(0, 0, 0).with_stroke(0, 0, 0).with_width(0.25);
-    render_views(
+    render_svg(
         "output",
         "rib_cage",
         &[View("", 0.0, 1.0, 1.5)],
@@ -164,7 +161,7 @@ pub fn ghost_octahedral() -> Result<(), Box<dyn Error>> {
     let shifted_ghost = small_ghost.transform(to_the_left);
     let ifs = MonoidIFS::new(vec![swirl, swirl2]);
     let swirl_walk = ifs.apply(&shifted_ghost, 0, 8);
-    render_views(
+    render_svg(
         "output",
         "ghost_octahedral",
         &[View("", 0.0, 0.0, 3.0)],
@@ -189,7 +186,7 @@ pub fn ghost_double_spiral() -> Result<(), Box<dyn Error>> {
     let grid = GridIFS::new(vec![(vertical_spiral, -8, 8), (vertical_ellip, -1, 2)]);
 
     let double_spiral_walk = grid.apply(&small_ghost);
-    render_views(
+    render_svg(
         "output",
         "ghost_double_spiral",
         &[View("", 0.0, 0.0, 1.0), View("sink", -0.125, 0.75, 0.5)],
@@ -225,7 +222,7 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
     let gasket_walk = ifs.apply(&small_ghost, 0, 6);
     let tiles = ifs.apply(&gasket_tile, 0, 6);
     let circle_walk = ifs.apply(&left_circle, 0, 6);
-    render_views(
+    render_svg(
         "output",
         "gasket",
         &[
@@ -247,7 +244,7 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
     let subgroup = GroupIFS::new(vec![gasket_a, other_generator]);
     let subgroup_walk = subgroup.apply(&small_ghost, 0, 7);
     let subgroup_tiles = subgroup.apply(&gasket_tile, 0, 7);
-    render_views(
+    render_svg(
         "output",
         "gasket_subgroup",
         &[View("", 0.0, 0.0, 1.1), View("left_circle", -0.5, 0.0, 0.5)],
@@ -280,7 +277,7 @@ pub fn warpedpaper() -> Result<(), Box<dyn Error>> {
     //let warped_pair = two_corns.transform(pull_left);
     let curved_wallpaper = curved_grid.apply(&two_corns);
     let curved_svg = style_motifs(&curved_wallpaper[..], &styles);
-    render_views(
+    render_svg(
         "output",
         "candy_corn_warpedpaper",
         &[View("", -2.5, 3.0, 4.0)],

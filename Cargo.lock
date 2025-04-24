@@ -139,9 +139,11 @@ name = "gallery"
 version = "0.1.0"
 dependencies = [
  "abstraction",
+ "clap",
  "mobius",
  "permutations",
  "rendering",
+ "thiserror",
 ]
 
 [[package]]
@@ -165,12 +167,10 @@ name = "mobius"
 version = "0.1.0"
 dependencies = [
  "abstraction",
- "clap",
  "derive_more",
  "permutations",
  "pretty_assertions",
  "rendering",
- "svg",
  "test-case",
  "thiserror",
 ]

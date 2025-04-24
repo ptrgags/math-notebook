@@ -5,7 +5,6 @@ use mobius::{
     cline_arc::ClineArc,
     geometry::integer_arcs::{arc_on_circle_by_hemisphere, arc_on_line_by_hemisphere},
     rotation,
-    svg_plot::{render_views, style_geometry, union, View},
     transformable::{Cline, ClineArcTile, Transformable},
     translation, Complex,
 };
@@ -13,7 +12,7 @@ use mobius::{
 mod brackets;
 
 use brackets::{BalancedBrackets, MatchedBalancedBrackets};
-use rendering::style::Style;
+use rendering::{render_svg, style::Style, View};
 
 #[derive(Parser)]
 struct Cli {
@@ -61,7 +60,7 @@ pub fn render_line(
         arc_geom
     };
 
-    render_views(
+    render_svg(
         "output",
         &format!("brackets_line{}", suffix),
         &[View("", 0.0, 0.0, radius)],
@@ -98,7 +97,7 @@ pub fn render_circle(
         arc_geom
     };
 
-    render_views(
+    render_svg(
         "output",
         &format!("brackets_circle{}", suffix),
         &[View("", 0.0, 0.0, 2.0)],

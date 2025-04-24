@@ -8,13 +8,10 @@ use mobius::{
     },
     geometry::{Circle, CircularArc},
     map_triple,
-    svg_plot::{render_views, style_geometry, View},
-    svg_plot::{style_motifs, union},
     transformable::{ClineArcTile, Motif, Transformable},
     Complex, Mobius,
 };
-use rendering::style::Style;
-use svg::node::element::Group;
+use rendering::{render_svg, style::Style, View};
 
 struct ArcFractal {
     /// The original arc, a -> c
@@ -142,7 +139,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let depth = 7usize;
     let orange_lines = Style::stroke(255, 127, 0).with_width(0.25);
     let purple_lines = Style::stroke(127, 0, 255).with_width(0.25);
-    render_views(
+    render_svg(
         "output",
         "crinkle_arc",
         &[View("", 0.0, 0.0, 1.1)],
@@ -150,7 +147,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     )?;
 
     let depth = 3usize;
-    render_views(
+    render_svg(
         "output",
         "crinkle_two_color",
         &[View("", 0.0, 0.0, 1.1)],
@@ -185,7 +182,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let depth = 3usize;
     let t = 0.5;
-    render_views(
+    render_svg(
         "output",
         "crinkle_necklace",
         &[View("", 0.0, 0.0, 1.1), View("zoom", 0.51, 0.3, 0.51)],
@@ -199,7 +196,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let semicircle_angles = ArcAngles::new(0.0, PI)?;
     let semicircle = CircularArc::new(unit_circle, semicircle_angles);
-    render_views(
+    render_svg(
         "output",
         "crinkle_semicircle",
         &[View("", 0.0, 0.0, 1.1), View("zoom", 0.51, 0.3, 0.51)],
@@ -208,7 +205,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let angles = ArcAngles::new(0.0, 4.0 * PI / 3.0)?;
     let arc = CircularArc::new(unit_circle, angles);
-    render_views(
+    render_svg(
         "output",
         "crinkle_diameter",
         &[View("", 0.0, 0.0, 1.1)],

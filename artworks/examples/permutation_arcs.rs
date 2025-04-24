@@ -5,7 +5,6 @@ use clap::Parser;
 use mobius::{
     cline_arc::ClineArc,
     geometry::integer_arcs::{arc_on_circle_by_hemisphere, arc_on_line_by_hemisphere, Hemisphere},
-    svg_plot::{render_views, style_geometry, View},
     transformable::ClineArcTile,
 };
 use permutations::{DisjointCycles, Permutation};
@@ -69,7 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let green = Style::stroke(0, 255, 0).with_width(0.5);
 
-    render_views(
+    render_svg(
         "output",
         "perm_arcs_line",
         &[View("", 0.5 * (n as f64), 0.0, 0.5 * (n as f64))],
@@ -94,7 +93,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let green = Style::stroke(0, 255, 0).with_width(0.5);
 
-    render_views(
+    render_svg(
         "output",
         "perm_arcs_circle",
         &[View("", 0.0, 0.0, 2.0)],

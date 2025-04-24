@@ -3,11 +3,9 @@ use std::f64::consts::{FRAC_PI_2, PI, TAU};
 use mobius::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple, scale,
-    svg_plot::{add_geometry, flip_y, make_axes, make_card},
     transformable::{ClineArcTile, Transformable},
     Complex, Mobius,
 };
-use svg::node::element::Group;
 
 fn compute_xforms() -> Vec<Mobius> {
     // Transform A just shrinks the unit circle to the circle with

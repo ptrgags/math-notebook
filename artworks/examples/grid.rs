@@ -4,7 +4,7 @@ use std::io::Error;
 use abstraction::{Group, Monoid};
 use mobius::{
     elliptic, hyperbolic,
-    svg_plot::{render_views, style_geometry, View},
+    svg_plot::{render_svg, style_geometry, View},
     transformable::{Cline, Transformable},
 };
 use rendering::style::Style;
@@ -34,7 +34,7 @@ fn main() -> Result<(), Error> {
     let meridians = style_geometry(Style::stroke(255, 0, 0).with_width(0.25), &e_clines[..]);
     let geometry = SvgGroup::new().add(parallels).add(meridians);
 
-    render_views(
+    render_svg(
         "output",
         "parallels_and_meridians",
         &[View("", 0.0, 0.0, 2.0)],
