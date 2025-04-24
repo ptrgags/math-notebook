@@ -1,3 +1,5 @@
+use rendering::{PathCommand, RenderPrimitive};
+
 use crate::{interpolation::lerp_complex, Complex};
 
 use super::{DirectedEdge, Geometry};
@@ -23,6 +25,23 @@ impl LineSegment {
 
     pub fn interpolate(&self, t: f64) -> Complex {
         lerp_complex(self.start, self.end, t)
+    }
+
+    pub fn to_primitive(&self) -> RenderPrimitive {
+        let &Self { start, end } = self;
+        RenderPrimitive::LineSegment {
+            x1: start.real(),
+            y1: start.imag(),
+            x2: end.real(),
+            y2: end.imag(),
+        }
+    }
+
+    pub fn to_path_command(&self) -> PathCommand {
+        PathCommand::LineTo {
+            x: self.end.real(),
+            y: self.end.imag(),
+        }
     }
 }
 

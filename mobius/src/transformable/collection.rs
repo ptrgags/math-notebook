@@ -1,10 +1,8 @@
 use std::{error::Error, fmt::Display};
 
-use crate::{
-    cline_arc::ClineArc,
-    isogonal::Isogonal,
-    rendering::{RenderPrimitive, Renderable},
-};
+use rendering::{RenderPrimitive, Renderable};
+
+use crate::{cline_arc::ClineArc, isogonal::Isogonal};
 
 use super::{Cline, Transformable};
 

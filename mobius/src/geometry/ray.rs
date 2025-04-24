@@ -19,7 +19,7 @@ impl Ray {
     pub fn to_primitive(&self) -> RenderPrimitive {
         const FAR_AWAY: f64 = 10000.0;
         let &Ray { start, unit_dir } = self;
-        let end = *self.unit_dir.get() * FAR_AWAY.into();
+        let end = *unit_dir.get() * FAR_AWAY.into();
 
         RenderPrimitive::LineSegment {
             x1: start.real(),

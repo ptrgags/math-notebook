@@ -23,35 +23,6 @@ fn svg_circle(cx: f64, cy: f64, radius: f64) -> Box<dyn Node> {
     )
 }
 
-/*
-fn svg_arc_parameters(arc: CircularArc) -> (f64, f64, f64, u8, u8, f64, f64) {
-    let CircularArc { circle, angles } = arc;
-    let ArcAngles(start_angle, end_angle) = angles;
-
-    let counterclockwise = angles.direction() == ArcDirection::Counterclockwise;
-    // ArcAngles guarantees that the total angle of the arc is in [0, 2pi). If it's
-    // greater than pi in magnitude, we want to stroke the long way around the circle.
-    let large_arc = (end_angle - start_angle).abs() > PI;
-
-    let end = arc.end();
-    let end_x = end.real();
-    let end_y = end.imag();
-
-    const NO_ROTATION: f64 = 0.0;
-    let radius = circle.radius;
-
-    (
-        radius,
-        radius,
-        NO_ROTATION,
-        large_arc as u8,
-        counterclockwise as u8,
-        end_x,
-        end_y,
-    )
-}
-    */
-
 fn svg_arc_parameters(arc: CircularArcTo) -> (f64, f64, f64, u8, u8, f64, f64) {
     const NO_ROTATION: f64 = 0.0;
     (
@@ -64,21 +35,6 @@ fn svg_arc_parameters(arc: CircularArcTo) -> (f64, f64, f64, u8, u8, f64, f64) {
         arc.end_y,
     )
 }
-
-/*
-fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
-    let start = arc.start();
-    let start_x = start.real();
-    let start_y = start.imag();
-
-    let arc_params = svg_arc_parameters(arc);
-    let data = Data::new()
-        .move_to((start_x, start_y))
-        .elliptical_arc_to(arc_params);
-
-    Box::new(Path::new().set("d", data))
-}
-*/
 
 fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
     let arc_params = svg_arc_parameters(arc.arc_to);
@@ -217,6 +173,7 @@ pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
     svg
 }
 
+/*
 pub fn style_motif<T: Renderable>(motif: &Motif<T>, styles: &[Style]) -> Group {
     let groups: Vec<Group> = motif
         .iter()
@@ -232,6 +189,7 @@ pub fn style_motifs<T: Renderable>(motifs: &[Motif<T>], styles: &[Style]) -> Gro
         .collect();
     union(groups)
 }
+*/
 
 pub fn union(groups: Vec<Group>) -> Group {
     groups
@@ -239,6 +197,7 @@ pub fn union(groups: Vec<Group>) -> Group {
         .fold(Group::new(), |group, x| group.add(x))
 }
 
+/*
 pub fn make_axes() -> Group {
     let tile = ClineTile::new(vec![
         Cline::unit_circle(),
@@ -251,6 +210,7 @@ pub fn make_axes() -> Group {
 
     axes
 }
+    */
 
 pub fn flip_y() -> Group {
     Group::new().set("transform", "scale(1, -1)")

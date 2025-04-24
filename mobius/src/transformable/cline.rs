@@ -1,10 +1,11 @@
 use std::{error::Error, fmt::Display};
 
+use rendering::{RenderPrimitive, Renderable};
+
 use crate::{
     complex_error::ComplexError,
     geometry::{Circle, GeneralizedCircle, Line},
     isogonal::Isogonal,
-    rendering::{RenderPrimitive, Renderable},
     unit_complex::UnitComplex,
     Complex, Mobius,
 };
@@ -217,8 +218,8 @@ impl Transformable<Isogonal> for Cline {
 impl Renderable for Cline {
     fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn Error>> {
         let primitive = match self.classify()? {
-            GeneralizedCircle::Circle(circle) => RenderPrimitive::Circle(circle),
-            GeneralizedCircle::Line(line) => RenderPrimitive::make_line(line),
+            GeneralizedCircle::Circle(circle) => circle.to_primitive(),
+            GeneralizedCircle::Line(line) => line.to_primitive(),
         };
 
         Ok(vec![primitive])

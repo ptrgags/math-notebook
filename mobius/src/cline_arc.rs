@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use rendering::{RenderPrimitive, Renderable};
+
 use crate::{
     complex_error::ComplexError,
     geometry::{
@@ -7,7 +9,6 @@ use crate::{
         DoubleRay, GeneralizedCircle, Line, LineSegment, Ray,
     },
     isogonal::Isogonal,
-    rendering::{RenderPrimitive, Renderable},
     transformable::{Cline, Transformable},
     unit_complex::UnitComplex,
     Complex,
@@ -259,15 +260,13 @@ impl Renderable for ClineArc {
         let mut result = Vec::new();
 
         let (first, maybe_second) = match self.classify()? {
-            ClineArcGeometry::CircularArc(arc) => (RenderPrimitive::CircularArc(arc), None),
-            ClineArcGeometry::LineSegment(line_segment) => {
-                (RenderPrimitive::LineSegment(line_segment), None)
-            }
-            ClineArcGeometry::FromInfinity(ray) => (RenderPrimitive::make_ray(ray), None),
-            ClineArcGeometry::ToInfinity(ray) => (RenderPrimitive::make_ray(ray), None),
+            ClineArcGeometry::CircularArc(arc) => (arc.to_primitive(), None),
+            ClineArcGeometry::LineSegment(line_segment) => (line_segment.to_primitive(), None),
+            ClineArcGeometry::FromInfinity(ray) => (ray.to_primitive(), None),
+            ClineArcGeometry::ToInfinity(ray) => (ray.to_primitive(), None),
             ClineArcGeometry::ThruInfinity(DoubleRay(start, end)) => {
-                let first_ray = RenderPrimitive::make_ray(start);
-                let second_ray = RenderPrimitive::make_ray(end);
+                let first_ray = start.to_primitive();
+                let second_ray = end.to_primitive();
                 (first_ray, Some(second_ray))
             }
         };

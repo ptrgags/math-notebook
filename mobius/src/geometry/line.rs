@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use rendering::RenderPrimitive;
 use thiserror::Error;
 
 use crate::{
@@ -29,16 +30,17 @@ impl Line {
     pub fn to_primitive(&self) -> RenderPrimitive {
         const FAR_AWAY: f64 = 10000.0;
         let far_away: Complex = FAR_AWAY.into();
-        let tangent = self.unit_normal.rot90();
-        let center: Complex = self.unit_normal * self.distance;
+
+        let &tangent = self.unit_normal.rot90().get();
+        let center: Complex = *self.unit_normal.get() * self.distance.into();
         let start: Complex = center + tangent * far_away;
         let end: Complex = center - tangent * far_away;
 
         RenderPrimitive::LineSegment {
             x1: start.real(),
             y1: start.imag(),
-            x2: start.real(),
-            y2: start.imag(),
+            x2: end.real(),
+            y2: end.imag(),
         }
     }
 

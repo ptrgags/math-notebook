@@ -1,5 +1,6 @@
-use std::fmt::Display;
+use std::{f64::consts::PI, fmt::Display};
 
+use rendering::{CircularArc as ArcPrimitive, CircularArcTo, PathCommand, RenderPrimitive};
 use thiserror::Error;
 
 use crate::Complex;
@@ -46,6 +47,37 @@ impl CircularArc {
             circle: self.circle,
             angles: self.angles.complement(),
         }
+    }
+
+    fn get_arc_to(&self) -> CircularArcTo {
+        let &CircularArc { circle, angles } = self;
+        let ArcAngles(start_angle, end_angle) = angles;
+        let end = self.end();
+
+        let counterclockwise = angles.direction() == ArcDirection::Counterclockwise;
+        // ArcAngles guarantees that the total angle of the arc is in [0, 2pi). If it's
+        // greater than pi in magnitude, we want to stroke the long way around the circle.
+        let large_arc = (end_angle - start_angle).abs() > PI;
+        CircularArcTo {
+            radius: circle.radius,
+            large_arc,
+            counterclockwise,
+            end_x: end.real(),
+            end_y: end.imag(),
+        }
+    }
+
+    pub fn to_path_command(&self) -> PathCommand {
+        PathCommand::ArcTo(self.get_arc_to())
+    }
+
+    pub fn to_primitive(&self) -> RenderPrimitive {
+        let start = self.start();
+        RenderPrimitive::CircularArc(ArcPrimitive {
+            start_x: start.real(),
+            start_y: start.imag(),
+            arc_to: self.get_arc_to(),
+        })
     }
 }
 

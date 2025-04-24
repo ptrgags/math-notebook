@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use rendering::RenderPrimitive;
+
 use crate::{nearly::is_nearly, Complex};
 
 use super::Geometry;
@@ -32,6 +34,14 @@ impl Circle {
 
     pub fn point_inside(&self, point: Complex) -> bool {
         (point - self.center).norm() <= self.radius * self.radius
+    }
+
+    pub fn to_primitive(&self) -> RenderPrimitive {
+        RenderPrimitive::Circle {
+            x: self.center.real(),
+            y: self.center.imag(),
+            radius: self.radius,
+        }
     }
 }
 

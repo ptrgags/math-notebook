@@ -139,6 +139,7 @@ name = "gallery"
 version = "0.1.0"
 dependencies = [
  "mobius",
+ "rendering",
 ]
 
 [[package]]

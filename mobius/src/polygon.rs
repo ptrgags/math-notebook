@@ -1,10 +1,10 @@
+use rendering::{PathCommand, RenderPrimitive, Renderable};
 use thiserror::Error;
 
 use crate::{
     cline_arc::{ClineArc, ClineArcGeometry},
     geometry::DirectedEdge,
     isogonal::Isogonal,
-    rendering::{PathCommand, RenderPrimitive, Renderable},
     transformable::Transformable,
 };
 
@@ -44,15 +44,18 @@ impl Polygon {
 impl Renderable for Polygon {
     fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn std::error::Error>> {
         let start = self.edges[0].start();
-        let mut commands = vec![PathCommand::MoveTo(start)];
+        let mut commands = vec![PathCommand::MoveTo {
+            x: start.real(),
+            y: start.imag(),
+        }];
 
         for edge in self.edges.iter() {
             match edge.classify()? {
                 ClineArcGeometry::CircularArc(circular_arc) => {
-                    commands.push(PathCommand::ArcTo(circular_arc))
+                    commands.push(circular_arc.to_path_command())
                 }
                 ClineArcGeometry::LineSegment(line_segment) => {
-                    commands.push(PathCommand::LineTo(line_segment.end()))
+                    commands.push(line_segment.to_path_command())
                 }
                 _ => return Err(PolygonError::InfiniteEdge.into()),
             }
