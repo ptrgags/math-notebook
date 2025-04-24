@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+abstraction = { path = "../abstraction" }
 mobius = { path = "../mobius" }
 rendering = { path = "../rendering" }
+permutations = { path = "../permutations" }

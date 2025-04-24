@@ -5,11 +5,11 @@ use clap::Parser;
 use mobius::{
     cline_arc::ClineArc,
     geometry::integer_arcs::{arc_on_circle_by_hemisphere, arc_on_line_by_hemisphere, Hemisphere},
-    rendering::Style,
     svg_plot::{render_views, style_geometry, View},
     transformable::ClineArcTile,
 };
 use permutations::{DisjointCycles, Permutation};
+use rendering::style::Style;
 
 type BigPermutation = Permutation<50>;
 

@@ -4,10 +4,10 @@ use std::io::Error;
 use abstraction::{Group, Monoid};
 use mobius::{
     elliptic, hyperbolic,
-    rendering::Style,
     svg_plot::{render_views, style_geometry, View},
     transformable::{Cline, Transformable},
 };
+use rendering::style::Style;
 use svg::node::element::Group as SvgGroup;
 
 fn main() -> Result<(), Error> {

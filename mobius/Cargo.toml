@@ -12,7 +12,6 @@ thiserror = "2.0.3"
 derive_more = { version = "1.0.0", features = ["display"] }
 
 [dev-dependencies]
-
 clap = { version = "4.5.20", features = ["derive"] }
 test-case = "3.3.1"
 pretty_assertions = "1.4.1"

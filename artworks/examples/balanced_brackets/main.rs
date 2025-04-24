@@ -4,7 +4,6 @@ use clap::Parser;
 use mobius::{
     cline_arc::ClineArc,
     geometry::integer_arcs::{arc_on_circle_by_hemisphere, arc_on_line_by_hemisphere},
-    rendering::Style,
     rotation,
     svg_plot::{render_views, style_geometry, union, View},
     transformable::{Cline, ClineArcTile, Transformable},
@@ -14,6 +13,7 @@ use mobius::{
 mod brackets;
 
 use brackets::{BalancedBrackets, MatchedBalancedBrackets};
+use rendering::style::Style;
 
 #[derive(Parser)]
 struct Cli {

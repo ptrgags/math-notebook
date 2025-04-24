@@ -6,17 +6,14 @@ use mobius::{
         orthogonal_arcs::{compute_orthogonal_arc, OrthogonalArc},
         ArcAngles, DirectedEdge,
     },
-    svg_plot::{style_motifs, union},
-    transformable::{ClineArcTile, Motif, Transformable},
-    Complex,
-};
-use mobius::{
     geometry::{Circle, CircularArc},
     map_triple,
-    rendering::Style,
     svg_plot::{render_views, style_geometry, View},
-    Mobius,
+    svg_plot::{style_motifs, union},
+    transformable::{ClineArcTile, Motif, Transformable},
+    Complex, Mobius,
 };
+use rendering::style::Style;
 use svg::node::element::Group;
 
 struct ArcFractal {

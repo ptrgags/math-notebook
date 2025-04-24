@@ -3,13 +3,12 @@ use std::{f64::consts::FRAC_PI_2, io::Error};
 use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
-    map_triple,
-    rendering::Style,
-    scale,
+    map_triple, scale,
     svg_plot::{render_views, style_geometry, View},
     transformable::ClineArcTile,
     Complex, Mobius,
 };
+use rendering::style::Style;
 use svg::node::element::Group;
 
 fn compute_xforms() -> Vec<Mobius> {

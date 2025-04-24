@@ -9,12 +9,12 @@ use mobius::{
     isogonal::Isogonal,
     motifs::candy_corn,
     quantized_hash::QuantizedHash,
-    rendering::Style,
     rotation, scale,
     svg_plot::{render_views, style_geometry, style_motifs, union, View},
     transformable::{ClineArcTile, Transformable},
     translation, Complex,
 };
+use rendering::style::Style;
 
 pub fn better_candy_corners() -> Result<(), Error> {
     let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();

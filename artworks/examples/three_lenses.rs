@@ -4,11 +4,11 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple,
-    rendering::Style,
     svg_plot::{flip_y, make_card, style_geometry},
     transformable::ClineArcTile,
     Complex, Mobius,
 };
+use rendering::style::Style;
 use svg::node::element::Group;
 
 fn make_xforms() -> Vec<Mobius> {

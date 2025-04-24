@@ -6,11 +6,11 @@ use std::{
 use mobius::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     polygon::Polygon,
-    rendering::Style,
     scale,
     transformable::{ClineArcTile, Motif, Transformable},
     Complex,
 };
+use rendering::style::Style;
 
 fn circle_to_arcs(circle: Circle) -> (CircularArc, CircularArc) {
     let (upper_half, lower_half) = ArcAngles::semicircles();
