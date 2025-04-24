@@ -166,6 +166,7 @@ dependencies = [
  "derive_more",
  "permutations",
  "pretty_assertions",
+ "rendering",
  "svg",
  "test-case",
  "thiserror",

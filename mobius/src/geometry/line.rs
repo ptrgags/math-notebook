@@ -26,6 +26,22 @@ pub struct Line {
 }
 
 impl Line {
+    pub fn to_primitive(&self) -> RenderPrimitive {
+        const FAR_AWAY: f64 = 10000.0;
+        let far_away: Complex = FAR_AWAY.into();
+        let tangent = self.unit_normal.rot90();
+        let center: Complex = self.unit_normal * self.distance;
+        let start: Complex = center + tangent * far_away;
+        let end: Complex = center - tangent * far_away;
+
+        RenderPrimitive::LineSegment {
+            x1: start.real(),
+            y1: start.imag(),
+            x2: start.real(),
+            y2: start.imag(),
+        }
+    }
+
     /// Create a line with the given unit normal and distance
     pub fn new(unit_normal: UnitComplex, distance: f64) -> Result<Self, LineError> {
         FloatError::require_finite("distance", distance)?;
