@@ -6,4 +6,5 @@ members = [
     "mobius",
     "abstraction",
     "artworks",
+    "rendering",
 ]
