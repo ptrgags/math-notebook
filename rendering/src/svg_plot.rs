@@ -1,9 +1,8 @@
 use core::f64;
-use std::path;
 
 use svg::{
-    node::element::{path::Data, Circle as SvgCircle, Group, Line as SvgLine, Path, Rectangle},
-    Document, Node,
+    node::element::{path::Data, Circle as SvgCircle, Group, Line as SvgLine, Path},
+    Node,
 };
 
 use crate::{
@@ -12,7 +11,7 @@ use crate::{
     style::Style,
 };
 
-pub struct SvgNode(Box<dyn Node>);
+pub struct SvgNode(pub Box<dyn Node>);
 
 fn svg_circle(cx: f64, cy: f64, radius: f64) -> Box<dyn Node> {
     Box::new(
@@ -84,6 +83,54 @@ fn svg_polygon(commands: &[PathCommand]) -> Box<dyn Node> {
     Box::new(path)
 }
 
+pub fn add_geometry(group: Group, geometry: impl Into<SvgNodes>) -> Group {
+    let SvgNodes(nodes) = geometry.into();
+    nodes.into_iter().fold(group, |group, x| group.add(x))
+}
+
+pub fn style_group(style: Style) -> Group {
+    let mut group = Group::new();
+
+    let Style {
+        stroke,
+        fill,
+        width_percent,
+    } = style;
+    if let Some(color) = stroke {
+        group = group.set("stroke", color.to_string());
+    }
+
+    if let Some(color) = fill {
+        group = group.set("fill", color.to_string());
+    } else {
+        group = group.set("fill", "none");
+    }
+
+    if let Some(percent) = width_percent {
+        group = group.set("stroke-width", format!("{}%", percent));
+    }
+
+    group
+}
+
+pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
+    let mut svg = style_group(style);
+    svg = add_geometry(svg, geometry);
+
+    svg
+}
+
+fn svg_group(primitives: &[RenderPrimitive], style: Style) -> Box<dyn Node> {
+    todo!();
+    /*
+    let group = style_group(style);
+    let with_children = primitives
+        .iter()
+        .fold(group, |group, x| add_geometry(group, *x));
+    Box::new(with_children)
+    */
+}
+
 impl From<RenderPrimitive> for SvgNode {
     fn from(value: RenderPrimitive) -> Self {
         use RenderPrimitive::*;
@@ -93,6 +140,7 @@ impl From<RenderPrimitive> for SvgNode {
             LineSegment { x1, y1, x2, y2 } => SvgNode(svg_line_segment(x1, y1, x2, y2)),
             CircularArc(circular_arc) => SvgNode(svg_circular_arc(circular_arc)),
             Polygon(commands) => SvgNode(svg_polygon(&commands)),
+            Group(primitives, style) => SvgNode(svg_group(&primitives, style)),
         }
     }
 }
@@ -136,43 +184,6 @@ impl<T: Renderable> From<&[T]> for SvgNodes {
     }
 }
 
-pub fn add_geometry(group: Group, geometry: impl Into<SvgNodes>) -> Group {
-    let SvgNodes(nodes) = geometry.into();
-    nodes.into_iter().fold(group, |group, x| group.add(x))
-}
-
-pub fn style_group(style: Style) -> Group {
-    let mut group = Group::new();
-
-    let Style {
-        stroke,
-        fill,
-        width_percent,
-    } = style;
-    if let Some(color) = stroke {
-        group = group.set("stroke", color.to_string());
-    }
-
-    if let Some(color) = fill {
-        group = group.set("fill", color.to_string());
-    } else {
-        group = group.set("fill", "none");
-    }
-
-    if let Some(percent) = width_percent {
-        group = group.set("stroke-width", format!("{}%", percent));
-    }
-
-    group
-}
-
-pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
-    let mut svg = style_group(style);
-    svg = add_geometry(svg, geometry);
-
-    svg
-}
-
 /*
 pub fn style_motif<T: Renderable>(motif: &Motif<T>, styles: &[Style]) -> Group {
     let groups: Vec<Group> = motif
@@ -211,58 +222,3 @@ pub fn make_axes() -> Group {
     axes
 }
     */
-
-pub fn flip_y() -> Group {
-    Group::new().set("transform", "scale(1, -1)")
-}
-
-pub fn make_card(center_x: f64, center_y: f64, half_width: f64) -> Document {
-    // My usual art trading card format for my website is 500x700px
-    const WIDTH: f64 = 500.0;
-    const HEIGHT: f64 = 700.0;
-    const ASPECT_RATIO: f64 = WIDTH / HEIGHT;
-
-    let half_height = half_width / ASPECT_RATIO;
-
-    let offset_x = half_width;
-    let offset_y = half_height;
-    let left = center_x - offset_x;
-    let top = -center_y - offset_y;
-
-    let view_box = (left, top, half_width * 2.0, half_height * 2.0);
-
-    let background = Rectangle::new()
-        .set("x", left)
-        .set("y", top)
-        .set("width", "100%")
-        .set("height", "100%")
-        .set("fill", "black")
-        .set("stroke", "none");
-
-    Document::new()
-        .set("width", 500)
-        .set("height", 700)
-        .set("viewBox", view_box)
-        .add(background)
-}
-
-pub struct View<'a>(pub &'a str, pub f64, pub f64, pub f64);
-
-pub fn render_views<P: AsRef<path::Path>>(
-    output_dir: P,
-    prefix: &str,
-    views: &[View],
-    geometry: Group,
-) -> Result<(), std::io::Error> {
-    for &View(label, x, y, half_width) in views {
-        let flipped = flip_y().add(geometry.clone());
-        let doc = make_card(x, y, half_width).add(flipped);
-
-        let separator = if label.is_empty() { "" } else { "_" };
-        let filename = format!("{}{}{}.svg", prefix, separator, label);
-        let path = output_dir.as_ref().join(path::Path::new(&filename));
-        svg::save(path, &doc)?
-    }
-
-    Ok(())
-}

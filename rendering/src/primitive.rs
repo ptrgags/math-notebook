@@ -1,3 +1,5 @@
+use crate::style::Style;
+
 #[derive(Clone, Copy)]
 pub struct CircularArcTo {
     pub radius: f64,
@@ -28,4 +30,12 @@ pub enum RenderPrimitive {
     LineSegment { x1: f64, y1: f64, x2: f64, y2: f64 },
     CircularArc(CircularArc),
     Polygon(Vec<PathCommand>),
+    Group(Vec<RenderPrimitive>, Style),
+}
+
+impl RenderPrimitive {
+    /// Quick way to make a group without applying a style
+    pub fn group(primitives: Vec<RenderPrimitive>) -> Self {
+        Self::Group(primitives, Style::new())
+    }
 }
