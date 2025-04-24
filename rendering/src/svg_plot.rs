@@ -7,23 +7,23 @@ use svg::{
 };
 
 use crate::{
-    geometry::{ArcAngles, ArcDirection, Circle, CircularArc, DirectedEdge, LineSegment},
-    rendering::{PathCommand, RenderPrimitive, Renderable, Style},
-    transformable::{Cline, ClineTile, Motif},
-    Complex,
+    render_primitive::{CircularArc, CircularArcTo, PathCommand, RenderPrimitive},
+    renderable::Renderable,
+    style::Style,
 };
+
 pub struct SvgNode(Box<dyn Node>);
 
-fn svg_circle(circle: Circle) -> Box<dyn Node> {
-    let Circle { center, radius } = circle;
+fn svg_circle(cx: f64, cy: f64, radius: f64) -> Box<dyn Node> {
     Box::new(
         SvgCircle::new()
-            .set("cx", center.real())
-            .set("cy", center.imag())
+            .set("cx", cx)
+            .set("cy", cy)
             .set("r", radius),
     )
 }
 
+/*
 fn svg_arc_parameters(arc: CircularArc) -> (f64, f64, f64, u8, u8, f64, f64) {
     let CircularArc { circle, angles } = arc;
     let ArcAngles(start_angle, end_angle) = angles;
@@ -50,7 +50,22 @@ fn svg_arc_parameters(arc: CircularArc) -> (f64, f64, f64, u8, u8, f64, f64) {
         end_y,
     )
 }
+    */
 
+fn svg_arc_parameters(arc: CircularArcTo) -> (f64, f64, f64, u8, u8, f64, f64) {
+    const NO_ROTATION: f64 = 0.0;
+    (
+        arc.radius,
+        arc.radius,
+        NO_ROTATION,
+        arc.large_arc as u8,
+        arc.counterclockwise as u8,
+        arc.end_x,
+        arc.end_y,
+    )
+}
+
+/*
 fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
     let start = arc.start();
     let start_x = start.real();
@@ -63,24 +78,32 @@ fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
 
     Box::new(Path::new().set("d", data))
 }
+*/
 
-fn svg_line_segment(line: LineSegment) -> Box<dyn Node> {
-    let LineSegment { start, end } = line;
+fn svg_circular_arc(arc: CircularArc) -> Box<dyn Node> {
+    let arc_params = svg_arc_parameters(arc.arc_to);
+    let data = Data::new()
+        .move_to((arc.start_x, arc.start_y))
+        .elliptical_arc_to(arc_params);
+    Box::new(Path::new().set("d", data))
+}
+
+fn svg_line_segment(x1: f64, y1: f64, x2: f64, y2: f64) -> Box<dyn Node> {
     Box::new(
         SvgLine::new()
-            .set("x1", start.real())
-            .set("y1", start.imag())
-            .set("x2", end.real())
-            .set("y2", end.imag()),
+            .set("x1", x1)
+            .set("y1", y1)
+            .set("x2", x2)
+            .set("y2", y2),
     )
 }
 
-fn svg_point(z: Complex) -> Box<dyn Node> {
+fn svg_point(x: f64, y: f64) -> Box<dyn Node> {
     const POINT_RADIUS: &str = "0.25%";
     Box::new(
         SvgCircle::new()
-            .set("cx", z.real())
-            .set("cy", z.imag())
+            .set("cx", x)
+            .set("cy", y)
             .set("r", POINT_RADIUS),
     )
 }
@@ -88,12 +111,12 @@ fn svg_point(z: Complex) -> Box<dyn Node> {
 fn svg_polygon(commands: &[PathCommand]) -> Box<dyn Node> {
     let mut path_data = Data::new();
 
-    for cmd in commands.iter() {
+    for &cmd in commands.iter() {
         match cmd {
-            PathCommand::MoveTo(z) => path_data = path_data.move_to((z.real(), z.imag())),
-            PathCommand::LineTo(z) => path_data = path_data.line_to((z.real(), z.imag())),
+            PathCommand::MoveTo { x, y } => path_data = path_data.move_to((x, y)),
+            PathCommand::LineTo { x, y } => path_data = path_data.line_to((x, y)),
             PathCommand::ArcTo(arc) => {
-                let arc_params = svg_arc_parameters(*arc);
+                let arc_params = svg_arc_parameters(arc);
                 path_data = path_data.elliptical_arc_to(arc_params);
             }
         }
@@ -107,12 +130,13 @@ fn svg_polygon(commands: &[PathCommand]) -> Box<dyn Node> {
 
 impl From<RenderPrimitive> for SvgNode {
     fn from(value: RenderPrimitive) -> Self {
+        use RenderPrimitive::*;
         match value {
-            RenderPrimitive::Point(z) => SvgNode(svg_point(z)),
-            RenderPrimitive::Circle(circle) => SvgNode(svg_circle(circle)),
-            RenderPrimitive::LineSegment(line_segment) => SvgNode(svg_line_segment(line_segment)),
-            RenderPrimitive::CircularArc(circular_arc) => SvgNode(svg_circular_arc(circular_arc)),
-            RenderPrimitive::Polygon(commands) => SvgNode(svg_polygon(&commands)),
+            Point { x, y } => SvgNode(svg_point(x, y)),
+            Circle { x, y, radius } => SvgNode(svg_circle(x, y, radius)),
+            LineSegment { x1, y1, x2, y2 } => SvgNode(svg_line_segment(x1, y1, x2, y2)),
+            CircularArc(circular_arc) => SvgNode(svg_circular_arc(circular_arc)),
+            Polygon(commands) => SvgNode(svg_polygon(&commands)),
         }
     }
 }

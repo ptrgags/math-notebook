@@ -3,7 +3,7 @@ use std::{
     f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, PI, SQRT_2, TAU},
 };
 
-use crate::{
+use mobius::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     polygon::Polygon,
     rendering::Style,
