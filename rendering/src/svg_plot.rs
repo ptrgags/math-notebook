@@ -1,5 +1,5 @@
 use core::f64;
-use std::{f64::consts::PI, path};
+use std::path;
 
 use svg::{
     node::element::{path::Data, Circle as SvgCircle, Group, Line as SvgLine, Path, Rectangle},
@@ -256,28 +256,24 @@ pub fn flip_y() -> Group {
     Group::new().set("transform", "scale(1, -1)")
 }
 
-pub fn make_card(center: Complex, half_width: f64) -> Document {
+pub fn make_card(center_x: f64, center_y: f64, half_width: f64) -> Document {
     // My usual art trading card format for my website is 500x700px
     const WIDTH: f64 = 500.0;
     const HEIGHT: f64 = 700.0;
     const ASPECT_RATIO: f64 = WIDTH / HEIGHT;
 
     let half_height = half_width / ASPECT_RATIO;
-    let offset = Complex::new(half_width, half_height);
 
-    let top_left = center.conj() - offset;
-    let dimensions = offset + offset;
+    let offset_x = half_width;
+    let offset_y = half_height;
+    let left = center_x - offset_x;
+    let top = -center_y - offset_y;
 
-    let view_box = (
-        top_left.real(),
-        top_left.imag(),
-        dimensions.real(),
-        dimensions.imag(),
-    );
+    let view_box = (left, top, half_width * 2.0, half_height * 2.0);
 
     let background = Rectangle::new()
-        .set("x", top_left.real())
-        .set("y", top_left.imag())
+        .set("x", left)
+        .set("y", top)
         .set("width", "100%")
         .set("height", "100%")
         .set("fill", "black")
@@ -298,9 +294,9 @@ pub fn render_views<P: AsRef<path::Path>>(
     views: &[View],
     geometry: Group,
 ) -> Result<(), std::io::Error> {
-    for View(label, x, y, half_width) in views {
+    for &View(label, x, y, half_width) in views {
         let flipped = flip_y().add(geometry.clone());
-        let doc = make_card(Complex::new(*x, *y), *half_width).add(flipped);
+        let doc = make_card(x, y, half_width).add(flipped);
 
         let separator = if label.is_empty() { "" } else { "_" };
         let filename = format!("{}{}{}.svg", prefix, separator, label);
