@@ -1,6 +1,6 @@
 use std::{error::Error, f64::consts::PI};
 
-use abstraction::Group;
+use abstraction::group::Group;
 use gallery::motifs::halloween::{bone, candy_corn, ghost, skull, witch_hat};
 use mobius::{
     algorithms::{GridIFS, GroupIFS, MonoidIFS},

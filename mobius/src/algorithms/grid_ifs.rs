@@ -1,4 +1,4 @@
-use abstraction::{semigroup::Semigroup, Group};
+use abstraction::{group::Group, semigroup::Semigroup};
 
 use crate::transformable::Transformable;
 
@@ -15,8 +15,6 @@ struct Axis<G> {
     start: G,
     iters: usize,
 }
-
-//let (xform, start_power, end_power) =
 
 impl<G: Group> From<AxisDescriptor<G>> for Axis<G> {
     fn from(value: AxisDescriptor<G>) -> Self {

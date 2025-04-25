@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use abstraction::{semigroup::Semigroup, Monoid};
+use abstraction::{monoid::Monoid, semigroup::Semigroup};
 
 use crate::transformable::Transformable;
 

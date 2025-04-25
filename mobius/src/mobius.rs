@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Mul};
 
-use abstraction::{semigroup::Semigroup, Group, Monoid};
+use abstraction::{group::Group, monoid::Monoid, semigroup::Semigroup};
 
 use crate::{complex::Complex, nearly::is_nearly};
 

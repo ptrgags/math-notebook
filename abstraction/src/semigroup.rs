@@ -16,3 +16,27 @@ pub trait Semigroup: Clone + Mul<Self, Output = Self> {
         values.iter().cloned().reduce(|accum, x| accum * x).unwrap()
     }
 }
+
+/// Test that (ab)c = a(bc)
+#[macro_export]
+macro_rules! test_associativity {
+    ($t:ty, $label:ident, $a:expr, $b:expr, $c:expr) => {
+        #[test]
+        fn $label() {
+            let a = $a;
+            let b = $b;
+            let c = $c;
+
+            let ab_c = (a.clone() * b.clone()) * c.clone();
+            let a_bc = a * (b * c);
+
+            assert_eq!(ab_c, a_bc);
+        }
+    };
+    ($t:ty, [$(($label: ident, $a: expr, $b:expr, $c: expr)),*]) => {
+        mod associativity_law {
+            use super::*;
+            $(test_associativity!($t, $label, $a, $b, $c);)*
+        }
+    }
+}

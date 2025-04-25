@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Mul};
 
-use abstraction::{semigroup::Semigroup, Group, Monoid};
+use abstraction::{group::Group, monoid::Monoid, semigroup::Semigroup};
 
 /// Fractal adddress symbol, using the "uppercase is inverse" notation
 /// a la _Indra's Pearls_.

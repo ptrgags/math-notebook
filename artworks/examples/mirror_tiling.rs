@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::f64::consts::PI;
 
-use abstraction::Monoid;
+use abstraction::monoid::Monoid;
 use mobius::{
     algorithms::{OrbitIFS, OrbitTile},
     cline_arc::ClineArc,

@@ -1,4 +1,4 @@
-use abstraction::Group;
+use abstraction::group::Group;
 use permutations::{DisjointCycles, Permutation};
 
 // Two faces of a 2x2 cube

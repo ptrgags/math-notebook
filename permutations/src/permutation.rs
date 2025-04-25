@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fmt::Display, ops::Mul, str::FromStr};
 
-use abstraction::{semigroup::Semigroup, Group, Monoid};
+use abstraction::{group::Group, monoid::Monoid, semigroup::Semigroup};
 
 use crate::{disjoint_cycles::DisjointCycles, permutation_error::PermutationError};
 

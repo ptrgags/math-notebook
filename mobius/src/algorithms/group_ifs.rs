@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use abstraction::{semigroup::Semigroup, Group, Monoid};
+use abstraction::{group::Group, monoid::Monoid, semigroup::Semigroup};
 
 use crate::{
     address::{FractalAddress, Symbol},
