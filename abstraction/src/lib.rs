@@ -1,6 +1,9 @@
 pub mod dfs;
+pub mod semigroup;
 
 use std::ops::Mul;
+
+use semigroup::Semigroup;
 
 pub struct PowerIterator<S: Monoid> {
     element: S,
@@ -40,11 +43,19 @@ impl<S: Monoid> Iterator for PowerIterator<S> {
 /// - the binary operation is associative. a(bc) = (ab)c for all a, b, c in S
 ///   This isn't easily representable in a type, so it's up to the
 ///   implementation to make sure this is valid.
-pub trait Monoid: PartialEq + Clone + Mul<Self, Output = Self> {
+pub trait Monoid: Semigroup {
     /// The identity element. This must satisfy
     /// T::identity() * element = element
     /// element * T::identity() = element
     fn identity() -> Self;
+
+    /// Similar to Semigroup::sconcat, but now the list can be empty
+    fn mconcat(values: &[Self]) -> Self {
+        values
+            .iter()
+            .cloned()
+            .fold(Self::identity(), |accum, x| accum * x)
+    }
 
     /// Raise an element to a specific power
     fn pow(&self, exponent: usize) -> Self {

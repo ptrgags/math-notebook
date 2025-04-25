@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fmt::Display, ops::Mul, str::FromStr};
 
-use abstraction::{Group, Monoid};
+use abstraction::{semigroup::Semigroup, Group, Monoid};
 
 use crate::{disjoint_cycles::DisjointCycles, permutation_error::PermutationError};
 
@@ -124,6 +124,7 @@ impl<const N: usize> Mul for Permutation<N> {
     }
 }
 
+impl<const N: usize> Semigroup for Permutation<N> {}
 impl<const N: usize> Monoid for Permutation<N> {
     fn identity() -> Self {
         let mut values = [0; N];

@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Mul};
 
-use abstraction::{Group, Monoid};
+use abstraction::{semigroup::Semigroup, Group, Monoid};
 
 use crate::{complex::Complex, nearly::is_nearly};
 
@@ -304,6 +304,7 @@ impl Monoid for Mobius {
     }
 }
 
+impl Semigroup for Mobius {}
 impl Group for Mobius {
     fn inverse(&self) -> Self {
         self.inverse()
