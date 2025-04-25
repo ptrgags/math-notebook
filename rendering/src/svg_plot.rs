@@ -82,13 +82,6 @@ fn svg_polygon(commands: &[PathCommand]) -> Box<dyn Node> {
     Box::new(path)
 }
 
-/*
-pub fn add_geometry(group: Group, geometry: impl Into<SvgNodes>) -> Group {
-    let SvgNodes(nodes) = geometry.into();
-    nodes.into_iter().fold(group, |group, x| group.add(x))
-}
-    */
-
 pub fn style_group(style: Style) -> Group {
     let mut group = Group::new();
 
@@ -115,14 +108,14 @@ pub fn style_group(style: Style) -> Group {
 }
 
 fn svg_group(primitives: &[RenderPrimitive], style: Style) -> Box<dyn Node> {
-    todo!();
-    /*
-    let group = style_group(style);
-    let with_children = primitives
-        .iter()
-        .fold(group, |group, x| add_geometry(group, *x));
-    Box::new(with_children)
-    */
+    let mut svg_group = style_group(style);
+
+    for primitive in primitives.iter() {
+        let SvgNode(node) = SvgNode::from(primitive.clone());
+        svg_group = svg_group.add(node);
+    }
+
+    Box::new(svg_group)
 }
 
 impl From<RenderPrimitive> for SvgNode {
@@ -138,36 +131,3 @@ impl From<RenderPrimitive> for SvgNode {
         }
     }
 }
-
-/*
-pub fn style_motif<T: Renderable>(motif: &Motif<T>, styles: &[Style]) -> Group {
-    let groups: Vec<Group> = motif
-        .iter()
-        .map(|(tile, style_id)| style_geometry(styles[*style_id], tile))
-        .collect();
-    union(groups)
-}
-
-pub fn style_motifs<T: Renderable>(motifs: &[Motif<T>], styles: &[Style]) -> Group {
-    let groups: Vec<Group> = motifs
-        .iter()
-        .map(|motif| style_motif(motif, styles))
-        .collect();
-    union(groups)
-}
-*/
-
-/*
-pub fn make_axes() -> Group {
-    let tile = ClineTile::new(vec![
-        Cline::unit_circle(),
-        Cline::real_axis(),
-        Cline::imag_axis(),
-    ]);
-
-    let mut axes = Group::new();
-    axes = add_geometry(axes, &tile);
-
-    axes
-}
-    */
