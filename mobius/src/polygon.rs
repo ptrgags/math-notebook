@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use rendering::{PathCommand, RenderPrimitive, Renderable};
 use thiserror::Error;
 
@@ -42,7 +44,7 @@ impl Polygon {
 }
 
 impl Renderable for Polygon {
-    fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn std::error::Error>> {
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>> {
         let start = self.edges[0].start();
         let mut commands = vec![PathCommand::MoveTo {
             x: start.real(),
@@ -61,7 +63,7 @@ impl Renderable for Polygon {
             }
         }
 
-        Ok(vec![RenderPrimitive::Polygon(commands)])
+        Ok(RenderPrimitive::Polygon(commands))
     }
 }
 

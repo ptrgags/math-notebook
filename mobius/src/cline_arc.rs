@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
 
 use rendering::{RenderPrimitive, Renderable};
 
@@ -256,9 +256,7 @@ impl Transformable<Isogonal> for ClineArc {
 }
 
 impl Renderable for ClineArc {
-    fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn std::error::Error>> {
-        let mut result = Vec::new();
-
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>> {
         let (first, maybe_second) = match self.classify()? {
             ClineArcGeometry::CircularArc(arc) => (arc.to_primitive(), None),
             ClineArcGeometry::LineSegment(line_segment) => (line_segment.to_primitive(), None),
@@ -271,12 +269,13 @@ impl Renderable for ClineArc {
             }
         };
 
-        result.push(first);
-        if let Some(x) = maybe_second {
-            result.push(x);
-        }
+        let primitive = if let Some(x) = maybe_second {
+            RenderPrimitive::group(vec![first, x])
+        } else {
+            first
+        };
 
-        Ok(result)
+        Ok(primitive)
     }
 }
 

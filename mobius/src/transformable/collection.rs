@@ -51,14 +51,13 @@ impl<T: Display> Display for Collection<T> {
 }
 
 impl<T: Renderable> Renderable for Collection<T> {
-    fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn Error>> {
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>> {
         let mut errors = vec![];
-        let baked: Vec<_> = self
+        let baked: Vec<RenderPrimitive> = self
             .primitives
             .iter()
-            .map(|x| x.bake_geometry())
+            .map(|x| x.render())
             .filter_map(|x| x.map_err(|x| errors.push(x)).ok())
-            .flatten()
             .collect();
 
         if !errors.is_empty() {
@@ -68,7 +67,7 @@ impl<T: Renderable> Renderable for Collection<T> {
             }
         }
 
-        Ok(baked)
+        Ok(RenderPrimitive::group(baked))
     }
 }
 

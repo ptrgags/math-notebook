@@ -6,8 +6,7 @@ use svg::{
 };
 
 use crate::{
-    primitive::{CircularArc, CircularArcTo, PathCommand, RenderPrimitive},
-    renderable::Renderable,
+    primitive::{CircularArc, CircularArcTo, PathCommand, RenderPrimitive, Renderable},
     style::Style,
 };
 
@@ -83,10 +82,12 @@ fn svg_polygon(commands: &[PathCommand]) -> Box<dyn Node> {
     Box::new(path)
 }
 
+/*
 pub fn add_geometry(group: Group, geometry: impl Into<SvgNodes>) -> Group {
     let SvgNodes(nodes) = geometry.into();
     nodes.into_iter().fold(group, |group, x| group.add(x))
 }
+    */
 
 pub fn style_group(style: Style) -> Group {
     let mut group = Group::new();
@@ -113,12 +114,13 @@ pub fn style_group(style: Style) -> Group {
     group
 }
 
+/*
 pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
     let mut svg = style_group(style);
     svg = add_geometry(svg, geometry);
 
     svg
-}
+}*/
 
 fn svg_group(primitives: &[RenderPrimitive], style: Style) -> Box<dyn Node> {
     todo!();
@@ -145,6 +147,7 @@ impl From<RenderPrimitive> for SvgNode {
     }
 }
 
+/*
 pub struct SvgNodes(Vec<Box<dyn Node>>);
 
 /// Promote a single node into a collection
@@ -183,6 +186,7 @@ impl<T: Renderable> From<&[T]> for SvgNodes {
         )
     }
 }
+    */
 
 /*
 pub fn style_motif<T: Renderable>(motif: &Motif<T>, styles: &[Style]) -> Group {

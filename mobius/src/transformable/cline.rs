@@ -216,13 +216,13 @@ impl Transformable<Isogonal> for Cline {
 }
 
 impl Renderable for Cline {
-    fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn Error>> {
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>> {
         let primitive = match self.classify()? {
             GeneralizedCircle::Circle(circle) => circle.to_primitive(),
             GeneralizedCircle::Line(line) => line.to_primitive(),
         };
 
-        Ok(vec![primitive])
+        Ok(primitive)
     }
 }
 

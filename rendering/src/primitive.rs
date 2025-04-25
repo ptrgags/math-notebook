@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::style::Style;
 
 #[derive(Clone, Copy)]
@@ -38,4 +40,8 @@ impl RenderPrimitive {
     pub fn group(primitives: Vec<RenderPrimitive>) -> Self {
         Self::Group(primitives, Style::new())
     }
+}
+
+pub trait Renderable {
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>>;
 }
