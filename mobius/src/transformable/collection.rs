@@ -23,6 +23,7 @@ impl<T> Collection<T> {
     }
 }
 
+/// The semigroup operation is to combine collections into a larger collection
 impl<T: Clone> Mul for Collection<T> {
     type Output = Self;
 
@@ -33,6 +34,7 @@ impl<T: Clone> Mul for Collection<T> {
     }
 }
 
+/// Semigroup is implemented to flatten out Vec<Collection>
 impl<T: Clone> Semigroup for Collection<T> {
     fn sconcat(values: &[Self]) -> Self
     where
