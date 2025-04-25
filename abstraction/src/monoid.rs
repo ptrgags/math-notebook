@@ -39,8 +39,8 @@ where
 /// - S is closed under *. This is realized as requiring Mul<S, Output=S>
 /// - S has an identity element I, such that I * x = x * I = x for all x in S
 /// - the binary operation is associative. a(bc) = (ab)c for all a, b, c in S
-///   This isn't easily representable in a type, so it's up to the
-///   implementation to make sure this is valid.
+///
+/// Another way of saying the same thing: a monoid is a semigroup + identity
 pub trait Monoid: Semigroup {
     /// The identity element. This must satisfy
     /// T::identity() * element = element
