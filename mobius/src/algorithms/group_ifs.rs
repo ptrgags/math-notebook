@@ -66,6 +66,8 @@ impl<G: Group> GroupIFS<G> {
             .collect()
     }
 
+    /// When T values can be combined, this method is convenient for flattening
+    /// the results of apply() into a single T
     pub fn flat_apply<T>(&self, primitive: &T, min_depth: usize, max_depth: usize) -> T
     where
         T: Transformable<G> + Semigroup,

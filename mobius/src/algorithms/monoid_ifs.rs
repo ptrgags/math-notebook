@@ -4,7 +4,9 @@ use abstraction::{semigroup::Semigroup, Monoid};
 
 use crate::transformable::Transformable;
 
-/// Iterated Function System. This is still in a prototype stage
+/// Iterated Function System that can be applied to transformable objects
+/// via a depth-limited DFS (i.e. the "deterministic algorithm" in
+/// _Fractals Everywhere_ by Michael F. Barnsley)
 pub struct MonoidIFS<S: Monoid> {
     xforms: Vec<S>,
 }
@@ -39,6 +41,8 @@ impl<S: Monoid> MonoidIFS<S> {
             .collect()
     }
 
+    /// When T values can be combined, this method is convenient for flattening
+    /// the results of apply() into a single T
     pub fn flat_apply<T>(&self, primitive: &T, min_depth: usize, max_depth: usize) -> T
     where
         T: Transformable<S> + Semigroup,
