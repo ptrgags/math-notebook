@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use abstraction::{Group, Monoid};
+use abstraction::{group::Group, monoid::Monoid, semigroup::Semigroup};
 
 use crate::{
     address::{FractalAddress, Symbol},
@@ -64,6 +64,16 @@ impl<G: Group> GroupIFS<G> {
                 }
             })
             .collect()
+    }
+
+    /// When T values can be combined, this method is convenient for flattening
+    /// the results of apply() into a single T
+    pub fn flat_apply<T>(&self, primitive: &T, min_depth: usize, max_depth: usize) -> T
+    where
+        T: Transformable<G> + Semigroup,
+    {
+        let applied = self.apply(primitive, min_depth, max_depth);
+        Semigroup::sconcat(&applied)
     }
 }
 

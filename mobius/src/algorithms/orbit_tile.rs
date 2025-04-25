@@ -1,4 +1,4 @@
-use abstraction::{Group, GroupAction};
+use abstraction::group::{Group, GroupAction};
 
 use crate::{isogonal::Isogonal, Complex};
 
@@ -62,7 +62,7 @@ pub type IsogonalTile = OrbitTile<Isogonal, Complex>;
 #[cfg(test)]
 mod test {
 
-    use abstraction::Monoid;
+    use abstraction::monoid::Monoid;
 
     use crate::{
         isogonal::Isogonal, isogonal_recipes::reflect_y, point_reflection, translation, Complex,

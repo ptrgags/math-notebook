@@ -7,7 +7,7 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple, scale,
-    transformable::{ClineArcTile, Collection},
+    transformable::ClineArcTile,
     Complex, Mobius,
 };
 use rendering::{render_svg, style::Style, Renderable, View};
@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ]);
 
     let ifs = MonoidIFS::new(xforms);
-    let tiles = ifs.apply(&tile, 0, 5);
+    let tiles = ifs.flat_apply(&tile, 0, 5);
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.25);
 
@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "output",
         "tricorn",
         &[View("", 0.5, 0.5, 0.6)],
-        Collection::union(tiles).render_group(yellow)?,
+        tiles.render_group(yellow)?,
     )?;
 
     // --
@@ -73,14 +73,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         CircularArc::new(Circle::unit_circle(), more_angles).into(),
         LineSegment::new(Complex::ONE, Complex::Zero).into(),
     ]);
-    let more_tiles = ifs.apply(&another_tile, 0, 5);
+    let more_tiles = ifs.flat_apply(&another_tile, 0, 5);
     let cyan = Style::stroke(0, 255, 255).with_width(0.25);
 
     render_svg(
         "output",
         "tricorn2",
         &[View("", 0.5, 0.0, 0.8)],
-        Collection::union(more_tiles).render_group(cyan)?,
+        more_tiles.render_group(cyan)?,
     )?;
 
     Ok(())

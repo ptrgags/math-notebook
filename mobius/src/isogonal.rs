@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Mul};
 
-use abstraction::{Group, Monoid};
+use abstraction::{group::Group, monoid::Monoid, semigroup::Semigroup};
 
 use crate::{Complex, Mobius};
 
@@ -63,6 +63,7 @@ impl Mul<Complex> for Isogonal {
     }
 }
 
+impl Semigroup for Isogonal {}
 impl Monoid for Isogonal {
     fn identity() -> Self {
         Self::Conformal(Mobius::identity())

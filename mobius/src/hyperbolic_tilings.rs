@@ -1,6 +1,6 @@
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
-use abstraction::Group;
+use abstraction::group::Group;
 
 use crate::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},

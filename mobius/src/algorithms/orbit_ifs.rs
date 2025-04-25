@@ -1,5 +1,7 @@
 use std::collections::VecDeque;
 
+use abstraction::semigroup::Semigroup;
+
 use crate::{isogonal::Isogonal, transformable::Transformable};
 
 use super::{
@@ -7,6 +9,9 @@ use super::{
     IsogonalTile,
 };
 
+/// An iterated function system that follows the orbit of a tile, always
+/// moving to adjacent tiles without revisiting the same tile. This helps
+/// when rendering tilings that use mirror transformations
 pub struct OrbitIFS {
     initial_tile: IsogonalTile,
 }
@@ -29,6 +34,16 @@ impl OrbitIFS {
         self.orbit(max_depth, quantize_bits)
             .map(|xform| primitive.transform(xform))
             .collect()
+    }
+
+    /// When T values can be combined, this method is convenient for flattening
+    /// the results of apply() into a single T.
+    pub fn flat_apply<T>(&self, primitive: &T, max_depth: usize, quantize_bits: i32) -> T
+    where
+        T: Transformable<Isogonal> + Semigroup,
+    {
+        let applied = self.apply(primitive, max_depth, quantize_bits);
+        Semigroup::sconcat(&applied)
     }
 }
 

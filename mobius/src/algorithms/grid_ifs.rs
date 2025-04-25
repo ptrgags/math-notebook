@@ -1,4 +1,4 @@
-use abstraction::Group;
+use abstraction::{group::Group, semigroup::Semigroup};
 
 use crate::transformable::Transformable;
 
@@ -15,8 +15,6 @@ struct Axis<G> {
     start: G,
     iters: usize,
 }
-
-//let (xform, start_power, end_power) =
 
 impl<G: Group> From<AxisDescriptor<G>> for Axis<G> {
     fn from(value: AxisDescriptor<G>) -> Self {
@@ -73,6 +71,16 @@ impl<G: Group> GridIFS<G> {
         self.iter()
             .map(|(_, xform)| primitive.transform(xform))
             .collect()
+    }
+
+    /// When T values can be combined, this method is convenient for flattening
+    /// the results of apply() into a single T.
+    pub fn flat_apply<T>(&self, primitive: &T) -> T
+    where
+        T: Transformable<G> + Semigroup,
+    {
+        let applied = self.apply(primitive);
+        Semigroup::sconcat(&applied)
     }
 }
 

@@ -7,7 +7,7 @@ use mobius::{
         ArcAngles, Circle, CircularArc, DirectedEdge,
     },
     map_triple,
-    transformable::{ClineArcTile, Collection, Motif, Transformable},
+    transformable::{ClineArcTile, Motif, Transformable},
     Complex, Mobius,
 };
 use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
@@ -88,13 +88,13 @@ fn crinkle_highlight_leaves(
         arc_cb.reverse().into(),
     ]);
 
-    let triangle_tiles = ifs.apply(&triangle_tile, 0, depth - 1);
-    let leaf_lenses = ifs.apply(&lens_tile, depth, depth);
+    let triangle_tiles = ifs.flat_apply(&triangle_tile, 0, depth - 1);
+    let leaf_lenses = ifs.flat_apply(&lens_tile, depth, depth);
 
     let [style_interior, style_leaves] = styles;
 
-    let triangles = Collection::union(triangle_tiles).render_group(style_interior)?;
-    let lenses = Collection::union(leaf_lenses).render_group(style_leaves)?;
+    let triangles = triangle_tiles.render_group(style_interior)?;
+    let lenses = leaf_lenses.render_group(style_leaves)?;
 
     Ok(RenderPrimitive::group(vec![triangles, lenses]))
 }
@@ -137,8 +137,8 @@ fn crinkle_two_color(
     ]);
 
     // Remember, we're making bigger jumps and a higher branchihng factor, so tune the depth down a bit.
-    let tiles = ifs.apply(&combined_tile, 0, depth);
-    Motif::union(tiles).render_group(&styles)
+    let tiles = ifs.flat_apply(&combined_tile, 0, depth);
+    tiles.render_group(&styles)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

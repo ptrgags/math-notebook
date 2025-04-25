@@ -1,12 +1,13 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Mul};
 
+use abstraction::semigroup::Semigroup;
 use rendering::{style::Style, RenderPrimitive, Renderable};
 
 use crate::isogonal::Isogonal;
 
 use super::Transformable;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Motif<T> {
     parts: Vec<(T, usize)>,
 }
@@ -19,9 +20,26 @@ impl<T> Motif<T> {
     pub fn iter(&self) -> impl Iterator<Item = &(T, usize)> {
         self.parts.iter()
     }
+}
 
-    pub fn union(motifs: Vec<Self>) -> Self {
-        let all_parts: Vec<(T, usize)> = motifs.into_iter().flat_map(|x| x.parts).collect();
+/// The semigroup operation combines motifs into one larger motif
+impl<T: Clone> Mul for Motif<T> {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let mut parts = self.parts.clone();
+        parts.extend(rhs.parts.clone());
+        Self { parts }
+    }
+}
+
+/// Semigroup is implemented to flatten out Vec<Motif>
+impl<T: Clone> Semigroup for Motif<T> {
+    fn sconcat(values: &[Self]) -> Self
+    where
+        Self: Sized,
+    {
+        let all_parts: Vec<(T, usize)> = values.iter().cloned().flat_map(|x| x.parts).collect();
         Self { parts: all_parts }
     }
 }

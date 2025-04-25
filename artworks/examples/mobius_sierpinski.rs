@@ -4,7 +4,7 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     scale,
-    transformable::{ClineArcTile, Collection},
+    transformable::ClineArcTile,
     Complex, Mobius,
 };
 use rendering::{render_svg, style::Style, Renderable, View};
@@ -93,7 +93,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ]);
 
     let ifs = MonoidIFS::new(xforms);
-    let tiles = ifs.apply(&tile, 0, 4);
+    let tiles = ifs.flat_apply(&tile, 0, 4);
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.25);
 
@@ -101,7 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "output",
         "mobius_sierpinski",
         &[View("", 0.5, 0.5, 0.6)],
-        Collection::union(tiles).render_group(yellow)?,
+        tiles.render_group(yellow)?,
     )?;
 
     Ok(())

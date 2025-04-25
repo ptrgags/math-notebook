@@ -4,7 +4,7 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple,
-    transformable::{ClineArcTile, Collection},
+    transformable::ClineArcTile,
     Complex, Mobius,
 };
 use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
@@ -45,8 +45,8 @@ fn show_individual_xforms(
         .zip(colors.iter())
         .map(|(xform, style)| {
             let ifs = MonoidIFS::new(vec![*xform]);
-            let tiles = ifs.apply(tile, min_depth, max_depth);
-            Collection::union(tiles).render_group(*style).unwrap()
+            let tiles = ifs.flat_apply(tile, min_depth, max_depth);
+            tiles.render_group(*style).unwrap()
         })
         .collect();
 
@@ -64,9 +64,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let ifs = MonoidIFS::new(xforms.clone());
 
-    let tiles = ifs.apply(&half_circle, 8, 8);
+    let tiles = ifs.flat_apply(&half_circle, 8, 8);
     let red = Style::stroke(255, 0, 0).with_width(0.125);
-    let geometry = Collection::union(tiles).render_group(red)?;
+    let geometry = tiles.render_group(red)?;
 
     render_svg(
         "output",

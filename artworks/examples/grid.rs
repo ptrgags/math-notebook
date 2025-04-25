@@ -1,7 +1,7 @@
 use core::f64;
 use std::error::Error;
 
-use abstraction::{Group, Monoid};
+use abstraction::{group::Group, monoid::Monoid};
 use mobius::{
     elliptic, hyperbolic,
     transformable::{Cline, Collection, Transformable},

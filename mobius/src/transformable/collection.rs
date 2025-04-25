@@ -1,5 +1,6 @@
-use std::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display, ops::Mul};
 
+use abstraction::semigroup::Semigroup;
 use rendering::{RenderPrimitive, Renderable};
 
 use crate::{cline_arc::ClineArc, isogonal::Isogonal};
@@ -20,12 +21,27 @@ impl<T> Collection<T> {
     pub fn get_primitives(&self) -> &[T] {
         &self.primitives
     }
+}
 
-    pub fn union(primitives: Vec<Self>) -> Self {
-        let all_primitives: Vec<T> = primitives.into_iter().flat_map(|x| x.primitives).collect();
-        Self {
-            primitives: all_primitives,
-        }
+/// The semigroup operation is to combine collections into a larger collection
+impl<T: Clone> Mul for Collection<T> {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let mut primitives = self.primitives.clone();
+        primitives.extend(rhs.primitives.clone());
+        Self { primitives }
+    }
+}
+
+/// Semigroup is implemented to flatten out Vec<Collection>
+impl<T: Clone> Semigroup for Collection<T> {
+    fn sconcat(values: &[Self]) -> Self
+    where
+        Self: Sized,
+    {
+        let primitives: Vec<T> = values.iter().flat_map(|x| x.primitives.clone()).collect();
+        Self { primitives }
     }
 }
 

@@ -6,7 +6,7 @@ pub fn reflect_y() -> Isogonal {
 
 #[cfg(test)]
 mod test {
-    use abstraction::Monoid;
+    use abstraction::monoid::Monoid;
 
     use crate::Complex;
 
