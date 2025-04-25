@@ -44,4 +44,9 @@ impl RenderPrimitive {
 
 pub trait Renderable {
     fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>>;
+
+    fn render_group(&self, style: Style) -> Result<RenderPrimitive, Box<dyn Error>> {
+        let primitive = self.render()?;
+        Ok(RenderPrimitive::Group(vec![primitive], style))
+    }
 }

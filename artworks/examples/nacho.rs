@@ -65,9 +65,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     ]);
 
     let sierpinski_tiles = modified_sierpinski.apply(&tile, 0, 6);
-    let sierpinski_fractal = Collection::union(sierpinski_tiles).bake_geometry()?;
+    let sierpinski_fractal = Collection::union(sierpinski_tiles);
     const SIERPINSKI_STYLE: Style = Style::stroke(255, 127, 0).with_width(0.125);
-    let scene = RenderPrimitive::Group(sierpinski_fractal, SIERPINSKI_STYLE);
+    let scene = sierpinski_fractal.render_group(SIERPINSKI_STYLE)?;
 
     render_svg(
         "output",
@@ -90,10 +90,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     const STYLE_A: Style = Style::stroke(255, 0, 255).with_width(OVERLAY_WIDTH);
     const STYLE_B: Style = Style::stroke(255, 0, 0).with_width(OVERLAY_WIDTH);
     const STYLE_C: Style = Style::stroke(255, 255, 255).with_width(OVERLAY_WIDTH);
-    let geometry_a = RenderPrimitive::Group(Collection::union(tiles_a).bake_geometry()?, STYLE_A);
-    let geometry_b = RenderPrimitive::Group(Collection::union(tiles_b).bake_geometry()?, STYLE_B);
-    let geometry_c = RenderPrimitive::Group(Collection::union(tiles_c).bake_geometry()?, STYLE_C);
-
+    let geometry_a = Collection::union(tiles_a).render_group(STYLE_A)?;
+    let geometry_b = Collection::union(tiles_b).render_group(STYLE_B)?;
+    let geometry_c = Collection::union(tiles_c).render_group(STYLE_C)?;
     let grouped = RenderPrimitive::group(vec![scene, geometry_a, geometry_b, geometry_c]);
 
     render_svg(
