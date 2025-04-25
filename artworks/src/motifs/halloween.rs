@@ -327,7 +327,7 @@ pub fn skull() -> Result<(Polygon, ClineArcTile), Box<dyn Error>> {
         })
         .collect();
 
-    const EYE_RADIUS: f64 = 0.6;
+    const EYE_RADIUS: f64 = 0.5;
     const EYE_X: f64 = 0.8;
     const EYE_Y: f64 = 1.0 / 3.0;
     let left_eye = Circle::new(Complex::new(-EYE_X, EYE_Y), EYE_RADIUS);

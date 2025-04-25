@@ -108,7 +108,11 @@ pub fn style_group(style: Style) -> Group {
 }
 
 fn svg_group(primitives: &[RenderPrimitive], style: Style) -> Box<dyn Node> {
-    let mut svg_group = style_group(style);
+    let mut svg_group = if style.is_visible() {
+        style_group(style)
+    } else {
+        Group::new()
+    };
 
     for primitive in primitives.iter() {
         let SvgNode(node) = SvgNode::from(primitive.clone());

@@ -26,6 +26,10 @@ impl Style {
         }
     }
 
+    pub const fn is_visible(&self) -> bool {
+        self.stroke.is_some() || self.fill.is_some()
+    }
+
     pub const fn stroke(r: u8, g: u8, b: u8) -> Self {
         Self {
             stroke: Some(ColorRGB(r, g, b)),
