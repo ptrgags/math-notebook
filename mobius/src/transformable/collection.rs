@@ -38,10 +38,7 @@ impl<T: Clone> Semigroup for Collection<T> {
     where
         Self: Sized,
     {
-        let primitives: Vec<T> = values
-            .into_iter()
-            .flat_map(|x| x.primitives.clone())
-            .collect();
+        let primitives: Vec<T> = values.iter().flat_map(|x| x.primitives.clone()).collect();
         Self { primitives }
     }
 }
