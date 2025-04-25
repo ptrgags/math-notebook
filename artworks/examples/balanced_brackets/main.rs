@@ -51,10 +51,11 @@ pub fn render_line(
     let in_view = tile.transform(translate_center * rot90);
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
-    let white = Style::stroke(255, 255, 255).with_width(0.25);
+
     let arc_geom = in_view.render_group(yellow)?;
-    let equator_geom = Cline::imag_axis().render_group(white)?;
     let geometry = if draw_equator {
+        let white = Style::stroke(255, 255, 255).with_width(0.25);
+        let equator_geom = Cline::imag_axis().render_group(white)?;
         RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {
         arc_geom
@@ -87,11 +88,11 @@ pub fn render_circle(
     let circle_tile = ClineArcTile::new(arcs);
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
-    let white = Style::stroke(255, 255, 255).with_width(0.25);
 
     let arc_geom = circle_tile.render_group(yellow)?;
-    let equator_geom = Cline::unit_circle().render_group(white)?;
     let geometry = if draw_equator {
+        let white = Style::stroke(255, 255, 255).with_width(0.25);
+        let equator_geom = Cline::unit_circle().render_group(white)?;
         RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {
         arc_geom
