@@ -7,24 +7,24 @@ use crate::transformable::Transformable;
 /// Iterated Function System that can be applied to transformable objects
 /// via a depth-limited DFS (i.e. the "deterministic algorithm" in
 /// _Fractals Everywhere_ by Michael F. Barnsley)
-pub struct MonoidIFS<S: Monoid> {
-    xforms: Vec<S>,
+pub struct MonoidIFS<M: Monoid> {
+    xforms: Vec<M>,
 }
 
-impl<S: Monoid> MonoidIFS<S> {
-    pub fn new(xforms: Vec<S>) -> Self {
+impl<M: Monoid> MonoidIFS<M> {
+    pub fn new(xforms: Vec<M>) -> Self {
         Self { xforms }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &S> {
+    pub fn iter(&self) -> impl Iterator<Item = &M> {
         self.xforms.iter()
     }
 
-    pub fn dfs(&self, max_depth: usize) -> MonoidDFSIterator<S> {
+    pub fn dfs(&self, max_depth: usize) -> MonoidDFSIterator<M> {
         MonoidDFSIterator::new(self, max_depth)
     }
 
-    pub fn apply<T: Transformable<S>>(
+    pub fn apply<T: Transformable<M>>(
         &self,
         primitive: &T,
         min_depth: usize,
@@ -45,40 +45,40 @@ impl<S: Monoid> MonoidIFS<S> {
     /// the results of apply() into a single T
     pub fn flat_apply<T>(&self, primitive: &T, min_depth: usize, max_depth: usize) -> T
     where
-        T: Transformable<S> + Semigroup,
+        T: Transformable<M> + Semigroup,
     {
         let transformed = self.apply(primitive, min_depth, max_depth);
         Semigroup::sconcat(&transformed)
     }
 }
 
-impl<S: Monoid> Index<usize> for MonoidIFS<S> {
-    type Output = S;
+impl<M: Monoid> Index<usize> for MonoidIFS<M> {
+    type Output = M;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.xforms[index]
     }
 }
 
-pub struct MonoidDFSIterator<'a, S: Monoid> {
-    ifs: &'a MonoidIFS<S>,
+pub struct MonoidDFSIterator<'a, M: Monoid> {
+    ifs: &'a MonoidIFS<M>,
     max_depth: usize,
     // pairs of (depth, xform)
-    stack: Vec<(usize, S)>,
+    stack: Vec<(usize, M)>,
 }
 
-impl<'a, S: Monoid> MonoidDFSIterator<'a, S> {
-    fn new(ifs: &'a MonoidIFS<S>, max_depth: usize) -> Self {
+impl<'a, M: Monoid> MonoidDFSIterator<'a, M> {
+    fn new(ifs: &'a MonoidIFS<M>, max_depth: usize) -> Self {
         Self {
             ifs,
             max_depth,
-            stack: vec![(0, S::identity())],
+            stack: vec![(0, M::identity())],
         }
     }
 }
 
-impl<'a, S: Monoid> Iterator for MonoidDFSIterator<'a, S> {
-    type Item = (usize, S);
+impl<'a, M: Monoid> Iterator for MonoidDFSIterator<'a, M> {
+    type Item = (usize, M);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.stack.pop() {
