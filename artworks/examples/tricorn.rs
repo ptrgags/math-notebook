@@ -1,11 +1,16 @@
-use std::f64::consts::{FRAC_PI_2, PI, TAU};
+use std::{
+    error::Error,
+    f64::consts::{FRAC_PI_2, PI, TAU},
+};
 
 use mobius::{
+    algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple, scale,
-    transformable::{ClineArcTile, Transformable},
+    transformable::{ClineArcTile, Collection},
     Complex, Mobius,
 };
+use rendering::{render_svg, style::Style, Renderable, View};
 
 fn compute_xforms() -> Vec<Mobius> {
     // Transform A just shrinks the unit circle to the circle with
@@ -36,24 +41,8 @@ fn compute_xforms() -> Vec<Mobius> {
     vec![xform_a, xform_b, xform_c]
 }
 
-fn apply_xforms(xforms: &[Mobius], tile: &ClineArcTile) -> Vec<ClineArcTile> {
-    xforms.iter().map(|x| tile.transform(*x)).collect()
-}
-
-fn iteration(xforms: &[Mobius], tiles: &[ClineArcTile]) -> Vec<ClineArcTile> {
-    tiles
-        .iter()
-        .flat_map(|tile| apply_xforms(xforms, tile))
-        .collect()
-}
-
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let xforms = compute_xforms();
-
-    let axes = make_axes()
-        .set("fill", "none")
-        .set("stroke", "white")
-        .set("stroke-width", "0.5%");
 
     // ----------------------
 
@@ -64,27 +53,17 @@ fn main() {
         LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
-    let tiles_level1 = apply_xforms(&xforms, &tile);
-    let tiles_level2 = iteration(&xforms, &tiles_level1);
-    let tiles_level3 = iteration(&xforms, &tiles_level2);
-    let tiles_level4 = iteration(&xforms, &tiles_level3);
-    let tiles_level5 = iteration(&xforms, &tiles_level4);
+    let ifs = MonoidIFS::new(xforms);
+    let tiles = ifs.apply(&tile, 0, 5);
 
-    let mut geometry = Group::new()
-        .set("stroke", "yellow")
-        .set("stroke-width", "0.25%")
-        .set("fill", "none");
-    geometry = add_geometry(geometry, &tile);
-    geometry = add_geometry(geometry, &tiles_level1[..]);
-    geometry = add_geometry(geometry, &tiles_level2[..]);
-    geometry = add_geometry(geometry, &tiles_level3[..]);
-    geometry = add_geometry(geometry, &tiles_level4[..]);
-    geometry = add_geometry(geometry, &tiles_level5[..]);
+    let yellow = Style::stroke(255, 255, 0).with_width(0.025);
 
-    let flipped2 = flip_y().add(axes.clone()).add(geometry.clone());
-
-    let doc = make_card(Complex::new(0.5, 0.5), 0.6).add(flipped2);
-    svg::save("output/tricorn.svg", &doc).unwrap();
+    render_svg(
+        "output",
+        "tricorn2",
+        &[View("", 0.5, 0.5, 0.6)],
+        Collection::union(tiles).render_group(yellow)?,
+    )?;
 
     // --
 
@@ -94,26 +73,15 @@ fn main() {
         CircularArc::new(Circle::unit_circle(), more_angles).into(),
         LineSegment::new(Complex::ONE, Complex::Zero).into(),
     ]);
+    let more_tiles = ifs.apply(&another_tile, 0, 5);
+    let cyan = Style::stroke(0, 255, 255).with_width(0.25);
 
-    let tiles_level1 = apply_xforms(&xforms, &another_tile);
-    let tiles_level2 = iteration(&xforms, &tiles_level1);
-    let tiles_level3 = iteration(&xforms, &tiles_level2);
-    let tiles_level4 = iteration(&xforms, &tiles_level3);
-    let tiles_level5 = iteration(&xforms, &tiles_level4);
+    render_svg(
+        "output",
+        "tricorn2",
+        &[View("", 0.5, 0.0, 0.8)],
+        Collection::union(more_tiles).render_group(cyan)?,
+    )?;
 
-    let mut geometry2 = Group::new()
-        .set("stroke", "cyan")
-        .set("stroke-width", "0.25%")
-        .set("fill", "none");
-    geometry2 = add_geometry(geometry2, &tile);
-    geometry2 = add_geometry(geometry2, &tiles_level1[..]);
-    geometry2 = add_geometry(geometry2, &tiles_level2[..]);
-    geometry2 = add_geometry(geometry2, &tiles_level3[..]);
-    geometry2 = add_geometry(geometry2, &tiles_level4[..]);
-    geometry2 = add_geometry(geometry2, &tiles_level5[..]);
-
-    let flipped2 = flip_y().add(axes).add(geometry).add(geometry2);
-
-    let doc = make_card(Complex::new(0.5, 0.0), 0.8).add(flipped2);
-    svg::save("output/tricorn2.svg", &doc).unwrap();
+    Ok(())
 }
