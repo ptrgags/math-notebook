@@ -1,7 +1,7 @@
 use std::{error::Error, f64::consts::PI};
 
 use abstraction::Group;
-use gallery::motifs::halloween::{bone, ghost, skull};
+use gallery::motifs::halloween::{bone, candy_corn, ghost, skull, witch_hat};
 use mobius::{
     algorithms::{GridIFS, GroupIFS, MonoidIFS},
     cline_arc::ClineArc,
@@ -33,7 +33,7 @@ pub fn candy_corners() -> Result<(), Box<dyn Error>> {
         "output",
         "candy_corners_take2",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
-        RenderPrimitive::group(vec![style_motifs(&candy_corners, &styles)]),
+        RenderPrimitive::group(vec![Motif::union(candy_corners).render_group(&styles)]),
     )?;
 
     Ok(())
@@ -70,7 +70,7 @@ pub fn hex_grid() -> Result<(), Box<dyn Error>> {
         &[View("", 0.0, 0.0, 3.5)],
         RenderPrimitive::group(vec![
             hex_tiles.render_group(grey_lines),
-            style_motifs(&hat_tiles, &hat_styles),
+            Motif::union(hat_tiles).render_group(&hat_styles),
         ]),
     )?;
     Ok(())
@@ -166,7 +166,7 @@ pub fn ghost_octahedral() -> Result<(), Box<dyn Error>> {
         "output",
         "ghost_octahedral",
         &[View("", 0.0, 0.0, 3.0)],
-        style_motifs(&swirl_walk[..], &ghost_styles),
+        Motif::union(swirl_walk).render_group(&ghost_styles),
     )?;
     Ok(())
 }
@@ -191,7 +191,7 @@ pub fn ghost_double_spiral() -> Result<(), Box<dyn Error>> {
         "output",
         "ghost_double_spiral",
         &[View("", 0.0, 0.0, 1.0), View("sink", -0.125, 0.75, 0.5)],
-        style_motifs(&double_spiral_walk[..], &ghost_styles),
+        Motif::union(double_spiral_walk).render_group(&ghost_styles),
     )?;
     Ok(())
 }
@@ -233,9 +233,9 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
             View("near_origin", 0.0, 0.0, 0.25),
         ],
         RenderPrimitive::group(vec![
-            .render_group(red_lines, &circle_walk[..]),
-            .render_group(yellow_lines, &tiles[..]),
-            style_motifs(&gasket_walk[..], &ghost_styles),
+            circle_walk.render_group(red_lines)?,
+            tiles.render_group(yellow_lines)?,
+            Motif::union(gasket_walk).render_group(&ghost_styles),
         ]),
     )?;
 
@@ -250,9 +250,9 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
         "gasket_subgroup",
         &[View("", 0.0, 0.0, 1.1), View("left_circle", -0.5, 0.0, 0.5)],
         RenderPrimitive::group(vec![
-            .render_group(red_lines, &left_circle),
-            .render_group(yellow_lines, &subgroup_tiles[..]),
-            style_motifs(&subgroup_walk[..], &ghost_styles),
+            left_circle.render_group(red_lines)?,
+            subgroup_tiles.render_group(yellow_lines)?,
+            Motif::union(subgroup_walk).render_group(&ghost_styles),
         ]),
     )?;
 
@@ -266,7 +266,7 @@ pub fn warpedpaper() -> Result<(), Box<dyn Error>> {
     let translate_edge = translation(Complex::from_polar(0.6, PI / 3.0))?;
     let rotate_edge = Mobius::sandwich(translate_edge, rotate2);
     let rotated_corn = corn.transform(rotate_edge);
-    let two_corns = Motif::union(corn.clone(), rotated_corn);
+    let two_corns = Motif::union(vec![corn.clone(), rotated_corn]);
 
     let translate_up = translation(Complex::new(0.0, 2.2))?;
     let translate_right = translation((1.7).into())?;
@@ -277,7 +277,7 @@ pub fn warpedpaper() -> Result<(), Box<dyn Error>> {
     let curved_grid = grid.conjugate(pull_left);
     //let warped_pair = two_corns.transform(pull_left);
     let curved_wallpaper = curved_grid.apply(&two_corns);
-    let curved_svg = style_motifs(&curved_wallpaper[..], &styles);
+    let curved_svg = Motif::union(curved_wallpaper).render_group(&styles);
     render_svg(
         "output",
         "candy_corn_warpedpaper",
