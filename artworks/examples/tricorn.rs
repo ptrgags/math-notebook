@@ -56,11 +56,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let ifs = MonoidIFS::new(xforms);
     let tiles = ifs.apply(&tile, 0, 5);
 
-    let yellow = Style::stroke(255, 255, 0).with_width(0.025);
+    let yellow = Style::stroke(255, 255, 0).with_width(0.25);
 
     render_svg(
         "output",
-        "tricorn2",
+        "tricorn",
         &[View("", 0.5, 0.5, 0.6)],
         Collection::union(tiles).render_group(yellow)?,
     )?;
