@@ -1,6 +1,7 @@
 use std::{error::Error, f64::consts::PI};
 
 use abstraction::Group;
+use gallery::motifs::halloween::{bone, ghost, skull};
 use mobius::{
     algorithms::{GridIFS, GroupIFS, MonoidIFS},
     cline_arc::ClineArc,
@@ -12,7 +13,7 @@ use mobius::{
     transformable::{ClineArcTile, ClineTile, Motif, Transformable},
     translation, Complex, Mobius,
 };
-use rendering::{render_svg, style::Style, View};
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 pub fn candy_corners() -> Result<(), Box<dyn Error>> {
     let (corn, styles) = candy_corn()?;
@@ -68,7 +69,7 @@ pub fn hex_grid() -> Result<(), Box<dyn Error>> {
         "hex_tiles",
         &[View("", 0.0, 0.0, 3.5)],
         RenderPrimitive::group(vec![
-            .render_group(grey_lines, &hex_tiles[..]),
+            hex_tiles.render_group(grey_lines),
             style_motifs(&hat_tiles, &hat_styles),
         ]),
     )?;
@@ -111,9 +112,9 @@ pub fn bone_tree() -> Result<(), Box<dyn Error>> {
         "bone_tree",
         &[View("", 0.0, 2.0, 3.5)],
         RenderPrimitive::group(vec![
-            .render_group(white_fill, &bone_branches[..]),
-            .render_group(white_fill, &head_leaves[..]),
-            .render_group(black, &face_leaves[..]),
+            bone_branches.render_group(white_fill)?,
+            head_leaves.render_group(white_fill)?,
+            face_leaves.render_group(black)?,
         ]),
     )?;
     Ok(())
@@ -139,9 +140,9 @@ pub fn rib_cage() -> Result<(), Box<dyn Error>> {
         "rib_cage",
         &[View("", 0.0, 1.0, 1.5)],
         RenderPrimitive::group(vec![
-            .render_group(white_fill, &rib_cage[..]),
-            .render_group(white_fill, &adjusted_head),
-            .render_group(black, &adjusted_face),
+            rib_cage.render_group(white_fill)?,
+            adjusted_head.render_group(white_fill)?,
+            adjusted_face.render_group(black)?,
         ]),
     )?;
     Ok(())

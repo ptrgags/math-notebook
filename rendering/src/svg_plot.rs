@@ -114,14 +114,6 @@ pub fn style_group(style: Style) -> Group {
     group
 }
 
-/*
-pub fn style_geometry(style: Style, geometry: impl Into<SvgNodes>) -> Group {
-    let mut svg = style_group(style);
-    svg = add_geometry(svg, geometry);
-
-    svg
-}*/
-
 fn svg_group(primitives: &[RenderPrimitive], style: Style) -> Box<dyn Node> {
     todo!();
     /*
@@ -148,47 +140,6 @@ impl From<RenderPrimitive> for SvgNode {
 }
 
 /*
-pub struct SvgNodes(Vec<Box<dyn Node>>);
-
-/// Promote a single node into a collection
-impl From<SvgNode> for SvgNodes {
-    fn from(value: SvgNode) -> Self {
-        let SvgNode(node) = value;
-        SvgNodes(vec![node])
-    }
-}
-
-/// Take a bunch of individual nodes and turn it into one collection
-impl From<Vec<SvgNode>> for SvgNodes {
-    fn from(value: Vec<SvgNode>) -> Self {
-        SvgNodes(value.into_iter().map(|SvgNode(node)| node).collect())
-    }
-}
-
-impl<T: Renderable> From<&T> for SvgNodes {
-    fn from(value: &T) -> Self {
-        let baked = value.bake_geometry().expect("couldn't bake primitive");
-        let nodes: Vec<SvgNode> = baked.iter().map(|x| SvgNode::from(x.clone())).collect();
-        nodes.into()
-    }
-}
-
-impl<T: Renderable> From<&[T]> for SvgNodes {
-    fn from(value: &[T]) -> Self {
-        SvgNodes(
-            value
-                .iter()
-                .flat_map(|x| {
-                    let SvgNodes(nodes) = x.into();
-                    nodes
-                })
-                .collect(),
-        )
-    }
-}
-    */
-
-/*
 pub fn style_motif<T: Renderable>(motif: &Motif<T>, styles: &[Style]) -> Group {
     let groups: Vec<Group> = motif
         .iter()
@@ -205,12 +156,6 @@ pub fn style_motifs<T: Renderable>(motifs: &[Motif<T>], styles: &[Style]) -> Gro
     union(groups)
 }
 */
-
-pub fn union(groups: Vec<Group>) -> Group {
-    groups
-        .into_iter()
-        .fold(Group::new(), |group, x| group.add(x))
-}
 
 /*
 pub fn make_axes() -> Group {

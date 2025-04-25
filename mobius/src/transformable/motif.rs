@@ -1,4 +1,6 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
+
+use rendering::{style::Style, RenderPrimitive, Renderable};
 
 use crate::isogonal::Isogonal;
 
@@ -22,6 +24,22 @@ impl<T> Motif<T> {
         let parts: Vec<(T, usize)> = a.parts.into_iter().chain(b.parts).collect();
 
         Self { parts }
+    }
+}
+
+impl<T: Renderable> Motif<T> {
+    pub fn render_group(&self, styles: &[Style]) -> RenderPrimitive {
+        let primitives: Vec<RenderPrimitive> = self
+            .parts
+            .iter()
+            .map(|(part, style_index)| {
+                let primitive = part.render().unwrap();
+                let style = styles[*style_index];
+
+                RenderPrimitive::Group(vec![primitive], style)
+            })
+            .collect();
+        RenderPrimitive::group(primitives)
     }
 }
 
