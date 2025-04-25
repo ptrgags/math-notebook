@@ -1,1 +1,1 @@
-mod motifs;
+pub mod motifs;

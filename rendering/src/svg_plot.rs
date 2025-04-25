@@ -6,7 +6,7 @@ use svg::{
 };
 
 use crate::{
-    primitive::{CircularArc, CircularArcTo, PathCommand, RenderPrimitive, Renderable},
+    primitive::{CircularArc, CircularArcTo, PathCommand, RenderPrimitive},
     style::Style,
 };
 

@@ -3,13 +3,8 @@ use std::f64::consts::PI;
 use mobius::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     scale,
-    svg_plot::{add_geometry, flip_y, make_axes, make_card},
     transformable::{Cline, ClineArcTile, ClineTile, Transformable},
     Complex, Mobius,
-};
-use svg::{
-    node::element::{Group, Rectangle},
-    Document,
 };
 
 fn compute_xforms() -> Vec<Mobius> {

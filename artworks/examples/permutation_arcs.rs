@@ -8,7 +8,7 @@ use mobius::{
     transformable::ClineArcTile,
 };
 use permutations::{DisjointCycles, Permutation};
-use rendering::style::Style;
+use rendering::{render_svg, style::Style, Renderable, View};
 
 type BigPermutation = Permutation<50>;
 
@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "output",
         "perm_arcs_line",
         &[View("", 0.5 * (n as f64), 0.0, 0.5 * (n as f64))],
-        style_geometry(green, &tile),
+        tile.render_group(green)?,
     )?;
 
     let arcs: Vec<ClineArc> = indices
@@ -84,7 +84,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 Hemisphere::South
             };
-            let arc = arc_on_circle_by_hemisphere(a as i64, b as i64, n, hemisphere).unwrap();
+            let arc = arc_on_circle_by_hemisphere(a, b, n, hemisphere).unwrap();
 
             ClineArc::from(arc)
         })
@@ -97,7 +97,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "output",
         "perm_arcs_circle",
         &[View("", 0.0, 0.0, 2.0)],
-        style_geometry(green, &tile),
+        tile.render_group(green)?,
     )?;
 
     Ok(())

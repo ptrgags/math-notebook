@@ -68,7 +68,7 @@ pub fn hex_grid() -> Result<(), Box<dyn Error>> {
         "hex_tiles",
         &[View("", 0.0, 0.0, 3.5)],
         RenderPrimitive::group(vec![
-            style_geometry(grey_lines, &hex_tiles[..]),
+            .render_group(grey_lines, &hex_tiles[..]),
             style_motifs(&hat_tiles, &hat_styles),
         ]),
     )?;
@@ -111,9 +111,9 @@ pub fn bone_tree() -> Result<(), Box<dyn Error>> {
         "bone_tree",
         &[View("", 0.0, 2.0, 3.5)],
         RenderPrimitive::group(vec![
-            style_geometry(white_fill, &bone_branches[..]),
-            style_geometry(white_fill, &head_leaves[..]),
-            style_geometry(black, &face_leaves[..]),
+            .render_group(white_fill, &bone_branches[..]),
+            .render_group(white_fill, &head_leaves[..]),
+            .render_group(black, &face_leaves[..]),
         ]),
     )?;
     Ok(())
@@ -139,9 +139,9 @@ pub fn rib_cage() -> Result<(), Box<dyn Error>> {
         "rib_cage",
         &[View("", 0.0, 1.0, 1.5)],
         RenderPrimitive::group(vec![
-            style_geometry(white_fill, &rib_cage[..]),
-            style_geometry(white_fill, &adjusted_head),
-            style_geometry(black, &adjusted_face),
+            .render_group(white_fill, &rib_cage[..]),
+            .render_group(white_fill, &adjusted_head),
+            .render_group(black, &adjusted_face),
         ]),
     )?;
     Ok(())
@@ -232,8 +232,8 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
             View("near_origin", 0.0, 0.0, 0.25),
         ],
         RenderPrimitive::group(vec![
-            style_geometry(red_lines, &circle_walk[..]),
-            style_geometry(yellow_lines, &tiles[..]),
+            .render_group(red_lines, &circle_walk[..]),
+            .render_group(yellow_lines, &tiles[..]),
             style_motifs(&gasket_walk[..], &ghost_styles),
         ]),
     )?;
@@ -249,8 +249,8 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
         "gasket_subgroup",
         &[View("", 0.0, 0.0, 1.1), View("left_circle", -0.5, 0.0, 0.5)],
         RenderPrimitive::group(vec![
-            style_geometry(red_lines, &left_circle),
-            style_geometry(yellow_lines, &subgroup_tiles[..]),
+            .render_group(red_lines, &left_circle),
+            .render_group(yellow_lines, &subgroup_tiles[..]),
             style_motifs(&subgroup_walk[..], &ghost_styles),
         ]),
     )?;

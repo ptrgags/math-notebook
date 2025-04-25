@@ -12,7 +12,7 @@ use mobius::{
 mod brackets;
 
 use brackets::{BalancedBrackets, MatchedBalancedBrackets};
-use rendering::{render_svg, style::Style, View};
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 #[derive(Parser)]
 struct Cli {
@@ -52,8 +52,8 @@ pub fn render_line(
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
     let white = Style::stroke(255, 255, 255).with_width(0.25);
-    let arc_geom = style_geometry(yellow, &in_view);
-    let equator_geom = style_geometry(white, &Cline::imag_axis());
+    let arc_geom = in_view.render_group(yellow)?;
+    let equator_geom = Cline::imag_axis().render_group(white)?;
     let geometry = if draw_equator {
         RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {
@@ -89,8 +89,8 @@ pub fn render_circle(
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
     let white = Style::stroke(255, 255, 255).with_width(0.25);
 
-    let arc_geom = style_geometry(yellow, &circle_tile);
-    let equator_geom = style_geometry(white, &Cline::unit_circle());
+    let arc_geom = circle_tile.render_group(yellow)?;
+    let equator_geom = Cline::unit_circle().render_group(white)?;
     let geometry = if draw_equator {
         RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {

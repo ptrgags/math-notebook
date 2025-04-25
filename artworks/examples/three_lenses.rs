@@ -4,12 +4,10 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple,
-    svg_plot::{flip_y, make_card, style_geometry},
-    transformable::ClineArcTile,
+    transformable::{ClineArcTile, Collection},
     Complex, Mobius,
 };
-use rendering::style::Style;
-use svg::node::element::Group;
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 fn make_xforms() -> Vec<Mobius> {
     // Semicircle from -1 -> 1 (straight line) then arc arc around the unit circle
@@ -41,14 +39,14 @@ fn show_individual_xforms(
     tile: &ClineArcTile,
     min_depth: usize,
     max_depth: usize,
-) -> Group {
+) -> RenderPrimitive {
     xforms
         .iter()
         .zip(colors.iter())
         .map(|(xform, style)| {
             let ifs = MonoidIFS::new(vec![*xform]);
             let tiles = ifs.apply(tile, min_depth, max_depth);
-            style_geometry(*style, &tiles[..])
+            .render_group(*style, &tiles[..])
         })
         .fold(Group::new(), |group, x| group.add(x))
 }
@@ -67,14 +65,15 @@ fn main() {
     let ifs = MonoidIFS::new(xforms.clone());
 
     let tiles = ifs.apply(&half_circle, 8, 8);
-    let geometry = style_geometry(Style::stroke(255, 0, 0).with_width(0.125), &tiles[..]);
+    let red = Style::stroke(255, 0, 0).with_width(0.125);
+    let geometry = Collection::union(tiles).render_group(red)?;
 
-    let flipped = flip_y().add(geometry.clone());
-    let doc = make_card(Complex::new(0.0, 0.0), 1.25).add(flipped.clone());
-    svg::save("output/three_lenses.svg", &doc).unwrap();
-
-    let zoomed = make_card(Complex::new(0.2, 0.5), 0.5).add(flipped.clone());
-    svg::save("output/three_lenses_zoomed.svg", &zoomed).unwrap();
+    render_svg(
+        "output",
+        "three_lenses",
+        &[View("", 0.0, 0.0, 1.25), View("zoomed", 0.2, 0.5, 0.5)],
+        geometry.clone(),
+    );
 
     let styles = [
         Style::stroke(255, 255, 0).with_width(0.25),
@@ -82,8 +81,10 @@ fn main() {
         Style::stroke(255, 255, 255).with_width(0.25),
     ];
     let highlight_xforms = show_individual_xforms(&xforms, &styles, &half_circle, 0, 10);
-
-    let flipped = flip_y().add(geometry).add(highlight_xforms);
-    let doc = make_card(Complex::new(0.0, 0.0), 1.25).add(flipped);
-    svg::save("output/three_lenses_labeled.svg", &doc).unwrap();
+    render_svg(
+        "output",
+        "three_lenses",
+        &[View("", 0.0, 0.0, 1.25)],
+        RenderPrimitive::group(vec![geometry, highlight_xforms]),
+    );
 }

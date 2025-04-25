@@ -1,6 +1,8 @@
-use std::{f64::consts::PI, io::Error};
+use std::error::Error;
+use std::f64::consts::PI;
 
 use abstraction::Monoid;
+use gallery::motifs::halloween::candy_corn;
 use mobius::{
     algorithms::{OrbitIFS, OrbitTile},
     cline_arc::ClineArc,
@@ -9,17 +11,17 @@ use mobius::{
     isogonal::Isogonal,
     quantized_hash::QuantizedHash,
     rotation, scale,
-    transformable::{ClineArcTile, Transformable},
+    transformable::{ClineArcTile, Collection, Transformable},
     translation, Complex,
 };
-use rendering::{render_svg, style::Style, View};
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
-pub fn better_candy_corners() -> Result<(), Error> {
+pub fn better_candy_corners() -> Result<(), Box<dyn Error>> {
     let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();
 
     let complex = e2_conj * Complex::Zero;
     let dist_to_edge = 0.5 * (complex).real();
-    let (corn, styles) = candy_corn();
+    let (corn, styles) = candy_corn()?;
     let (fundamental_domain, (_, _, vertex)) = get_fundamental_region(3, 7).unwrap();
     let displacement = vertex * Complex::from(0.4);
     let shift = translation(displacement).unwrap();
@@ -41,13 +43,13 @@ pub fn better_candy_corners() -> Result<(), Error> {
         "output",
         "candy_corners_orbit",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
-        RenderPrimitive::group(vec![style_geometry(style, &candy_corners[..])]),
+        RenderPrimitive::group(vec![candy_corners.render_group(style)]),
     )?;
 
     Ok(())
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let mirror_x = Isogonal::conj();
     let r180: Isogonal = rotation(PI).unwrap().into();
     let mirror_y = r180 * mirror_x;
@@ -96,8 +98,8 @@ fn main() -> Result<(), Error> {
         "mirror_tiling",
         &[View("", 0.0, 0.0, 5.0)],
         RenderPrimitive::group(vec![
-            style_geometry(style, &flags[..]),
-            style_geometry(style_original, &fundamental_domain),
+            Collection::union(flags).render_group(style)?,
+            fundamental_domain.render_group(style_original)?,
         ]),
     )?;
 

@@ -1,7 +1,5 @@
 use std::collections::VecDeque;
 
-use abstraction::GroupAction;
-
 use crate::{isogonal::Isogonal, transformable::Transformable};
 
 use super::{
