@@ -22,11 +22,7 @@ impl<T> Collection<T> {
     }
 
     pub fn union(primitives: Vec<Self>) -> Self {
-        let all_primitives: Vec<T> = primitives
-            .into_iter()
-            .map(|x| x.primitives)
-            .flatten()
-            .collect();
+        let all_primitives: Vec<T> = primitives.into_iter().flat_map(|x| x.primitives).collect();
         Self {
             primitives: all_primitives,
         }

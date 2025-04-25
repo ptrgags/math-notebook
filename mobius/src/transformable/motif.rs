@@ -21,7 +21,7 @@ impl<T> Motif<T> {
     }
 
     pub fn union(motifs: Vec<Self>) -> Self {
-        let all_parts: Vec<(T, usize)> = motifs.into_iter().map(|x| x.parts).flatten().collect();
+        let all_parts: Vec<(T, usize)> = motifs.into_iter().flat_map(|x| x.parts).collect();
         Self { parts: all_parts }
     }
 }

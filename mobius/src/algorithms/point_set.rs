@@ -18,7 +18,7 @@ impl PointSet {
     pub fn new(quantize_bits: i32) -> Self {
         Self {
             grid: HashMap::new(),
-            quantize_bits: quantize_bits,
+            quantize_bits,
         }
     }
 
@@ -70,7 +70,7 @@ impl Set<Complex> for PointSet {
             }
         }
 
-        return false;
+        false
     }
 
     fn insert(&mut self, value: Complex) {

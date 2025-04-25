@@ -56,7 +56,7 @@ impl OrbitIFSIterator {
             return Some((depth, tile));
         }
 
-        return None;
+        None
     }
 }
 
@@ -65,7 +65,7 @@ impl Iterator for OrbitIFSIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((depth, tile)) = self.pop_next_unvisited() {
-            self.visited.insert(tile.representative.clone());
+            self.visited.insert(tile.representative);
 
             if depth < self.max_depth {
                 let unvisited_neighbors: Vec<IsogonalTile> = tile

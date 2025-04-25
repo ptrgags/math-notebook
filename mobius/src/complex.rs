@@ -77,11 +77,7 @@ impl Complex {
     }
 
     pub fn is_finite(&self) -> bool {
-        if let Self::Infinity = self {
-            false
-        } else {
-            true
-        }
+        !matches!(self, Self::Infinity)
     }
 
     pub fn norm(&self) -> f64 {
