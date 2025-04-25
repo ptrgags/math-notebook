@@ -22,6 +22,7 @@ impl<T> Motif<T> {
     }
 }
 
+/// The semigroup operation combines motifs into one larger motif
 impl<T: Clone> Mul for Motif<T> {
     type Output = Self;
 
@@ -32,6 +33,7 @@ impl<T: Clone> Mul for Motif<T> {
     }
 }
 
+/// Semigroup is implemented to flatten out Vec<Motif>
 impl<T: Clone> Semigroup for Motif<T> {
     fn sconcat(values: &[Self]) -> Self
     where

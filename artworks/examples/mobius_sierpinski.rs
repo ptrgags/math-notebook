@@ -4,7 +4,7 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     scale,
-    transformable::{ClineArcTile, Collection},
+    transformable::ClineArcTile,
     Complex, Mobius,
 };
 use rendering::{render_svg, style::Style, Renderable, View};
