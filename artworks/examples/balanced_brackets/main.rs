@@ -55,7 +55,7 @@ pub fn render_line(
     let arc_geom = style_geometry(yellow, &in_view);
     let equator_geom = style_geometry(white, &Cline::imag_axis());
     let geometry = if draw_equator {
-        union(vec![arc_geom, equator_geom])
+        RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {
         arc_geom
     };
@@ -92,7 +92,7 @@ pub fn render_circle(
     let arc_geom = style_geometry(yellow, &circle_tile);
     let equator_geom = style_geometry(white, &Cline::unit_circle());
     let geometry = if draw_equator {
-        union(vec![arc_geom, equator_geom])
+        RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {
         arc_geom
     };

@@ -41,7 +41,7 @@ pub fn better_candy_corners() -> Result<(), Error> {
         "output",
         "candy_corners_orbit",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
-        union(vec![style_geometry(style, &candy_corners[..])]),
+        RenderPrimitive::group(vec![style_geometry(style, &candy_corners[..])]),
     )?;
 
     Ok(())
@@ -95,7 +95,7 @@ fn main() -> Result<(), Error> {
         "output",
         "mirror_tiling",
         &[View("", 0.0, 0.0, 5.0)],
-        union(vec![
+        RenderPrimitive::group(vec![
             style_geometry(style, &flags[..]),
             style_geometry(style_original, &fundamental_domain),
         ]),

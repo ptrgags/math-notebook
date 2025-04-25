@@ -32,7 +32,7 @@ pub fn candy_corners() -> Result<(), Box<dyn Error>> {
         "output",
         "candy_corners_take2",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
-        union(vec![style_motifs(&candy_corners, &styles)]),
+        RenderPrimitive::group(vec![style_motifs(&candy_corners, &styles)]),
     )?;
 
     Ok(())
@@ -67,7 +67,7 @@ pub fn hex_grid() -> Result<(), Box<dyn Error>> {
         "output",
         "hex_tiles",
         &[View("", 0.0, 0.0, 3.5)],
-        union(vec![
+        RenderPrimitive::group(vec![
             style_geometry(grey_lines, &hex_tiles[..]),
             style_motifs(&hat_tiles, &hat_styles),
         ]),
@@ -110,7 +110,7 @@ pub fn bone_tree() -> Result<(), Box<dyn Error>> {
         "output",
         "bone_tree",
         &[View("", 0.0, 2.0, 3.5)],
-        union(vec![
+        RenderPrimitive::group(vec![
             style_geometry(white_fill, &bone_branches[..]),
             style_geometry(white_fill, &head_leaves[..]),
             style_geometry(black, &face_leaves[..]),
@@ -138,7 +138,7 @@ pub fn rib_cage() -> Result<(), Box<dyn Error>> {
         "output",
         "rib_cage",
         &[View("", 0.0, 1.0, 1.5)],
-        union(vec![
+        RenderPrimitive::group(vec![
             style_geometry(white_fill, &rib_cage[..]),
             style_geometry(white_fill, &adjusted_head),
             style_geometry(black, &adjusted_face),
@@ -231,7 +231,7 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
             View("top_horn", -0.5, 0.5, 0.5),
             View("near_origin", 0.0, 0.0, 0.25),
         ],
-        union(vec![
+        RenderPrimitive::group(vec![
             style_geometry(red_lines, &circle_walk[..]),
             style_geometry(yellow_lines, &tiles[..]),
             style_motifs(&gasket_walk[..], &ghost_styles),
@@ -248,7 +248,7 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
         "output",
         "gasket_subgroup",
         &[View("", 0.0, 0.0, 1.1), View("left_circle", -0.5, 0.0, 0.5)],
-        union(vec![
+        RenderPrimitive::group(vec![
             style_geometry(red_lines, &left_circle),
             style_geometry(yellow_lines, &subgroup_tiles[..]),
             style_motifs(&subgroup_walk[..], &ghost_styles),

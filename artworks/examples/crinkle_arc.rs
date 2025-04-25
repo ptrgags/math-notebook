@@ -4,14 +4,13 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{
         orthogonal_arcs::{compute_orthogonal_arc, OrthogonalArc},
-        ArcAngles, DirectedEdge,
+        ArcAngles, Circle, CircularArc, DirectedEdge,
     },
-    geometry::{Circle, CircularArc},
     map_triple,
-    transformable::{ClineArcTile, Motif, Transformable},
+    transformable::{ClineArcTile, Collection, Motif, Transformable},
     Complex, Mobius,
 };
-use rendering::{render_svg, style::Style, View};
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 struct ArcFractal {
     /// The original arc, a -> c
@@ -66,7 +65,12 @@ impl ArcFractal {
     }
 }
 
-fn crinkle_highlight_leaves(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2]) -> Group {
+fn crinkle_highlight_leaves(
+    arc: CircularArc,
+    t: f64,
+    depth: usize,
+    styles: [Style; 2],
+) -> Result<RenderPrimitive, Box<dyn Error>> {
     let fractal = ArcFractal::new(arc, t);
 
     let (a, b) = fractal.xforms;
@@ -89,13 +93,18 @@ fn crinkle_highlight_leaves(arc: CircularArc, t: f64, depth: usize, styles: [Sty
 
     let [style_interior, style_leaves] = styles;
 
-    union(vec![
-        style_geometry(style_interior, &triangle_tiles[..]),
-        style_geometry(style_leaves, &leaf_lenses[..]),
-    ])
+    let triangles = Collection::union(triangle_tiles).render_group(style_interior)?;
+    let lenses = Collection::union(leaf_lenses).render_group(style_leaves)?;
+
+    Ok(RenderPrimitive::group(vec![triangles, lenses]))
 }
 
-fn crinkle_two_color(arc: CircularArc, t: f64, depth: usize, styles: [Style; 2]) -> Group {
+fn crinkle_two_color(
+    arc: CircularArc,
+    t: f64,
+    depth: usize,
+    styles: [Style; 2],
+) -> RenderPrimitive {
     let fractal = ArcFractal::new(arc, t);
 
     let (a, b) = fractal.xforms;
@@ -143,7 +152,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "output",
         "crinkle_arc",
         &[View("", 0.0, 0.0, 1.1)],
-        crinkle_highlight_leaves(arc, 0.5, depth, [orange_lines, purple_lines]),
+        crinkle_highlight_leaves(arc, 0.5, depth, [orange_lines, purple_lines])?,
     )?;
 
     let depth = 3usize;
@@ -186,7 +195,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "output",
         "crinkle_necklace",
         &[View("", 0.0, 0.0, 1.1), View("zoom", 0.51, 0.3, 0.51)],
-        union(vec![
+        RenderPrimitive::group(vec![
             crinkle_two_color(arc_a, t, depth, styles),
             crinkle_two_color(arc_b, t, depth, styles),
             crinkle_two_color(arc_c, t, depth, styles),
