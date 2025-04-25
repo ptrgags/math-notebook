@@ -4,7 +4,7 @@ use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     map_triple, scale,
-    transformable::{ClineArcTile, Collection},
+    transformable::ClineArcTile,
     Complex, Mobius,
 };
 use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
@@ -64,8 +64,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
-    let sierpinski_tiles = modified_sierpinski.apply(&tile, 0, 6);
-    let sierpinski_fractal = Collection::union(sierpinski_tiles);
+    let sierpinski_tiles = modified_sierpinski.flat_apply(&tile, 0, 6);
+    let sierpinski_fractal = sierpinski_tiles;
     const SIERPINSKI_STYLE: Style = Style::stroke(255, 127, 0).with_width(0.125);
     let scene = sierpinski_fractal.render_group(SIERPINSKI_STYLE)?;
 
@@ -82,17 +82,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let min_depth = 1;
     let overlay_depth = 3;
-    let tiles_a = a_only.apply(&tile, min_depth, overlay_depth);
-    let tiles_b = b_only.apply(&tile, min_depth, overlay_depth);
-    let tiles_c = c_only.apply(&tile, min_depth, overlay_depth);
+    let tiles_a = a_only.flat_apply(&tile, min_depth, overlay_depth);
+    let tiles_b = b_only.flat_apply(&tile, min_depth, overlay_depth);
+    let tiles_c = c_only.flat_apply(&tile, min_depth, overlay_depth);
 
     const OVERLAY_WIDTH: f64 = 0.5;
     const STYLE_A: Style = Style::stroke(255, 0, 255).with_width(OVERLAY_WIDTH);
     const STYLE_B: Style = Style::stroke(255, 0, 0).with_width(OVERLAY_WIDTH);
     const STYLE_C: Style = Style::stroke(255, 255, 255).with_width(OVERLAY_WIDTH);
-    let geometry_a = Collection::union(tiles_a).render_group(STYLE_A)?;
-    let geometry_b = Collection::union(tiles_b).render_group(STYLE_B)?;
-    let geometry_c = Collection::union(tiles_c).render_group(STYLE_C)?;
+    let geometry_a = tiles_a.render_group(STYLE_A)?;
+    let geometry_b = tiles_b.render_group(STYLE_B)?;
+    let geometry_c = tiles_c.render_group(STYLE_C)?;
     let grouped = RenderPrimitive::group(vec![scene, geometry_a, geometry_b, geometry_c]);
 
     render_svg(

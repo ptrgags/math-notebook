@@ -1,5 +1,7 @@
 use std::collections::VecDeque;
 
+use abstraction::semigroup::Semigroup;
+
 use crate::{isogonal::Isogonal, transformable::Transformable};
 
 use super::{
@@ -29,6 +31,14 @@ impl OrbitIFS {
         self.orbit(max_depth, quantize_bits)
             .map(|xform| primitive.transform(xform))
             .collect()
+    }
+
+    pub fn flat_apply<T>(&self, primitive: &T, max_depth: usize, quantize_bits: i32) -> T
+    where
+        T: Transformable<Isogonal> + Semigroup,
+    {
+        let applied = self.apply(primitive, max_depth, quantize_bits);
+        Semigroup::sconcat(&applied)
     }
 }
 

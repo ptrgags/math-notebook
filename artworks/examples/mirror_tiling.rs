@@ -10,7 +10,7 @@ use mobius::{
     isogonal::Isogonal,
     quantized_hash::QuantizedHash,
     rotation,
-    transformable::{ClineArcTile, Collection},
+    transformable::ClineArcTile,
     translation, Complex,
 };
 use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
@@ -28,12 +28,12 @@ pub fn better_candy_corners() -> Result<(), Box<dyn Error>> {
     let ifs = OrbitIFS::new(orbit_tile);
 
     let style = Style::stroke(0, 127, 35).with_width(0.25);
-    let candy_corners = ifs.apply(&fundamental_domain, DEPTH, QUANTIZE_BITS);
+    let candy_corners = ifs.flat_apply(&fundamental_domain, DEPTH, QUANTIZE_BITS);
     render_svg(
         "output",
         "candy_corners_orbit",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
-        RenderPrimitive::group(vec![Collection::union(candy_corners).render_group(style)?]),
+        RenderPrimitive::group(vec![candy_corners.render_group(style)?]),
     )?;
 
     Ok(())
@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     const DEPTH: usize = 6;
     const QUANTIZE_BITS: i32 = 16;
 
-    let flags = ifs.apply(&fundamental_domain, DEPTH, QUANTIZE_BITS);
+    let flags = ifs.flat_apply(&fundamental_domain, DEPTH, QUANTIZE_BITS);
     let style = Style::stroke(255, 63, 63).with_width(0.5);
     let style_original = Style::stroke(255, 255, 255).with_width(0.5);
 
@@ -88,7 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "mirror_tiling",
         &[View("", 0.0, 0.0, 5.0)],
         RenderPrimitive::group(vec![
-            Collection::union(flags).render_group(style)?,
+            flags.render_group(style)?,
             fundamental_domain.render_group(style_original)?,
         ]),
     )?;

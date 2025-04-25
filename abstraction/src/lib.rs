@@ -21,7 +21,10 @@ impl<S: Monoid> PowerIterator<S> {
     }
 }
 
-impl<S: Monoid> Iterator for PowerIterator<S> {
+impl<S> Iterator for PowerIterator<S>
+where
+    S: PartialEq + Monoid,
+{
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {

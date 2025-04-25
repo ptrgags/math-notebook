@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use abstraction::Monoid;
+use abstraction::{semigroup::Semigroup, Monoid};
 
 use crate::transformable::Transformable;
 
@@ -37,6 +37,14 @@ impl<S: Monoid> MonoidIFS<S> {
                 }
             })
             .collect()
+    }
+
+    pub fn flat_apply<T>(&self, primitive: &T, min_depth: usize, max_depth: usize) -> T
+    where
+        T: Transformable<S> + Semigroup,
+    {
+        let transformed = self.apply(primitive, min_depth, max_depth);
+        Semigroup::sconcat(&transformed)
     }
 }
 

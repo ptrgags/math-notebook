@@ -1,4 +1,4 @@
-use abstraction::Group;
+use abstraction::{semigroup::Semigroup, Group};
 
 use crate::transformable::Transformable;
 
@@ -73,6 +73,14 @@ impl<G: Group> GridIFS<G> {
         self.iter()
             .map(|(_, xform)| primitive.transform(xform))
             .collect()
+    }
+
+    pub fn flat_apply<T>(&self, primitive: &T) -> T
+    where
+        T: Transformable<G> + Semigroup,
+    {
+        let applied = self.apply(primitive);
+        Semigroup::sconcat(&applied)
     }
 }
 
