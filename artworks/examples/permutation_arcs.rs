@@ -5,11 +5,10 @@ use clap::Parser;
 use mobius::{
     cline_arc::ClineArc,
     geometry::integer_arcs::{arc_on_circle_by_hemisphere, arc_on_line_by_hemisphere, Hemisphere},
-    rendering::Style,
-    svg_plot::{render_views, style_geometry, View},
     transformable::ClineArcTile,
 };
 use permutations::{DisjointCycles, Permutation};
+use rendering::{render_svg, style::Style, Renderable, View};
 
 type BigPermutation = Permutation<50>;
 
@@ -69,11 +68,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let green = Style::stroke(0, 255, 0).with_width(0.5);
 
-    render_views(
+    render_svg(
         "output",
         "perm_arcs_line",
         &[View("", 0.5 * (n as f64), 0.0, 0.5 * (n as f64))],
-        style_geometry(green, &tile),
+        tile.render_group(green)?,
     )?;
 
     let arcs: Vec<ClineArc> = indices
@@ -85,7 +84,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 Hemisphere::South
             };
-            let arc = arc_on_circle_by_hemisphere(a as i64, b as i64, n, hemisphere).unwrap();
+            let arc = arc_on_circle_by_hemisphere(a, b, n, hemisphere).unwrap();
 
             ClineArc::from(arc)
         })
@@ -94,11 +93,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let green = Style::stroke(0, 255, 0).with_width(0.5);
 
-    render_views(
+    render_svg(
         "output",
         "perm_arcs_circle",
         &[View("", 0.0, 0.0, 2.0)],
-        style_geometry(green, &tile),
+        tile.render_group(green)?,
     )?;
 
     Ok(())

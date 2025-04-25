@@ -1,16 +1,13 @@
-use std::{f64::consts::FRAC_PI_2, io::Error};
+use std::{error::Error, f64::consts::FRAC_PI_2};
 
 use mobius::{
     algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
-    map_triple,
-    rendering::Style,
-    scale,
-    svg_plot::{render_views, style_geometry, View},
-    transformable::ClineArcTile,
+    map_triple, scale,
+    transformable::{ClineArcTile, Collection},
     Complex, Mobius,
 };
-use svg::node::element::Group;
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 fn compute_xforms() -> Vec<Mobius> {
     // Similar to the Sierpinski triangle, we want to send the overall triangle
@@ -56,7 +53,7 @@ fn compute_xforms() -> Vec<Mobius> {
     vec![xform_a, xform_b, xform_c]
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let xforms = compute_xforms();
     let modified_sierpinski = MonoidIFS::new(xforms.clone());
 
@@ -68,16 +65,15 @@ fn main() -> Result<(), Error> {
     ]);
 
     let sierpinski_tiles = modified_sierpinski.apply(&tile, 0, 6);
-    let geometry = style_geometry(
-        Style::stroke(255, 127, 0).with_width(0.125),
-        &sierpinski_tiles[..],
-    );
+    let sierpinski_fractal = Collection::union(sierpinski_tiles);
+    const SIERPINSKI_STYLE: Style = Style::stroke(255, 127, 0).with_width(0.125);
+    let scene = sierpinski_fractal.render_group(SIERPINSKI_STYLE)?;
 
-    render_views(
+    render_svg(
         "output",
         "nacho",
         &[View("", 0.5, 0.5, 0.5001), View("zoom", 0.0, 0.0, 0.5)],
-        geometry.clone(),
+        scene.clone(),
     )?;
 
     let a_only = MonoidIFS::new(vec![xforms[0]]);
@@ -90,27 +86,16 @@ fn main() -> Result<(), Error> {
     let tiles_b = b_only.apply(&tile, min_depth, overlay_depth);
     let tiles_c = c_only.apply(&tile, min_depth, overlay_depth);
 
-    let overlay_width = 0.5;
-    let geometry_a = style_geometry(
-        Style::stroke(255, 0, 255).with_width(overlay_width),
-        &tiles_a[..],
-    );
-    let geometry_b = style_geometry(
-        Style::stroke(255, 0, 0).with_width(overlay_width),
-        &tiles_b[..],
-    );
-    let geometry_c = style_geometry(
-        Style::stroke(255, 255, 255).with_width(overlay_width),
-        &tiles_c[..],
-    );
+    const OVERLAY_WIDTH: f64 = 0.5;
+    const STYLE_A: Style = Style::stroke(255, 0, 255).with_width(OVERLAY_WIDTH);
+    const STYLE_B: Style = Style::stroke(255, 0, 0).with_width(OVERLAY_WIDTH);
+    const STYLE_C: Style = Style::stroke(255, 255, 255).with_width(OVERLAY_WIDTH);
+    let geometry_a = Collection::union(tiles_a).render_group(STYLE_A)?;
+    let geometry_b = Collection::union(tiles_b).render_group(STYLE_B)?;
+    let geometry_c = Collection::union(tiles_c).render_group(STYLE_C)?;
+    let grouped = RenderPrimitive::group(vec![scene, geometry_a, geometry_b, geometry_c]);
 
-    let grouped = Group::new()
-        .add(geometry)
-        .add(geometry_a)
-        .add(geometry_b)
-        .add(geometry_c);
-
-    render_views(
+    render_svg(
         "output",
         "labeled_nacho",
         &[View("", 0.5, 0.5, 0.5001)],

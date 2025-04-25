@@ -1,19 +1,12 @@
 [package]
-name = "mobius"
+name = "gallery"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 abstraction = { path = "../abstraction" }
+mobius = { path = "../mobius" }
 rendering = { path = "../rendering" }
 permutations = { path = "../permutations" }
 thiserror = "2.0.3"
-derive_more = { version = "1.0.0", features = ["display"] }
-
-[dev-dependencies]
-
-test-case = "3.3.1"
-pretty_assertions = "1.4.1"
-
-[features]
-debug_cline_arcs = []
+clap = { version = "4.5.20", features = ["derive"] }

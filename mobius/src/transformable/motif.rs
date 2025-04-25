@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use rendering::{style::Style, RenderPrimitive, Renderable};
+
 use crate::isogonal::Isogonal;
 
 use super::Transformable;
@@ -18,10 +20,25 @@ impl<T> Motif<T> {
         self.parts.iter()
     }
 
-    pub fn union(a: Self, b: Self) -> Self {
-        let parts: Vec<(T, usize)> = a.parts.into_iter().chain(b.parts).collect();
+    pub fn union(motifs: Vec<Self>) -> Self {
+        let all_parts: Vec<(T, usize)> = motifs.into_iter().flat_map(|x| x.parts).collect();
+        Self { parts: all_parts }
+    }
+}
 
-        Self { parts }
+impl<T: Renderable> Motif<T> {
+    pub fn render_group(&self, styles: &[Style]) -> RenderPrimitive {
+        let primitives: Vec<RenderPrimitive> = self
+            .parts
+            .iter()
+            .map(|(part, style_index)| {
+                let primitive = part.render().unwrap();
+                let style = styles[*style_index];
+
+                RenderPrimitive::Group(vec![primitive], style)
+            })
+            .collect();
+        RenderPrimitive::group(primitives)
     }
 }
 

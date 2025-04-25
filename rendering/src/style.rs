@@ -18,7 +18,7 @@ pub struct Style {
 }
 
 impl Style {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             stroke: None,
             fill: None,
@@ -26,7 +26,11 @@ impl Style {
         }
     }
 
-    pub fn stroke(r: u8, g: u8, b: u8) -> Self {
+    pub const fn is_visible(&self) -> bool {
+        self.stroke.is_some() || self.fill.is_some()
+    }
+
+    pub const fn stroke(r: u8, g: u8, b: u8) -> Self {
         Self {
             stroke: Some(ColorRGB(r, g, b)),
             fill: None,
@@ -34,7 +38,7 @@ impl Style {
         }
     }
 
-    pub fn with_stroke(&self, r: u8, g: u8, b: u8) -> Self {
+    pub const fn with_stroke(&self, r: u8, g: u8, b: u8) -> Self {
         Self {
             stroke: Some(ColorRGB(r, g, b)),
             fill: self.fill,
@@ -42,7 +46,7 @@ impl Style {
         }
     }
 
-    pub fn fill(r: u8, g: u8, b: u8) -> Self {
+    pub const fn fill(r: u8, g: u8, b: u8) -> Self {
         Self {
             stroke: None,
             fill: Some(ColorRGB(r, g, b)),
@@ -50,7 +54,7 @@ impl Style {
         }
     }
 
-    pub fn with_fill(&self, r: u8, g: u8, b: u8) -> Self {
+    pub const fn with_fill(&self, r: u8, g: u8, b: u8) -> Self {
         Self {
             stroke: self.stroke,
             fill: Some(ColorRGB(r, g, b)),
@@ -58,7 +62,7 @@ impl Style {
         }
     }
 
-    pub fn with_width(&self, width: f64) -> Self {
+    pub const fn with_width(&self, width: f64) -> Self {
         Self {
             stroke: self.stroke,
             fill: self.fill,

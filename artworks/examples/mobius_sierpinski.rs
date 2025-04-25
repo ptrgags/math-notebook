@@ -1,16 +1,13 @@
-use std::f64::consts::PI;
+use std::{error::Error, f64::consts::PI};
 
 use mobius::{
+    algorithms::MonoidIFS,
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     scale,
-    svg_plot::{add_geometry, flip_y, make_axes, make_card},
-    transformable::{Cline, ClineArcTile, ClineTile, Transformable},
+    transformable::{ClineArcTile, Collection},
     Complex, Mobius,
 };
-use svg::{
-    node::element::{Group, Rectangle},
-    Document,
-};
+use rendering::{render_svg, style::Style, Renderable, View};
 
 fn compute_xforms() -> Vec<Mobius> {
     // Transform A just shrinks the unit circle to the circle with
@@ -83,71 +80,8 @@ fn compute_xforms() -> Vec<Mobius> {
     vec![xform_a, xform_b, xform_c]
 }
 
-fn iterate(xforms: &[Mobius], tile: &ClineTile, depth: u8) -> Vec<ClineTile> {
-    if depth == 0 {
-        return xforms.iter().map(|x| tile.transform(*x)).collect();
-    }
-
-    let mut result: Vec<ClineTile> = vec![tile.clone()];
-    for xform in xforms {
-        let prefixed: Vec<Mobius> = xforms.iter().map(|x| *xform * *x).collect();
-        let subtree = iterate(&prefixed, tile, depth - 1);
-        result.extend(subtree);
-    }
-
-    result
-}
-
-fn apply_xforms(xforms: &[Mobius], tile: &ClineArcTile) -> Vec<ClineArcTile> {
-    xforms.iter().map(|x| tile.transform(*x)).collect()
-}
-
-fn iteration(xforms: &[Mobius], tiles: &[ClineArcTile]) -> Vec<ClineArcTile> {
-    tiles
-        .iter()
-        .flat_map(|tile| apply_xforms(xforms, tile))
-        .collect()
-}
-
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let xforms = compute_xforms();
-
-    let initial_tile = ClineTile::new(vec![
-        Cline::real_axis(),
-        Cline::imag_axis(),
-        Cline::unit_circle(),
-    ]);
-
-    let new_tiles = iterate(&xforms[1..2], &initial_tile, 1);
-
-    let mut geometry = Group::new()
-        .set("stroke", "yellow")
-        .set("stroke-width", "0.5%")
-        .set("fill", "none");
-    geometry = add_geometry(geometry, &new_tiles[..]);
-
-    let axes = make_axes()
-        .set("fill", "none")
-        .set("stroke", "white")
-        .set("stroke-width", "0.5%");
-
-    let background = Rectangle::new()
-        .set("x", "-50%")
-        .set("y", "-50%")
-        .set("width", "100%")
-        .set("height", "100%")
-        .set("fill", "black");
-
-    let flipped = flip_y().add(axes.clone()).add(geometry);
-
-    let document = Document::new()
-        .set("width", 500)
-        .set("height", 500)
-        .set("viewBox", (-2, -2, 4, 4))
-        .add(background.clone())
-        .add(flipped);
-
-    svg::save("mobius_sierpinski.svg", &document).unwrap();
 
     // ----------------------
 
@@ -158,23 +92,17 @@ fn main() {
         LineSegment::new(Complex::I, Complex::Zero).into(),
     ]);
 
-    let tiles_level1 = apply_xforms(&xforms, &tile);
-    let tiles_level2 = iteration(&xforms, &tiles_level1);
-    let tiles_level3 = iteration(&xforms, &tiles_level2);
-    let tiles_level4 = iteration(&xforms, &tiles_level3);
+    let ifs = MonoidIFS::new(xforms);
+    let tiles = ifs.apply(&tile, 0, 4);
 
-    let mut geometry = Group::new()
-        .set("stroke", "yellow")
-        .set("stroke-width", "0.25%")
-        .set("fill", "none");
-    geometry = add_geometry(geometry, &tile);
-    geometry = add_geometry(geometry, &tiles_level1[..]);
-    geometry = add_geometry(geometry, &tiles_level2[..]);
-    geometry = add_geometry(geometry, &tiles_level3[..]);
-    geometry = add_geometry(geometry, &tiles_level4[..]);
+    let yellow = Style::stroke(255, 255, 0).with_width(0.25);
 
-    let flipped2 = flip_y().add(axes).add(geometry);
+    render_svg(
+        "output",
+        "mobius_sierpinski",
+        &[View("", 0.5, 0.5, 0.6)],
+        Collection::union(tiles).render_group(yellow)?,
+    )?;
 
-    let doc = make_card(Complex::new(0.5, 0.5), 0.6).add(flipped2);
-    svg::save("output/mobius_sierpinski.svg", &doc).unwrap();
+    Ok(())
 }

@@ -3,14 +3,14 @@ use std::{
     f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, PI, SQRT_2, TAU},
 };
 
-use crate::{
+use mobius::{
     geometry::{ArcAngles, Circle, CircularArc, LineSegment},
     polygon::Polygon,
-    rendering::Style,
     scale,
     transformable::{ClineArcTile, Motif, Transformable},
     Complex,
 };
+use rendering::style::Style;
 
 fn circle_to_arcs(circle: Circle) -> (CircularArc, CircularArc) {
     let (upper_half, lower_half) = ArcAngles::semicircles();
@@ -327,7 +327,7 @@ pub fn skull() -> Result<(Polygon, ClineArcTile), Box<dyn Error>> {
         })
         .collect();
 
-    const EYE_RADIUS: f64 = 0.6;
+    const EYE_RADIUS: f64 = 0.5;
     const EYE_X: f64 = 0.8;
     const EYE_Y: f64 = 1.0 / 3.0;
     let left_eye = Circle::new(Complex::new(-EYE_X, EYE_Y), EYE_RADIUS);

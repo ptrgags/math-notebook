@@ -135,6 +135,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
 
 [[package]]
+name = "gallery"
+version = "0.1.0"
+dependencies = [
+ "abstraction",
+ "clap",
+ "mobius",
+ "permutations",
+ "rendering",
+ "thiserror",
+]
+
+[[package]]
 name = "geometric_algebra"
 version = "0.1.0"
 
@@ -155,11 +167,10 @@ name = "mobius"
 version = "0.1.0"
 dependencies = [
  "abstraction",
- "clap",
  "derive_more",
  "permutations",
  "pretty_assertions",
- "svg",
+ "rendering",
  "test-case",
  "thiserror",
 ]
@@ -198,6 +209,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5b9d34b8991d19d98081b46eacdd8eb58c6f2b201139f7c5f643cc155a633af"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "rendering"
+version = "0.1.0"
+dependencies = [
+ "svg",
 ]
 
 [[package]]

@@ -1,16 +1,14 @@
 use core::f64;
-use std::io::Error;
+use std::error::Error;
 
 use abstraction::{Group, Monoid};
 use mobius::{
     elliptic, hyperbolic,
-    rendering::Style,
-    svg_plot::{render_views, style_geometry, View},
-    transformable::{Cline, Transformable},
+    transformable::{Cline, Collection, Transformable},
 };
-use svg::node::element::Group as SvgGroup;
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let h = hyperbolic(2.0).unwrap();
     let h_powers = h.power_iter().take(20);
     let h_inv_powers = h.inv_power_iter().take(20);
@@ -22,7 +20,8 @@ fn main() -> Result<(), Error> {
         .map(|x| center_line.transform(x))
         .collect();
 
-    let parallels = style_geometry(Style::stroke(255, 255, 0).with_width(0.25), &h_clines[..]);
+    let yellow = Style::stroke(255, 255, 0).with_width(0.25);
+    let parallels = Collection::new(h_clines).render_group(yellow)?;
 
     let e = elliptic(f64::consts::PI / 8.0).unwrap();
     let e_powers = e.power_iter().take(16);
@@ -31,13 +30,15 @@ fn main() -> Result<(), Error> {
 
     let e_clines: Vec<Cline> = e_powers.map(|x| real_axis.transform(x)).collect();
 
-    let meridians = style_geometry(Style::stroke(255, 0, 0).with_width(0.25), &e_clines[..]);
-    let geometry = SvgGroup::new().add(parallels).add(meridians);
+    let red = Style::stroke(255, 0, 0).with_width(0.25);
+    let meridians = Collection::new(e_clines).render_group(red)?;
 
-    render_views(
+    render_svg(
         "output",
         "parallels_and_meridians",
         &[View("", 0.0, 0.0, 2.0)],
-        geometry,
-    )
+        RenderPrimitive::group(vec![parallels, meridians]),
+    )?;
+
+    Ok(())
 }

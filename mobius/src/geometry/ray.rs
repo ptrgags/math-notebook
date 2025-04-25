@@ -1,3 +1,5 @@
+use rendering::{RenderPrimitive, Renderable};
+
 use crate::{complex_error::ComplexError, unit_complex::UnitComplex, Complex};
 
 use super::{DirectedEdge, Geometry};
@@ -12,6 +14,21 @@ impl Ray {
     pub fn new(start: Complex, unit_dir: UnitComplex) -> Result<Self, ComplexError> {
         ComplexError::require_finite("start", start)?;
         Ok(Self { start, unit_dir })
+    }
+}
+
+impl Renderable for Ray {
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn std::error::Error>> {
+        const FAR_AWAY: f64 = 10000.0;
+        let &Ray { start, unit_dir } = self;
+        let end = *unit_dir.get() * FAR_AWAY.into();
+
+        Ok(RenderPrimitive::LineSegment {
+            x1: start.real(),
+            y1: start.imag(),
+            x2: end.real(),
+            y2: end.imag(),
+        })
     }
 }
 

@@ -1,4 +1,6 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
+
+use rendering::{RenderPrimitive, Renderable};
 
 use crate::{
     complex_error::ComplexError,
@@ -7,7 +9,6 @@ use crate::{
         DoubleRay, GeneralizedCircle, Line, LineSegment, Ray,
     },
     isogonal::Isogonal,
-    rendering::{RenderPrimitive, Renderable},
     transformable::{Cline, Transformable},
     unit_complex::UnitComplex,
     Complex,
@@ -255,29 +256,26 @@ impl Transformable<Isogonal> for ClineArc {
 }
 
 impl Renderable for ClineArc {
-    fn bake_geometry(&self) -> Result<Vec<RenderPrimitive>, Box<dyn std::error::Error>> {
-        let mut result = Vec::new();
-
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>> {
         let (first, maybe_second) = match self.classify()? {
-            ClineArcGeometry::CircularArc(arc) => (RenderPrimitive::CircularArc(arc), None),
-            ClineArcGeometry::LineSegment(line_segment) => {
-                (RenderPrimitive::LineSegment(line_segment), None)
-            }
-            ClineArcGeometry::FromInfinity(ray) => (RenderPrimitive::make_ray(ray), None),
-            ClineArcGeometry::ToInfinity(ray) => (RenderPrimitive::make_ray(ray), None),
+            ClineArcGeometry::CircularArc(arc) => (arc.render()?, None),
+            ClineArcGeometry::LineSegment(line_segment) => (line_segment.render()?, None),
+            ClineArcGeometry::FromInfinity(ray) => (ray.render()?, None),
+            ClineArcGeometry::ToInfinity(ray) => (ray.render()?, None),
             ClineArcGeometry::ThruInfinity(DoubleRay(start, end)) => {
-                let first_ray = RenderPrimitive::make_ray(start);
-                let second_ray = RenderPrimitive::make_ray(end);
+                let first_ray = start.render()?;
+                let second_ray = end.render()?;
                 (first_ray, Some(second_ray))
             }
         };
 
-        result.push(first);
-        if let Some(x) = maybe_second {
-            result.push(x);
-        }
+        let primitive = if let Some(x) = maybe_second {
+            RenderPrimitive::group(vec![first, x])
+        } else {
+            first
+        };
 
-        Ok(result)
+        Ok(primitive)
     }
 }
 

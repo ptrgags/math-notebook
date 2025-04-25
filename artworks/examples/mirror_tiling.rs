@@ -1,4 +1,5 @@
-use std::{f64::consts::PI, io::Error};
+use std::error::Error;
+use std::f64::consts::PI;
 
 use abstraction::Monoid;
 use mobius::{
@@ -7,27 +8,16 @@ use mobius::{
     geometry::LineSegment,
     hyperbolic_tilings::{get_fundamental_region, reflection_group},
     isogonal::Isogonal,
-    motifs::candy_corn,
     quantized_hash::QuantizedHash,
-    rendering::Style,
-    rotation, scale,
-    svg_plot::{render_views, style_geometry, style_motifs, union, View},
-    transformable::{ClineArcTile, Transformable},
+    rotation,
+    transformable::{ClineArcTile, Collection},
     translation, Complex,
 };
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
-pub fn better_candy_corners() -> Result<(), Error> {
+pub fn better_candy_corners() -> Result<(), Box<dyn Error>> {
     let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();
-
-    let complex = e2_conj * Complex::Zero;
-    let dist_to_edge = 0.5 * (complex).real();
-    let (corn, styles) = candy_corn();
-    let (fundamental_domain, (_, _, vertex)) = get_fundamental_region(3, 7).unwrap();
-    let displacement = vertex * Complex::from(0.4);
-    let shift = translation(displacement).unwrap();
-    let shrink = scale(dist_to_edge * 0.8).unwrap();
-    let rot60 = rotation(PI / 3.0).unwrap();
-    let tiny_corn = corn.transform(shift * rot60 * shrink);
+    let (fundamental_domain, _) = get_fundamental_region(3, 7).unwrap();
 
     const DEPTH: usize = 6;
     const QUANTIZE_BITS: i32 = 16;
@@ -39,17 +29,17 @@ pub fn better_candy_corners() -> Result<(), Error> {
 
     let style = Style::stroke(0, 127, 35).with_width(0.25);
     let candy_corners = ifs.apply(&fundamental_domain, DEPTH, QUANTIZE_BITS);
-    render_views(
+    render_svg(
         "output",
         "candy_corners_orbit",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
-        union(vec![style_geometry(style, &candy_corners[..])]),
+        RenderPrimitive::group(vec![Collection::union(candy_corners).render_group(style)?]),
     )?;
 
     Ok(())
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let mirror_x = Isogonal::conj();
     let r180: Isogonal = rotation(PI).unwrap().into();
     let mirror_y = r180 * mirror_x;
@@ -93,13 +83,13 @@ fn main() -> Result<(), Error> {
     let style = Style::stroke(255, 63, 63).with_width(0.5);
     let style_original = Style::stroke(255, 255, 255).with_width(0.5);
 
-    render_views(
+    render_svg(
         "output",
         "mirror_tiling",
         &[View("", 0.0, 0.0, 5.0)],
-        union(vec![
-            style_geometry(style, &flags[..]),
-            style_geometry(style_original, &fundamental_domain),
+        RenderPrimitive::group(vec![
+            Collection::union(flags).render_group(style)?,
+            fundamental_domain.render_group(style_original)?,
         ]),
     )?;
 

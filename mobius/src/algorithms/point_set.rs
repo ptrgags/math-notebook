@@ -3,13 +3,10 @@ use std::collections::HashMap;
 use crate::{quantized_hash::QuantizedHash, Complex};
 
 pub trait Set<V>: Default {
+    #[cfg(test)]
     fn len(&self) -> usize;
     fn contains(&self, value: &V) -> bool;
     fn insert(&mut self, value: V);
-
-    fn is_empty(&self) -> bool {
-        return self.len() == 0;
-    }
 }
 
 pub struct PointSet {
@@ -21,7 +18,7 @@ impl PointSet {
     pub fn new(quantize_bits: i32) -> Self {
         Self {
             grid: HashMap::new(),
-            quantize_bits: quantize_bits,
+            quantize_bits,
         }
     }
 
@@ -43,6 +40,7 @@ impl Default for PointSet {
 }
 
 impl Set<Complex> for PointSet {
+    #[cfg(test)]
     fn len(&self) -> usize {
         self.grid.values().map(|x| x.len()).sum()
     }
@@ -72,7 +70,7 @@ impl Set<Complex> for PointSet {
             }
         }
 
-        return false;
+        false
     }
 
     fn insert(&mut self, value: Complex) {

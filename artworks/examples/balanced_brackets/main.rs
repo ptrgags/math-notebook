@@ -4,9 +4,7 @@ use clap::Parser;
 use mobius::{
     cline_arc::ClineArc,
     geometry::integer_arcs::{arc_on_circle_by_hemisphere, arc_on_line_by_hemisphere},
-    rendering::Style,
     rotation,
-    svg_plot::{render_views, style_geometry, union, View},
     transformable::{Cline, ClineArcTile, Transformable},
     translation, Complex,
 };
@@ -14,6 +12,7 @@ use mobius::{
 mod brackets;
 
 use brackets::{BalancedBrackets, MatchedBalancedBrackets};
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 #[derive(Parser)]
 struct Cli {
@@ -52,16 +51,17 @@ pub fn render_line(
     let in_view = tile.transform(translate_center * rot90);
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
-    let white = Style::stroke(255, 255, 255).with_width(0.25);
-    let arc_geom = style_geometry(yellow, &in_view);
-    let equator_geom = style_geometry(white, &Cline::imag_axis());
+
+    let arc_geom = in_view.render_group(yellow)?;
     let geometry = if draw_equator {
-        union(vec![arc_geom, equator_geom])
+        let white = Style::stroke(255, 255, 255).with_width(0.25);
+        let equator_geom = Cline::imag_axis().render_group(white)?;
+        RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {
         arc_geom
     };
 
-    render_views(
+    render_svg(
         "output",
         &format!("brackets_line{}", suffix),
         &[View("", 0.0, 0.0, radius)],
@@ -88,17 +88,17 @@ pub fn render_circle(
     let circle_tile = ClineArcTile::new(arcs);
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.5);
-    let white = Style::stroke(255, 255, 255).with_width(0.25);
 
-    let arc_geom = style_geometry(yellow, &circle_tile);
-    let equator_geom = style_geometry(white, &Cline::unit_circle());
+    let arc_geom = circle_tile.render_group(yellow)?;
     let geometry = if draw_equator {
-        union(vec![arc_geom, equator_geom])
+        let white = Style::stroke(255, 255, 255).with_width(0.25);
+        let equator_geom = Cline::unit_circle().render_group(white)?;
+        RenderPrimitive::group(vec![arc_geom, equator_geom])
     } else {
         arc_geom
     };
 
-    render_views(
+    render_svg(
         "output",
         &format!("brackets_circle{}", suffix),
         &[View("", 0.0, 0.0, 2.0)],
