@@ -9,7 +9,7 @@ pub trait Semigroup: Clone + Mul<Self, Output = Self> {
     where
         Self: Sized,
     {
-        if values.len() == 0 {
+        if values.is_empty() {
             panic!("sconcat: empty slice not allowed");
         }
 
