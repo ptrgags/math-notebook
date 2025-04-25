@@ -10,7 +10,7 @@ use mobius::{
     hyperbolic,
     hyperbolic_tilings::{corner_rotation_group, get_fundamental_region, reflection_group},
     loxodromic, rotation, scale,
-    transformable::{ClineArcTile, ClineTile, Motif, Transformable},
+    transformable::{ClineArcTile, ClineTile, Collection, Motif, Transformable},
     translation, Complex, Mobius,
 };
 use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
@@ -69,7 +69,7 @@ pub fn hex_grid() -> Result<(), Box<dyn Error>> {
         "hex_tiles",
         &[View("", 0.0, 0.0, 3.5)],
         RenderPrimitive::group(vec![
-            hex_tiles.render_group(grey_lines),
+            Collection::union(hex_tiles).render_group(grey_lines)?,
             Motif::union(hat_tiles).render_group(&hat_styles),
         ]),
     )?;
@@ -112,9 +112,9 @@ pub fn bone_tree() -> Result<(), Box<dyn Error>> {
         "bone_tree",
         &[View("", 0.0, 2.0, 3.5)],
         RenderPrimitive::group(vec![
-            bone_branches.render_group(white_fill)?,
-            head_leaves.render_group(white_fill)?,
-            face_leaves.render_group(black)?,
+            Collection::new(bone_branches).render_group(white_fill)?,
+            Collection::new(head_leaves).render_group(white_fill)?,
+            Collection::union(face_leaves).render_group(black)?,
         ]),
     )?;
     Ok(())
@@ -140,7 +140,7 @@ pub fn rib_cage() -> Result<(), Box<dyn Error>> {
         "rib_cage",
         &[View("", 0.0, 1.0, 1.5)],
         RenderPrimitive::group(vec![
-            rib_cage.render_group(white_fill)?,
+            Collection::new(rib_cage).render_group(white_fill)?,
             adjusted_head.render_group(white_fill)?,
             adjusted_face.render_group(black)?,
         ]),
@@ -233,8 +233,8 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
             View("near_origin", 0.0, 0.0, 0.25),
         ],
         RenderPrimitive::group(vec![
-            circle_walk.render_group(red_lines)?,
-            tiles.render_group(yellow_lines)?,
+            Collection::union(circle_walk).render_group(red_lines)?,
+            Collection::union(tiles).render_group(yellow_lines)?,
             Motif::union(gasket_walk).render_group(&ghost_styles),
         ]),
     )?;
@@ -251,7 +251,7 @@ pub fn ghost_gasket() -> Result<(), Box<dyn Error>> {
         &[View("", 0.0, 0.0, 1.1), View("left_circle", -0.5, 0.0, 0.5)],
         RenderPrimitive::group(vec![
             left_circle.render_group(red_lines)?,
-            subgroup_tiles.render_group(yellow_lines)?,
+            Collection::union(subgroup_tiles).render_group(yellow_lines)?,
             Motif::union(subgroup_walk).render_group(&ghost_styles),
         ]),
     )?;

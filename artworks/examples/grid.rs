@@ -4,9 +4,9 @@ use std::error::Error;
 use abstraction::{Group, Monoid};
 use mobius::{
     elliptic, hyperbolic,
-    transformable::{Cline, Transformable},
+    transformable::{Cline, Collection, Transformable},
 };
-use rendering::{render_svg, style::Style, Renderable, View};
+use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let h = hyperbolic(2.0).unwrap();
@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect();
 
     let yellow = Style::stroke(255, 255, 0).with_width(0.25);
-    let parallels = h_clines.render_group(yellow)?;
+    let parallels = Collection::new(h_clines).render_group(yellow)?;
 
     let e = elliptic(f64::consts::PI / 8.0).unwrap();
     let e_powers = e.power_iter().take(16);
@@ -31,13 +31,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let e_clines: Vec<Cline> = e_powers.map(|x| real_axis.transform(x)).collect();
 
     let red = Style::stroke(255, 0, 0).with_width(0.25);
-    let meridians = e_clines.render_group(red)?;
-    let geometry = SvgGroup::new().add(parallels).add(meridians);
+    let meridians = Collection::new(e_clines).render_group(red)?;
 
     render_svg(
         "output",
         "parallels_and_meridians",
         &[View("", 0.0, 0.0, 2.0)],
-        geometry,
-    )?
+        RenderPrimitive::group(vec![parallels, meridians]),
+    )?;
+
+    Ok(())
 }

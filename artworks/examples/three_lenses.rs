@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::{error::Error, f64::consts::PI};
 
 use mobius::{
     algorithms::MonoidIFS,
@@ -40,18 +40,20 @@ fn show_individual_xforms(
     min_depth: usize,
     max_depth: usize,
 ) -> RenderPrimitive {
-    xforms
+    let primitives: Vec<RenderPrimitive> = xforms
         .iter()
         .zip(colors.iter())
         .map(|(xform, style)| {
             let ifs = MonoidIFS::new(vec![*xform]);
             let tiles = ifs.apply(tile, min_depth, max_depth);
-            .render_group(*style, &tiles[..])
+            Collection::union(tiles).render_group(*style).unwrap()
         })
-        .fold(Group::new(), |group, x| group.add(x))
+        .collect();
+
+    RenderPrimitive::group(primitives)
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let xforms = make_xforms();
 
     let angles = ArcAngles::new(0.0, PI).unwrap();
@@ -60,8 +62,6 @@ fn main() {
         CircularArc::new(Circle::unit_circle(), angles).into(),
     ]);
 
-    //let rotate_90 = rotation(FRAC_PI_2).unwrap();
-    //let ifs = IFS::sandwich(rotate_90, &IFS::new(xforms));
     let ifs = MonoidIFS::new(xforms.clone());
 
     let tiles = ifs.apply(&half_circle, 8, 8);
@@ -73,7 +73,7 @@ fn main() {
         "three_lenses",
         &[View("", 0.0, 0.0, 1.25), View("zoomed", 0.2, 0.5, 0.5)],
         geometry.clone(),
-    );
+    )?;
 
     let styles = [
         Style::stroke(255, 255, 0).with_width(0.25),
@@ -86,5 +86,6 @@ fn main() {
         "three_lenses",
         &[View("", 0.0, 0.0, 1.25)],
         RenderPrimitive::group(vec![geometry, highlight_xforms]),
-    );
+    )?;
+    Ok(())
 }

@@ -2,7 +2,6 @@ use std::error::Error;
 use std::f64::consts::PI;
 
 use abstraction::Monoid;
-use gallery::motifs::halloween::candy_corn;
 use mobius::{
     algorithms::{OrbitIFS, OrbitTile},
     cline_arc::ClineArc,
@@ -10,24 +9,15 @@ use mobius::{
     hyperbolic_tilings::{get_fundamental_region, reflection_group},
     isogonal::Isogonal,
     quantized_hash::QuantizedHash,
-    rotation, scale,
-    transformable::{ClineArcTile, Collection, Transformable},
+    rotation,
+    transformable::{ClineArcTile, Collection},
     translation, Complex,
 };
 use rendering::{render_svg, style::Style, RenderPrimitive, Renderable, View};
 
 pub fn better_candy_corners() -> Result<(), Box<dyn Error>> {
     let (conj, r_conj, e2_conj) = reflection_group(3, 7).unwrap();
-
-    let complex = e2_conj * Complex::Zero;
-    let dist_to_edge = 0.5 * (complex).real();
-    let (corn, styles) = candy_corn()?;
-    let (fundamental_domain, (_, _, vertex)) = get_fundamental_region(3, 7).unwrap();
-    let displacement = vertex * Complex::from(0.4);
-    let shift = translation(displacement).unwrap();
-    let shrink = scale(dist_to_edge * 0.8).unwrap();
-    let rot60 = rotation(PI / 3.0).unwrap();
-    let tiny_corn = corn.transform(shift * rot60 * shrink);
+    let (fundamental_domain, _) = get_fundamental_region(3, 7).unwrap();
 
     const DEPTH: usize = 6;
     const QUANTIZE_BITS: i32 = 16;
@@ -43,7 +33,7 @@ pub fn better_candy_corners() -> Result<(), Box<dyn Error>> {
         "output",
         "candy_corners_orbit",
         &[View("", 0.0, 0.0, 1.0), View("zoom", 0.2, 0.0, 0.4)],
-        RenderPrimitive::group(vec![candy_corners.render_group(style)]),
+        RenderPrimitive::group(vec![Collection::union(candy_corners).render_group(style)?]),
     )?;
 
     Ok(())

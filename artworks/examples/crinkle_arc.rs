@@ -138,7 +138,7 @@ fn crinkle_two_color(
 
     // Remember, we're making bigger jumps and a higher branchihng factor, so tune the depth down a bit.
     let tiles = ifs.apply(&combined_tile, 0, depth);
-    style_motifs(&tiles[..], &styles)
+    Motif::union(tiles).render_group(&styles)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
