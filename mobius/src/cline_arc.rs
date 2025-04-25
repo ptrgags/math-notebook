@@ -258,13 +258,13 @@ impl Transformable<Isogonal> for ClineArc {
 impl Renderable for ClineArc {
     fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>> {
         let (first, maybe_second) = match self.classify()? {
-            ClineArcGeometry::CircularArc(arc) => (arc.to_primitive(), None),
-            ClineArcGeometry::LineSegment(line_segment) => (line_segment.to_primitive(), None),
-            ClineArcGeometry::FromInfinity(ray) => (ray.to_primitive(), None),
-            ClineArcGeometry::ToInfinity(ray) => (ray.to_primitive(), None),
+            ClineArcGeometry::CircularArc(arc) => (arc.render()?, None),
+            ClineArcGeometry::LineSegment(line_segment) => (line_segment.render()?, None),
+            ClineArcGeometry::FromInfinity(ray) => (ray.render()?, None),
+            ClineArcGeometry::ToInfinity(ray) => (ray.render()?, None),
             ClineArcGeometry::ThruInfinity(DoubleRay(start, end)) => {
-                let first_ray = start.to_primitive();
-                let second_ray = end.to_primitive();
+                let first_ray = start.render()?;
+                let second_ray = end.render()?;
                 (first_ray, Some(second_ray))
             }
         };

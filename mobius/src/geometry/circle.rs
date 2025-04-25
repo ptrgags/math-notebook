@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use rendering::RenderPrimitive;
+use rendering::{RenderPrimitive, Renderable};
 
 use crate::{nearly::is_nearly, Complex};
 
@@ -35,13 +35,15 @@ impl Circle {
     pub fn point_inside(&self, point: Complex) -> bool {
         (point - self.center).norm() <= self.radius * self.radius
     }
+}
 
-    pub fn to_primitive(&self) -> RenderPrimitive {
-        RenderPrimitive::Circle {
+impl Renderable for Circle {
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn std::error::Error>> {
+        Ok(RenderPrimitive::Circle {
             x: self.center.real(),
             y: self.center.imag(),
             radius: self.radius,
-        }
+        })
     }
 }
 

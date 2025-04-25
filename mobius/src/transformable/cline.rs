@@ -218,8 +218,8 @@ impl Transformable<Isogonal> for Cline {
 impl Renderable for Cline {
     fn render(&self) -> Result<RenderPrimitive, Box<dyn Error>> {
         let primitive = match self.classify()? {
-            GeneralizedCircle::Circle(circle) => circle.to_primitive(),
-            GeneralizedCircle::Line(line) => line.to_primitive(),
+            GeneralizedCircle::Circle(circle) => circle.render()?,
+            GeneralizedCircle::Line(line) => line.render()?,
         };
 
         Ok(primitive)

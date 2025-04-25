@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use rendering::{PathCommand, RenderPrimitive, Renderable};
+use rendering::{primitive::PathPrimitive, PathCommand, RenderPrimitive, Renderable};
 use thiserror::Error;
 
 use crate::{

@@ -1,6 +1,9 @@
 use std::{f64::consts::PI, fmt::Display};
 
-use rendering::{CircularArc as ArcPrimitive, CircularArcTo, PathCommand, RenderPrimitive};
+use rendering::{
+    primitive::PathPrimitive, CircularArc as ArcPrimitive, CircularArcTo, PathCommand,
+    RenderPrimitive, Renderable,
+};
 use thiserror::Error;
 
 use crate::Complex;
@@ -66,18 +69,22 @@ impl CircularArc {
             end_y: end.imag(),
         }
     }
+}
 
-    pub fn to_path_command(&self) -> PathCommand {
-        PathCommand::ArcTo(self.get_arc_to())
-    }
-
-    pub fn to_primitive(&self) -> RenderPrimitive {
+impl Renderable for CircularArc {
+    fn render(&self) -> Result<RenderPrimitive, Box<dyn std::error::Error>> {
         let start = self.start();
-        RenderPrimitive::CircularArc(ArcPrimitive {
+        Ok(RenderPrimitive::CircularArc(ArcPrimitive {
             start_x: start.real(),
             start_y: start.imag(),
             arc_to: self.get_arc_to(),
-        })
+        }))
+    }
+}
+
+impl PathPrimitive for CircularArc {
+    fn to_path_command(&self) -> PathCommand {
+        PathCommand::ArcTo(self.get_arc_to())
     }
 }
 

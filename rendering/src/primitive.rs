@@ -18,6 +18,10 @@ pub enum PathCommand {
     ArcTo(CircularArcTo),
 }
 
+pub trait PathPrimitive {
+    fn to_path_command(&self) -> PathCommand;
+}
+
 #[derive(Clone, Copy)]
 pub struct CircularArc {
     pub start_x: f64,
