@@ -1,7 +1,7 @@
 /// A basis blade in GA is a wedge product of basis vectors. This struct
 /// helps with the bookkeeping of the basis vectors, but not the coefficient
 /// which will be handled by Multivector.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct BasisBlade(u8);
 
 impl BasisBlade {
