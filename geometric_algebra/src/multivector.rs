@@ -1,4 +1,7 @@
-use std::{collections::HashMap, ops::Add};
+use std::{
+    collections::HashMap,
+    ops::{Add, Sub},
+};
 
 use crate::{basis_blade::BasisBlade, field::Field};
 
@@ -11,17 +14,36 @@ impl<F: Field> Multivector<F> {
     /// the zero multivector. This is equivalent to the
     /// zero vector, bivector, etc.
     pub fn zero() -> Self {
-        Self::from(F::zero())
+        Self {
+            terms: HashMap::new(),
+        }
     }
 
     /// The multiplicative identity, 1.
     pub fn identity() -> Self {
         Self::from(F::one())
     }
+
+    pub fn new(terms: HashMap<BasisBlade, F>) -> Self {
+        let zero = F::zero();
+        let nonzero_terms = terms
+            .into_iter()
+            .filter(|(_, coeff)| *coeff != zero)
+            .collect();
+
+        Self {
+            terms: nonzero_terms,
+        }
+    }
 }
 
 impl<F: Field> From<F> for Multivector<F> {
     fn from(value: F) -> Self {
+        // If the value is 0, return the empty map
+        if value == F::zero() {
+            return Self::zero();
+        }
+
         let mut terms = HashMap::new();
         terms.insert(BasisBlade::scalar(), value);
 
@@ -51,7 +73,24 @@ impl<F: Field> Add for Multivector<F> {
                 .or_insert(*coeff);
         }
 
-        Self { terms }
+        Self::new(terms)
+    }
+}
+
+impl<F: Field> Sub for Multivector<F> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut terms = self.terms.clone();
+
+        for (blade, coeff) in rhs.terms.iter() {
+            terms
+                .entry(*blade)
+                .and_modify(|e| *e = *e - *coeff)
+                .or_insert(*coeff);
+        }
+
+        Self::new(terms)
     }
 }
 
@@ -84,5 +123,12 @@ mod test {
 
         assert_eq!(zero.clone() + x.clone(), x);
         assert_eq!(x.clone() + zero, x);
+    }
+
+    #[test]
+    pub fn test_element_sub_self_is_zero() {
+        let x = Multivector::from(Real::from(3.4));
+
+        assert_eq!(x.clone() - x, Multivector::zero());
     }
 }
