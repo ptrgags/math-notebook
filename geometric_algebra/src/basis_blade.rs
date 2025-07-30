@@ -1,9 +1,8 @@
 /// A basis blade in GA is a wedge product of basis vectors. This struct
 /// helps with the bookkeeping of the basis vectors, but not the coefficient
 /// which will be handled by Multivector.
-#[derive(Clone, Copy, Eq)]
-pub struct BasisVector(u8);
-
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct BasisBlade(u8);
 
 impl BasisBlade {
     /// Every geometric algebra has scalars, i.e. the absence of scalars
@@ -22,21 +21,21 @@ impl BasisBlade {
     }
 
     // A trivector e_i ^ e_j ^ e_k
-    pub fn trivector(i: u8, j: u8, k: u8) -> self {
+    pub fn trivector(i: u8, j: u8, k: u8) -> Self {
         Self(1 << i | 1 << j | 1 << k)
     }
 
     // A quadvector e_i ^ e_j ^ e_k ^ e_l
-    pub fn quadvector(i: u8, j: u8, k: u8, l: u8) -> self {
+    pub fn quadvector(i: u8, j: u8, k: u8, l: u8) -> Self {
         Self(1 << i | 1 << j | 1 << k | 1 << l)
     }
 
     // A pentavector e_i ^ e_j ^ e_k ^ e_l ^ e_m
-    pub fn pentavector(i: u8, j: u8, k: u8, l: u8, m: u8) -> self {
+    pub fn pentavector(i: u8, j: u8, k: u8, l: u8, m: u8) -> Self {
         Self(1 << i | 1 << j | 1 << k | 1 << l | 1 << m)
     }
 
-    // Construct a basis blade from a bit pattern. 
+    // Construct a basis blade from a bit pattern.
     pub fn new(value: u8) -> Self {
         Self(value)
     }
@@ -47,7 +46,7 @@ impl BasisBlade {
     pub fn symmetric_diff(&self, other: &Self) -> Self {
         let Self(x) = self;
         let Self(y) = other;
-        Self(x ^ y) 
+        Self(x ^ y)
     }
 
     /// When taking a geometric product of two basis blades, the sign
