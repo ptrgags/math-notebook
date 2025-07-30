@@ -1,9 +1,9 @@
 use std::{
     collections::HashMap,
-    ops::{Add, Sub},
+    ops::{Add, Mul, Sub},
 };
 
-use crate::{basis_blade::BasisBlade, field::Field};
+use crate::{basis_blade::BasisBlade, field::Field, real::Real};
 
 #[derive(Debug, Clone)]
 pub struct Multivector<F> {
@@ -20,7 +20,7 @@ impl<F: Field> Multivector<F> {
     }
 
     /// The multiplicative identity, 1.
-    pub fn identity() -> Self {
+    pub fn one() -> Self {
         Self::from(F::one())
     }
 
@@ -48,6 +48,13 @@ impl<F: Field> From<F> for Multivector<F> {
         terms.insert(BasisBlade::scalar(), value);
 
         Self { terms }
+    }
+}
+
+/// Shorthand for creating a scalar
+impl From<f64> for Multivector<Real> {
+    fn from(value: f64) -> Self {
+        Self::from(Real::from(value))
     }
 }
 
@@ -94,6 +101,30 @@ impl<F: Field> Sub for Multivector<F> {
     }
 }
 
+impl<F: Field> Mul for Multivector<F> {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let mut terms = HashMap::new();
+
+        for (blade_a, coeff_a) in self.terms.iter() {
+            for (blade_b, coeff_b) in rhs.terms.iter() {
+                let key = blade_a.intersection(blade_b);
+                let coeff = *coeff_a * *coeff_b;
+                // Also need to account for negative signs from swapping
+                // also need to account for negative signs from the signature
+
+                terms
+                    .entry(key)
+                    .and_modify(|e| *e = *e * coeff)
+                    .or_insert(coeff);
+            }
+        }
+
+        Self::new(terms)
+    }
+}
+
 impl<F: Field> PartialEq for Multivector<F> {
     fn eq(&self, other: &Self) -> bool {
         if self.terms.len() != other.terms.len() {
@@ -127,8 +158,17 @@ mod test {
 
     #[test]
     pub fn test_element_sub_self_is_zero() {
-        let x = Multivector::from(Real::from(3.4));
+        let x = Multivector::from(3.4);
 
         assert_eq!(x.clone() - x, Multivector::zero());
+    }
+
+    #[test]
+    pub fn test_one_is_multiplicative_identity() {
+        let one = Multivector::one();
+        let x = Multivector::from(2.4);
+
+        assert_eq!(one.clone() * x.clone(), x);
+        assert_eq!(x.clone() * one, x);
     }
 }
