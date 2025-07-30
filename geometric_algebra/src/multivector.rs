@@ -109,7 +109,7 @@ impl<F: Field> Mul for Multivector<F> {
 
         for (blade_a, coeff_a) in self.terms.iter() {
             for (blade_b, coeff_b) in rhs.terms.iter() {
-                let key = blade_a.intersection(blade_b);
+                let key = blade_a.symmetric_diff(blade_b);
                 let coeff = *coeff_a * *coeff_b;
                 // Also need to account for negative signs from swapping
                 // also need to account for negative signs from the signature
@@ -170,5 +170,23 @@ mod test {
 
         assert_eq!(one.clone() * x.clone(), x);
         assert_eq!(x.clone() * one, x);
+    }
+
+    #[test]
+    pub fn test_scalar_multiplication_distributes() {
+        let scalar = Multivector::from(2.0);
+        let one = Multivector::one();
+        let vector = Multivector::from(BasisBlade::vector(0));
+        let bivector = Multivector::from(BasisBlade::bivector(2, 3));
+
+        // 2(1 + x + zw)
+        let sum = one.clone() + vector.clone() + bivector.clone();
+        let scaled = scalar.clone() * sum;
+
+        // is equivalent to 2 + 2x + zw
+        let weighted_sum =
+            scalar.clone() * one + scalar.clone() * vector + scalar.clone() * bivector;
+
+        assert_eq!(scaled, weighted_sum);
     }
 }
