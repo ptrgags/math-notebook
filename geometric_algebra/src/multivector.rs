@@ -35,6 +35,31 @@ impl<F: Field> Multivector<F> {
             terms: nonzero_terms,
         }
     }
+
+    /// A single basis vector e_index
+    pub fn vector(index: u8) -> Self {
+        Self::from(BasisBlade::vector(index))
+    }
+
+    // A bivector e_i ^ e_j
+    pub fn bivector(i: u8, j: u8) -> Self {
+        Self::from(BasisBlade::bivector(i, j))
+    }
+
+    // A trivector e_i ^ e_j ^ e_k
+    pub fn trivector(i: u8, j: u8, k: u8) -> Self {
+        Self::from(BasisBlade::trivector(i, j, k))
+    }
+
+    // A quadvector e_i ^ e_j ^ e_k ^ e_l
+    pub fn quadvector(i: u8, j: u8, k: u8, l: u8) -> Self {
+        Self::from(BasisBlade::quadvector(i, j, k, l))
+    }
+
+    // A pentavector e_i ^ e_j ^ e_k ^ e_l ^ e_m
+    pub fn pentavector(i: u8, j: u8, k: u8, l: u8, m: u8) -> Self {
+        Self::from(BasisBlade::pentavector(i, j, k, l, m))
+    }
 }
 
 impl<F: Field> From<F> for Multivector<F> {
@@ -149,7 +174,7 @@ mod test {
 
     #[test]
     pub fn test_zero_is_additive_identity() {
-        let x = Multivector::from(Real::from(3.0));
+        let x = Multivector::from(3.0);
         let zero = Multivector::zero();
 
         assert_eq!(zero.clone() + x.clone(), x);
@@ -176,8 +201,8 @@ mod test {
     pub fn test_scalar_multiplication_distributes() {
         let scalar = Multivector::from(2.0);
         let one = Multivector::one();
-        let vector = Multivector::from(BasisBlade::vector(0));
-        let bivector = Multivector::from(BasisBlade::bivector(2, 3));
+        let vector = Multivector::vector(0);
+        let bivector = Multivector::bivector(2, 3);
 
         // 2(1 + x + zw)
         let sum = one.clone() + vector.clone() + bivector.clone();
@@ -188,5 +213,16 @@ mod test {
             scalar.clone() * one + scalar.clone() * vector + scalar.clone() * bivector;
 
         assert_eq!(scaled, weighted_sum);
+    }
+
+    #[test]
+    pub fn test_multiply_two_vectors_gives_bivector() {
+        let x: Multivector<Real> = Multivector::vector(0);
+        let y: Multivector<Real> = Multivector::vector(1);
+
+        let product = x * y;
+        let xy = Multivector::bivector(0, 1);
+
+        assert_eq!(product, xy);
     }
 }
