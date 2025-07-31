@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::field::Field;
 
@@ -60,6 +60,14 @@ impl Div for Real {
 
     fn div(self, rhs: Self) -> Self::Output {
         Self(self.0 / rhs.0)
+    }
+}
+
+impl Neg for Real {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self(-self.0)
     }
 }
 

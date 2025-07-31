@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 pub trait Field:
     Clone
@@ -7,6 +7,7 @@ pub trait Field:
     + Mul<Self, Output = Self>
     + Sub<Self, Output = Self>
     + Div<Self, Output = Self>
+    + Neg<Output = Self>
     + PartialEq
 {
     fn zero() -> Self;

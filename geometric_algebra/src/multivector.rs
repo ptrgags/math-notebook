@@ -135,9 +135,16 @@ impl<F: Field> Mul for Multivector<F> {
         for (blade_a, coeff_a) in self.terms.iter() {
             for (blade_b, coeff_b) in rhs.terms.iter() {
                 let key = blade_a.symmetric_diff(blade_b);
-                let coeff = *coeff_a * *coeff_b;
+
+                let swap_count = BasisBlade::product_swap_count(blade_a, blade_b);
+                let mut swap_sign = F::one();
+                if swap_count % 2 == 1 {
+                    swap_sign = -swap_sign;
+                }
                 // Also need to account for negative signs from swapping
                 // also need to account for negative signs from the signature
+
+                let coeff = *coeff_a * *coeff_b * swap_sign;
 
                 terms
                     .entry(key)
@@ -147,6 +154,14 @@ impl<F: Field> Mul for Multivector<F> {
         }
 
         Self::new(terms)
+    }
+}
+
+impl<F: Field> Mul<F> for Multivector<F> {
+    type Output = Self;
+
+    fn mul(self, rhs: F) -> Self::Output {
+        self * Multivector::from(rhs)
     }
 }
 
@@ -224,5 +239,16 @@ mod test {
         let xy = Multivector::bivector(0, 1);
 
         assert_eq!(product, xy);
+    }
+
+    #[test]
+    pub fn test_mutliply_vectors_reversed_gives_negative_bivector() {
+        let x: Multivector<Real> = Multivector::vector(0);
+        let y: Multivector<Real> = Multivector::vector(1);
+
+        let product = y * x;
+        let neg_xy = Multivector::bivector(0, 1) * Real::from(-1.0);
+
+        assert_eq!(product, neg_xy);
     }
 }
