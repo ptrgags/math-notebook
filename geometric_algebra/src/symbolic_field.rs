@@ -5,6 +5,29 @@ use std::{
 
 use crate::field::Field;
 
+// New grammar
+/*
+
+term = (coeff, label, power) (or a product of these with different labels)
+
+constant(k) = (k, "1", 1)
+variable(x) = (1, x, 1)
+
+since we need multiple labels
+
+term = HashMap<String, Term>
+where the key is a variable label ("1" is reserved for constants)
+...no wait, you also need to include the powers, e.g. x^2y is not the same
+as xy^2
+
+...also even if there are multiple variables and powers, there's only one
+coefficient
+
+a Polynomial is then a hashmap of hashmaps, keyed by the key
+
+...I'm tired. Another day.
+ */
+
 // Field of rational functiions F[x_i] for some variables x_i
 #[derive(Debug, PartialEq, Clone)]
 pub enum SymbolicField {
