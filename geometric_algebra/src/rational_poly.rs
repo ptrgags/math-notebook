@@ -1,7 +1,8 @@
-use std::ops::Add;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use crate::polynomial::Polynomial;
+use crate::{field::Field, polynomial::Polynomial};
 
+#[derive(Clone, PartialEq)]
 pub struct RationalPolynomial {
     numerator: Polynomial,
     denominator: Polynomial,
@@ -43,9 +44,91 @@ impl Add for RationalPolynomial {
         let denominator = b.clone() * d.clone();
         let numerator = a * d + b * c;
 
+        Self::new(numerator, denominator)
+    }
+}
+
+impl Neg for RationalPolynomial {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self::new(-self.numerator.clone(), self.denominator.clone())
+    }
+}
+
+impl Sub for RationalPolynomial {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        // Naive method, no computing lcm
+        // a/b - c/d = (ad - bc)/bd
+
+        let Self {
+            numerator: a,
+            denominator: b,
+        } = self;
+        let Self {
+            numerator: c,
+            denominator: d,
+        } = rhs;
+
+        let denominator = b.clone() * d.clone();
+        let numerator = a * d - b * c;
+
+        Self::new(numerator, denominator)
+    }
+}
+
+impl Mul for RationalPolynomial {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        // a/b * c/d = (ac)/(bd)
+        let Self {
+            numerator: a,
+            denominator: b,
+        } = self;
+        let Self {
+            numerator: c,
+            denominator: d,
+        } = rhs;
+
+        Self::new(a * c, b * d)
+    }
+}
+
+impl Div for RationalPolynomial {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        // (a/b) / (c/d) = (ad)/(bc)
+        let Self {
+            numerator: a,
+            denominator: b,
+        } = self;
+        let Self {
+            numerator: c,
+            denominator: d,
+        } = rhs;
+
+        Self::new(a * d, b * c)
+    }
+}
+
+impl Field for RationalPolynomial {
+    fn zero() -> Self {
+        Self::from(Polynomial::zero())
+    }
+
+    fn one() -> Self {
+        Self::from(Polynomial::one())
+    }
+
+    /// The inverse of (a/b) is the reciprocal b/a
+    fn inverse(&self) -> Self {
         Self {
-            numerator,
-            denominator,
+            numerator: self.denominator.clone(),
+            denominator: self.numerator.clone(),
         }
     }
 }
