@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::{fmt::Display, ops::Mul};
 
 use crate::var_power::VariablePower;
 
@@ -74,6 +74,18 @@ impl Mul for Monomial {
     }
 }
 
+impl Display for Monomial {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if *self == Self::one() {
+            return write!(f, "1");
+        }
+
+        let var_strs: Vec<String> = self.variables.iter().map(|x| format!("{}", x)).collect();
+        let combined = var_strs.join("");
+        write!(f, "{}", combined)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -110,5 +122,43 @@ mod test {
 
         let expected = Monomial::power("x", 6);
         assert_eq!(ab, expected);
+    }
+
+    #[test]
+    fn formats_one_as_1() {
+        let one = Monomial::one();
+
+        let result = format!("{}", one);
+
+        assert_eq!(result, "1");
+    }
+
+    #[test]
+    fn formats_var_without_exponent() {
+        let x = Monomial::var("x");
+
+        let result = format!("{}", x);
+
+        assert_eq!(result, "x");
+    }
+
+    #[test]
+    fn formats_power_with_exponent() {
+        let x = Monomial::power("x", 3);
+
+        let result = format!("{}", x);
+
+        assert_eq!(result, "x^3");
+    }
+
+    #[test]
+    fn formats_product_in_sorted_order() {
+        let x = Monomial::power("x", 3);
+        let y = Monomial::power("y", 2);
+        let product = y * x;
+
+        let result = format!("{}", product);
+
+        assert_eq!(result, "x^3y^2");
     }
 }
