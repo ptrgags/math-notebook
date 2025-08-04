@@ -2,12 +2,13 @@ use std::fmt::Display;
 
 /// A single variable (a string label like "x") raised to an
 /// exponent. E.g. VariablePower("x", 3)
-#[derive(Debug, Hash, PartialOrd, Ord)]
-pub struct VariablePower(String, usize);
+#[derive(Debug, Hash, PartialOrd, Ord, Clone)]
+pub struct VariablePower(pub String, pub usize);
 
 impl VariablePower {
     pub fn one() -> Self {
-        Self(String::from("1"), 0usize)
+        // Use the empty string as label so it comes first when sorted
+        Self(String::from(""), 0usize)
     }
 
     pub fn var(label: &str) -> Self {
@@ -15,6 +16,10 @@ impl VariablePower {
     }
 
     pub fn new(label: &str, power: usize) -> Self {
+        if power == 0 {
+            return Self::one();
+        }
+
         Self(String::from(label), power)
     }
 }
