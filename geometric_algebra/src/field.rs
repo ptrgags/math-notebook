@@ -2,7 +2,6 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 pub trait Field:
     Clone
-    + Copy
     + Add<Self, Output = Self>
     + Mul<Self, Output = Self>
     + Sub<Self, Output = Self>

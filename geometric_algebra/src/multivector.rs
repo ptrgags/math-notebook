@@ -101,8 +101,8 @@ impl<F: Field> Add for Multivector<F> {
         for (blade, coeff) in rhs.terms.iter() {
             terms
                 .entry(*blade)
-                .and_modify(|e| *e = *e + *coeff)
-                .or_insert(*coeff);
+                .and_modify(|e| *e = e.clone() + coeff.clone())
+                .or_insert(coeff.clone());
         }
 
         Self::new(terms)
@@ -118,8 +118,8 @@ impl<F: Field> Sub for Multivector<F> {
         for (blade, coeff) in rhs.terms.iter() {
             terms
                 .entry(*blade)
-                .and_modify(|e| *e = *e - *coeff)
-                .or_insert(*coeff);
+                .and_modify(|e| *e = e.clone() - coeff.clone())
+                .or_insert(coeff.clone());
         }
 
         Self::new(terms)
@@ -141,14 +141,13 @@ impl<F: Field> Mul for Multivector<F> {
                 if swap_count % 2 == 1 {
                     swap_sign = -swap_sign;
                 }
-                // Also need to account for negative signs from swapping
                 // also need to account for negative signs from the signature
 
-                let coeff = *coeff_a * *coeff_b * swap_sign;
+                let coeff = coeff_a.clone() * coeff_b.clone() * swap_sign;
 
                 terms
                     .entry(key)
-                    .and_modify(|e| *e = *e * coeff)
+                    .and_modify(|e: &mut F| *e = e.clone() + coeff.clone())
                     .or_insert(coeff);
             }
         }
