@@ -1,8 +1,9 @@
 use std::{fmt::Display, ops::Mul};
 
 use abstraction::{group::Group, monoid::Monoid, semigroup::Semigroup};
+use floats::nearly::is_nearly;
 
-use crate::{complex::Complex, nearly::is_nearly};
+use crate::complex::Complex;
 
 #[derive(PartialEq, Debug)]
 pub enum MobiusType {

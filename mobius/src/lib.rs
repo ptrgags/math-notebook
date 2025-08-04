@@ -9,7 +9,6 @@ pub mod interpolation;
 pub mod isogonal;
 pub mod isogonal_recipes;
 mod mobius;
-mod nearly;
 pub mod polygon;
 pub mod quantize;
 pub mod quantized_hash;

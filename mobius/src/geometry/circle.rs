@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
+use floats::nearly::is_nearly;
 use rendering::{RenderPrimitive, Renderable};
 
-use crate::{nearly::is_nearly, Complex};
+use crate::Complex;
 
 use super::Geometry;
 

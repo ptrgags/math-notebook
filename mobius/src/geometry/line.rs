@@ -1,11 +1,11 @@
 use std::fmt::Display;
 
+use floats::nearly::is_nearly;
 use rendering::{RenderPrimitive, Renderable};
 use thiserror::Error;
 
 use crate::{
-    complex_error::ComplexError, float_error::FloatError, nearly::is_nearly,
-    unit_complex::UnitComplex, Complex,
+    complex_error::ComplexError, float_error::FloatError, unit_complex::UnitComplex, Complex,
 };
 
 use super::{Geometry, LineSegment};

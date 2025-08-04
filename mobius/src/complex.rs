@@ -2,9 +2,9 @@ use core::f64;
 use std::fmt::{self, Display};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use crate::nearly::is_nearly;
 use crate::quantize::quantize;
 use crate::quantized_hash::QuantizedHash;
+use floats::nearly::is_nearly;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Complex {

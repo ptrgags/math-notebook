@@ -21,7 +21,7 @@ mod test_lerp {
 
     use test_case::test_case;
 
-    use crate::nearly::assert_nearly;
+    use floats::nearly::assert_nearly;
 
     use super::*;
 

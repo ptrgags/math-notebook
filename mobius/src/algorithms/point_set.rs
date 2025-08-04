@@ -86,7 +86,7 @@ impl Set<Complex> for PointSet {
 
 #[cfg(test)]
 mod test {
-    use crate::nearly::EPSILON;
+    use floats::nearly::EPSILON;
 
     use super::*;
 

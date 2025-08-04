@@ -5,7 +5,8 @@ use std::{
 
 use thiserror::Error;
 
-use crate::{float_error::FloatError, interpolation::lerp, nearly::is_nearly};
+use crate::{float_error::FloatError, interpolation::lerp};
+use floats::nearly::is_nearly;
 
 #[derive(Debug, Error)]
 pub enum ArcAnglesError {
@@ -166,9 +167,8 @@ impl Display for ArcAngles {
 mod test {
     use std::f64::{consts::PI, INFINITY, NAN};
 
-    use crate::nearly::assert_nearly;
-
     use super::*;
+    use floats::nearly::assert_nearly;
     use test_case::test_case;
 
     #[test_case(NAN, 1.0; "nan a")]

@@ -1,11 +1,12 @@
 use std::f64::consts::{PI, TAU};
 
+use floats::nearly::is_nearly;
+
 use crate::{
     geometry::{
         ArcAngles, Circle, CircularArc, DirectedEdge, DoubleRay, GeneralizedCircle, Line,
         LineSegment,
     },
-    nearly::is_nearly,
     Complex,
 };
 

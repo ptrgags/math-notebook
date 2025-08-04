@@ -7,6 +7,7 @@ edition = "2021"
 abstraction = { path = "../abstraction" }
 rendering = { path = "../rendering" }
 permutations = { path = "../permutations" }
+floats = { path = "../floats" }
 thiserror = "2.0.3"
 derive_more = { version = "1.0.0", features = ["display"] }
 

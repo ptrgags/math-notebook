@@ -1,4 +1,5 @@
-use crate::{nearly::is_nearly, Complex, Mobius};
+use crate::{Complex, Mobius};
+use floats::nearly::is_nearly;
 
 // Complex inversion nu(z) = 1/z, implemented as
 // (0z + i) / (iz + 0) to have determinant 1
@@ -226,7 +227,7 @@ mod test {
     use abstraction::monoid::Monoid;
     use test_case::test_case;
 
-    use crate::{mobius::MobiusType, nearly::is_nearly};
+    use crate::mobius::MobiusType;
 
     use super::*;
 
