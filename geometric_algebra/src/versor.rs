@@ -5,6 +5,7 @@ use crate::{
     symbolic_multivector::SymbolicMultivector,
 };
 
+#[derive(Clone, PartialEq)]
 pub enum Versor<F: Field> {
     Even(Multivector<F>),
     Odd(Multivector<F>),
