@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt::Display,
     ops::{Add, Mul, Sub},
 };
 
@@ -177,6 +178,12 @@ impl<F: Field> PartialEq for Multivector<F> {
         }
 
         true
+    }
+}
+
+impl<F: Field> Display for Multivector<F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<TODO Multivector>")
     }
 }
 

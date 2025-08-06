@@ -5,4 +5,6 @@ pub mod multivector;
 pub mod polynomial;
 pub mod rational_poly;
 pub mod real;
+pub mod symbolic_multivector;
 pub mod var_power;
+pub mod versor;
