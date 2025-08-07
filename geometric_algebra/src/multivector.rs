@@ -7,11 +7,11 @@ use std::{
 use crate::{basis_blade::BasisBlade, field::Field, real::Real};
 
 #[derive(Debug, Clone)]
-pub struct Multivector<F> {
+pub struct Multivector<const P: u8, const N: u8, const Z: u8, F> {
     terms: HashMap<BasisBlade, F>,
 }
 
-impl<F: Field> Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
     /// the zero multivector. This is equivalent to the
     /// zero vector, bivector, etc.
     pub fn zero() -> Self {
@@ -63,7 +63,7 @@ impl<F: Field> Multivector<F> {
     }
 }
 
-impl<F: Field> From<F> for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> From<F> for Multivector<P, N, Z, F> {
     fn from(value: F) -> Self {
         // If the value is 0, return the empty map
         if value == F::zero() {
@@ -78,13 +78,16 @@ impl<F: Field> From<F> for Multivector<F> {
 }
 
 /// Shorthand for creating a scalar
-impl From<f64> for Multivector<Real> {
+impl<const P: u8, const N: u8, const Z: u8, F> From<f64> for Multivector<P, N, Z, F>
+where
+    F: Field + From<f64>,
+{
     fn from(value: f64) -> Self {
-        Self::from(Real::from(value))
+        Self::from(F::from(value))
     }
 }
 
-impl<F: Field> From<BasisBlade> for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> From<BasisBlade> for Multivector<P, N, Z, F> {
     fn from(value: BasisBlade) -> Self {
         let mut terms = HashMap::new();
         terms.insert(value, F::one());
@@ -93,7 +96,7 @@ impl<F: Field> From<BasisBlade> for Multivector<F> {
     }
 }
 
-impl<F: Field> Add for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Add for Multivector<P, N, Z, F> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -110,7 +113,7 @@ impl<F: Field> Add for Multivector<F> {
     }
 }
 
-impl<F: Field> Sub for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Sub for Multivector<P, N, Z, F> {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -127,7 +130,7 @@ impl<F: Field> Sub for Multivector<F> {
     }
 }
 
-impl<F: Field> Mul for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul for Multivector<P, N, Z, F> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -157,7 +160,7 @@ impl<F: Field> Mul for Multivector<F> {
     }
 }
 
-impl<F: Field> Mul<F> for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul<F> for Multivector<P, N, Z, F> {
     type Output = Self;
 
     fn mul(self, rhs: F) -> Self::Output {
@@ -165,7 +168,7 @@ impl<F: Field> Mul<F> for Multivector<F> {
     }
 }
 
-impl<F: Field> PartialEq for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> PartialEq for Multivector<P, N, Z, F> {
     fn eq(&self, other: &Self) -> bool {
         if self.terms.len() != other.terms.len() {
             return false;
@@ -181,11 +184,18 @@ impl<F: Field> PartialEq for Multivector<F> {
     }
 }
 
-impl<F: Field> Display for Multivector<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Display for Multivector<P, N, Z, F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<TODO Multivector>")
     }
 }
+
+pub type VGA2<F> = Multivector<2, 0, 0, F>;
+pub type VGA3<F> = Multivector<3, 0, 0, F>;
+pub type PGA2<F> = Multivector<2, 0, 1, F>;
+pub type PGA3<F> = Multivector<3, 0, 1, F>;
+pub type CGA2<F> = Multivector<3, 1, 0, F>;
+pub type CGA3<F> = Multivector<4, 1, 0, F>;
 
 #[cfg(test)]
 mod test {
@@ -195,7 +205,7 @@ mod test {
 
     #[test]
     pub fn test_zero_is_additive_identity() {
-        let x = Multivector::from(3.0);
+        let x: VGA3<Real> = VGA3::from(3.0);
         let zero = Multivector::zero();
 
         assert_eq!(zero.clone() + x.clone(), x);
@@ -204,15 +214,15 @@ mod test {
 
     #[test]
     pub fn test_element_sub_self_is_zero() {
-        let x = Multivector::from(3.4);
+        let x: VGA3<Real> = VGA3::from(3.4);
 
         assert_eq!(x.clone() - x, Multivector::zero());
     }
 
     #[test]
     pub fn test_one_is_multiplicative_identity() {
-        let one = Multivector::one();
-        let x = Multivector::from(2.4);
+        let one = VGA3::one();
+        let x: VGA3<Real> = VGA3::from(2.4);
 
         assert_eq!(one.clone() * x.clone(), x);
         assert_eq!(x.clone() * one, x);
@@ -220,10 +230,10 @@ mod test {
 
     #[test]
     pub fn test_scalar_multiplication_distributes() {
-        let scalar = Multivector::from(2.0);
-        let one = Multivector::one();
-        let vector = Multivector::vector(0);
-        let bivector = Multivector::bivector(2, 3);
+        let scalar: VGA3<Real> = VGA3::from(2.0);
+        let one = VGA3::one();
+        let vector = VGA3::vector(0);
+        let bivector = VGA3::bivector(2, 3);
 
         // 2(1 + x + zw)
         let sum = one.clone() + vector.clone() + bivector.clone();
@@ -238,8 +248,8 @@ mod test {
 
     #[test]
     pub fn test_multiply_two_vectors_gives_bivector() {
-        let x: Multivector<Real> = Multivector::vector(0);
-        let y: Multivector<Real> = Multivector::vector(1);
+        let x: VGA3<Real> = VGA3::vector(0);
+        let y: VGA3<Real> = VGA3::vector(1);
 
         let product = x * y;
         let xy = Multivector::bivector(0, 1);
@@ -249,8 +259,8 @@ mod test {
 
     #[test]
     pub fn test_mutliply_vectors_reversed_gives_negative_bivector() {
-        let x: Multivector<Real> = Multivector::vector(0);
-        let y: Multivector<Real> = Multivector::vector(1);
+        let x: VGA3<Real> = Multivector::vector(0);
+        let y: VGA3<Real> = Multivector::vector(1);
 
         let product = y * x;
         let neg_xy = Multivector::bivector(0, 1) * Real::from(-1.0);

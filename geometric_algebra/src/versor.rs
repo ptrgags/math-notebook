@@ -6,12 +6,12 @@ use crate::{
 };
 
 #[derive(Clone, PartialEq)]
-pub enum Versor<F: Field> {
-    Even(Multivector<F>),
-    Odd(Multivector<F>),
+pub enum Versor<const P: u8, const N: u8, const Z: u8, F: Field> {
+    Even(Multivector<P, N, Z, F>),
+    Odd(Multivector<P, N, Z, F>),
 }
 
-impl<F: Field> Mul for Versor<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul for Versor<P, N, Z, F> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -25,7 +25,7 @@ impl<F: Field> Mul for Versor<F> {
     }
 }
 
-impl<F: Field> Display for Versor<F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Display for Versor<P, N, Z, F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Versor::Even(multivector) => multivector.fmt(f),
@@ -34,9 +34,10 @@ impl<F: Field> Display for Versor<F> {
     }
 }
 
-pub type SymbolicVersor = Versor<RationalPolynomial>;
+pub type SymbolicVersor<const P: u8, const N: u8, const Z: u8> =
+    Versor<P, N, Z, RationalPolynomial>;
 
-impl SymbolicVersor {
+impl<const P: u8, const N: u8, const Z: u8> SymbolicVersor<P, N, Z> {
     pub fn even(symbol: &str) -> Self {
         let multivector = SymbolicMultivector::even(symbol);
         Self::Even(multivector)
@@ -47,3 +48,10 @@ impl SymbolicVersor {
         Self::Even(multivector)
     }
 }
+
+pub type SymVersorVGA2 = SymbolicVersor<2, 0, 0>;
+pub type SymVersorVGA3 = SymbolicVersor<3, 0, 0>;
+pub type SymVersorPGA2 = SymbolicVersor<2, 0, 1>;
+pub type SymVersorPGA3 = SymbolicVersor<3, 0, 1>;
+pub type SymVersorCGA2 = SymbolicVersor<3, 1, 0>;
+pub type SymVersorCGA3 = SymbolicVersor<4, 1, 0>;

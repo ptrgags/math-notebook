@@ -1,15 +1,15 @@
 use std::error::Error;
 
-use geometric_algebra::versor::SymbolicVersor;
+use geometric_algebra::versor::{SymVersorCGA2, SymbolicVersor};
 
-fn declare_versor(versor: &SymbolicVersor) -> String {
+fn declare_versor(versor: &SymVersorCGA2) -> String {
     // TODO: generate this from versor
     let assignments = vec!["x: ax", "y: ay"];
     let destructured = assignments.join(", ");
     format!("{{{}}}", destructured)
 }
 
-fn package_result(result: &SymbolicVersor) -> String {
+fn package_result(result: &SymVersorCGA2) -> String {
     let class_name = match result {
         SymbolicVersor::Even(_) => "Even",
         SymbolicVersor::Odd(_) => "Odd",
@@ -24,8 +24,8 @@ fn package_result(result: &SymbolicVersor) -> String {
 fn main() -> Result<(), Box<dyn Error>> {
     // For this first iteration, let's just do the geometric product
     // for even * even
-    let a = SymbolicVersor::even("a");
-    let b = SymbolicVersor::even("b");
+    let a = SymVersorCGA2::even("a");
+    let b = SymVersorCGA2::even("b");
     let product = a.clone() * b.clone();
 
     let a_declaration = declare_versor(&a);
