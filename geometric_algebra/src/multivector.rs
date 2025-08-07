@@ -170,7 +170,7 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul for Multivector<P, N, 
                     }
                 }
 
-                let coeff = coeff_a.clone() * coeff_b.clone() * swap_sign;
+                let coeff = coeff_a.clone() * coeff_b.clone() * swap_sign * squared_sign;
 
                 terms
                     .entry(key)
@@ -304,11 +304,13 @@ mod test {
         let result = a * b;
 
         // (2xx + xo + 2yx + yo + 2ox + oo)
-        // = (2 + xo - 2xy + yo - 2xo)
-        // = (2 - xo - yo)
+        // (2 + xo - 2xy + yo - 2xo)
+        // (2 - 2xy - xo - yo)
+        let xy = PGA2::bivector(0, 1);
         let xo = PGA2::bivector(0, 2);
         let yo = PGA2::bivector(1, 2);
-        let expected = PGA2::from(2.0) - xo - yo;
+        let two = PGA2::from(2.0);
+        let expected = two.clone() + xy * two - xo - yo;
 
         assert_eq!(result, expected);
     }
