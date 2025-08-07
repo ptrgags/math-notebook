@@ -4,7 +4,7 @@ use std::{
     ops::{Add, Mul, Sub},
 };
 
-use crate::{basis_blade::BasisBlade, field::Field, real::Real};
+use crate::{basis_blade::BasisBlade, field::Field};
 
 #[derive(Debug, Clone)]
 pub struct Multivector<const P: u8, const N: u8, const Z: u8, F> {
@@ -42,24 +42,40 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
         Self::from(BasisBlade::vector(index))
     }
 
-    // A bivector e_i ^ e_j
+    /// A bivector e_i ^ e_j
     pub fn bivector(i: u8, j: u8) -> Self {
         Self::from(BasisBlade::bivector(i, j))
     }
 
-    // A trivector e_i ^ e_j ^ e_k
+    /// A trivector e_i ^ e_j ^ e_k
     pub fn trivector(i: u8, j: u8, k: u8) -> Self {
         Self::from(BasisBlade::trivector(i, j, k))
     }
 
-    // A quadvector e_i ^ e_j ^ e_k ^ e_l
+    /// A quadvector e_i ^ e_j ^ e_k ^ e_l
     pub fn quadvector(i: u8, j: u8, k: u8, l: u8) -> Self {
         Self::from(BasisBlade::quadvector(i, j, k, l))
     }
 
-    // A pentavector e_i ^ e_j ^ e_k ^ e_l ^ e_m
+    /// A pentavector e_i ^ e_j ^ e_k ^ e_l ^ e_m
     pub fn pentavector(i: u8, j: u8, k: u8, l: u8, m: u8) -> Self {
         Self::from(BasisBlade::pentavector(i, j, k, l, m))
+    }
+
+    /// Given the basis vector e_i, get the value of e_i * e_i which is
+    /// either 1, -1, or 0 depending on the signature of the algebra.
+    /// All the positive vectors go first, then the negative ones, then the
+    /// zero ones in this impl.
+    pub fn get_signature(index: u8) -> F {
+        if index < P {
+            // the first P vectors square to +1
+            F::one()
+        } else if index < P + N {
+            // the next N vectors square to -1
+            -F::one()
+        } else {
+            F::zero()
+        }
     }
 }
 
@@ -145,7 +161,14 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul for Multivector<P, N, 
                 if swap_count % 2 == 1 {
                     swap_sign = -swap_sign;
                 }
-                // also need to account for negative signs from the signature
+
+                let mut squared_sign = F::one();
+                let BasisBlade(overlap) = BasisBlade::intersection(blade_a, blade_b);
+                for i in 0..8 {
+                    if overlap >> i & 1 == 1 {
+                        squared_sign = squared_sign * Self::get_signature(i);
+                    }
+                }
 
                 let coeff = coeff_a.clone() * coeff_b.clone() * swap_sign;
 
@@ -252,19 +275,64 @@ mod test {
         let y: VGA3<Real> = VGA3::vector(1);
 
         let product = x * y;
-        let xy = Multivector::bivector(0, 1);
+        let xy = VGA3::bivector(0, 1);
 
         assert_eq!(product, xy);
     }
 
     #[test]
     pub fn test_mutliply_vectors_reversed_gives_negative_bivector() {
-        let x: VGA3<Real> = Multivector::vector(0);
-        let y: VGA3<Real> = Multivector::vector(1);
+        let x: VGA3<Real> = VGA3::vector(0);
+        let y: VGA3<Real> = VGA3::vector(1);
 
         let product = y * x;
-        let neg_xy = Multivector::bivector(0, 1) * Real::from(-1.0);
+        let neg_xy = VGA3::bivector(0, 1) * Real::from(-1.0);
 
         assert_eq!(product, neg_xy);
+    }
+
+    #[test]
+    pub fn test_pga_multiplication_has_null_terms() {
+        let x = PGA2::vector(0);
+        let y = PGA2::vector(1);
+        let o = PGA2::vector(2);
+
+        // (x + y + o)(2x + o)
+        let a = x.clone() + y + o.clone();
+        let b = x * Real::from(2.0) + o;
+
+        let result = a * b;
+
+        // (2xx + xo + 2yx + yo + 2ox + oo)
+        // = (2 + xo - 2xy + yo - 2xo)
+        // = (2 - xo - yo)
+        let xo = PGA2::bivector(0, 2);
+        let yo = PGA2::bivector(1, 2);
+        let expected = PGA2::from(2.0) - xo - yo;
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn test_cga_multiplication_has_negative_terms() {
+        let x = CGA2::vector(0);
+        let p = CGA2::vector(2);
+        let m = CGA2::vector(3);
+
+        // (x + p + m)(2p + m)
+        let a = x + p.clone() + m.clone();
+        let b = p * Real::from(2.0) + m;
+
+        let result = a * b;
+
+        // (2xp + xm + 2pp + pm + 2mp + mm)
+        // 2xp + xm + 2 + pm - 2pm - 1
+        // 1 + 2xp + xm - pm
+        let xp = CGA2::bivector(0, 2);
+        let xm = CGA2::bivector(0, 3);
+        let pm = CGA2::bivector(2, 3);
+        let expected = CGA2::from(1.0) + xp * CGA2::from(2.0) + xm - pm;
+
+        assert_eq!(result, expected);
     }
 }

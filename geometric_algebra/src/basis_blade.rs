@@ -1,8 +1,10 @@
+use std::fmt::Debug;
+
 /// A basis blade in GA is a wedge product of basis vectors. This struct
 /// helps with the bookkeeping of the basis vectors, but not the coefficient
 /// which will be handled by Multivector.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct BasisBlade(u8);
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct BasisBlade(pub u8);
 
 impl BasisBlade {
     /// Every geometric algebra has scalars, i.e. the absence of scalars
@@ -117,6 +119,12 @@ impl BasisBlade {
         }
 
         swaps
+    }
+}
+
+impl Debug for BasisBlade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BasisBlade({:#b})", self.0)
     }
 }
 
