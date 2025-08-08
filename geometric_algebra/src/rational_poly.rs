@@ -1,4 +1,7 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::{
+    fmt::Display,
+    ops::{Add, Div, Mul, Neg, Sub},
+};
 
 use crate::{field::Field, polynomial::Polynomial};
 
@@ -130,5 +133,15 @@ impl Field for RationalPolynomial {
             numerator: self.denominator.clone(),
             denominator: self.numerator.clone(),
         }
+    }
+}
+
+impl Display for RationalPolynomial {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self {
+            numerator,
+            denominator,
+        } = self;
+        write!(f, "({})/({})", numerator, denominator)
     }
 }

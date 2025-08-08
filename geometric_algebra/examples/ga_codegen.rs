@@ -12,7 +12,7 @@ fn declare_versor(versor: &SymVersorCGA2) -> String {
         .into_iter()
         .map(|(blade, coeff)| {
             format!(
-                "{}: {:?}",
+                "{}: {}",
                 CGA2::<RationalPolynomial>::format_blade(blade),
                 coeff
             )

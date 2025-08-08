@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt::Display,
     ops::{Add, Mul, Neg, Sub},
 };
 
@@ -153,6 +154,18 @@ impl PartialEq for Polynomial {
         }
 
         true
+    }
+}
+
+impl Display for Polynomial {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let terms: Vec<String> = self
+            .terms
+            .iter()
+            .map(|(mono, coeff)| format!("{}{}", coeff, mono))
+            .collect();
+        let sum = terms.join(" + ");
+        write!(f, "{}", sum)
     }
 }
 
