@@ -1,14 +1,24 @@
 use std::{fmt::Display, ops::Mul};
 
 use crate::{
-    field::Field, multivector::Multivector, rational_poly::RationalPolynomial,
-    symbolic_multivector::SymbolicMultivector,
+    basis_blade::BasisBlade, field::Field, multivector::Multivector,
+    rational_poly::RationalPolynomial, symbolic_multivector::SymbolicMultivector,
 };
 
 #[derive(Clone, PartialEq)]
 pub enum Versor<const P: u8, const N: u8, const Z: u8, F: Field> {
     Even(Multivector<P, N, Z, F>),
     Odd(Multivector<P, N, Z, F>),
+}
+
+impl<const P: u8, const N: u8, const Z: u8, F: Field> Versor<P, N, Z, F> {
+    /// Get all of the possible terms for this versor
+    pub fn get_all_terms(&self) -> Vec<(BasisBlade, F)> {
+        match self {
+            Versor::Even(v) => v.get_all_even_terms(),
+            Versor::Odd(v) => v.get_all_odd_terms(),
+        }
+    }
 }
 
 impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul for Versor<P, N, Z, F> {

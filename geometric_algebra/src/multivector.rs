@@ -62,6 +62,18 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
         Self::from(BasisBlade::pentavector(i, j, k, l, m))
     }
 
+    /// Iterate over all the possible even terms for this signature
+    /// and get a list of (basis_blade, coefficient) pairs
+    pub fn get_all_even_terms(&self) -> Vec<(BasisBlade, F)> {
+        vec![]
+    }
+
+    /// Iterate over all possible odd terms for this signature
+    /// and get a list of (basis_blade, coefficient) pairs
+    pub fn get_all_odd_terms(&self) -> Vec<(BasisBlade, F)> {
+        vec![]
+    }
+
     /// Given the basis vector e_i, get the value of e_i * e_i which is
     /// either 1, -1, or 0 depending on the signature of the algebra.
     /// All the positive vectors go first, then the negative ones, then the

@@ -3,8 +3,11 @@ use std::error::Error;
 use geometric_algebra::versor::{SymVersorCGA2, SymbolicVersor};
 
 fn declare_versor(versor: &SymVersorCGA2) -> String {
-    // TODO: generate this from versor
-    let assignments = vec!["x: ax", "y: ay"];
+    let assignments: Vec<String> = versor
+        .get_all_terms()
+        .into_iter()
+        .map(|(blade, coeff)| format!("{}: {:?}", blade.0, coeff))
+        .collect();
     let destructured = assignments.join(", ");
     format!("{{{}}}", destructured)
 }

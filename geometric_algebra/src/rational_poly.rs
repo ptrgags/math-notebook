@@ -2,7 +2,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::{field::Field, polynomial::Polynomial};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct RationalPolynomial {
     numerator: Polynomial,
     denominator: Polynomial,
