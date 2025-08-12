@@ -12,6 +12,11 @@ pub struct Multivector<const P: u8, const N: u8, const Z: u8, F> {
 }
 
 impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
+    /// Get the dimension, i.e. total number of basis vectors in the algebra.
+    pub const fn dimension() -> u8 {
+        P + N + Z
+    }
+
     /// the zero multivector. This is equivalent to the
     /// zero vector, bivector, etc.
     pub fn zero() -> Self {
@@ -62,10 +67,52 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
         Self::from(BasisBlade::pentavector(i, j, k, l, m))
     }
 
+    fn get_terms(&self, terms: &mut Vec<(BasisBlade, F)>, blade: u8, vector_count: u8, grade: u8) {
+        // no more choices to make
+        if grade == 0 {
+            let key = BasisBlade::new(blade);
+            let zero = F::zero();
+            let value = self.terms.get(&key).unwrap_or(&zero);
+            terms.push((key, value.clone()));
+            return;
+        }
+
+        // Select one of the vectors and recurse. We have to take into
+        // account how many vectors we have left to meet the desired grade.
+        let stop = vector_count - 1 - grade;
+        for i in 0..stop {
+            let selected_vector = 1 << i;
+            self.get_terms(
+                terms,
+                // if the input blade was xy, and we selected w,
+                // pass xyz into the recursive call
+                selected_vector | blade,
+                // if we had n vectors to chose from, we picked one
+                // of them (-1), but the recursive call should only
+                // examine vectors in positions after this one, hence the - i
+                vector_count - 1 - i,
+                // If we're trying to make an k-blade, we selected
+                // one vector so we still need a (k-1)-blade
+                grade - 1,
+            );
+        }
+    }
+
     /// Iterate over all the possible even terms for this signature
     /// and get a list of (basis_blade, coefficient) pairs
     pub fn get_all_even_terms(&self) -> Vec<(BasisBlade, F)> {
-        vec![]
+        let mut result = vec![];
+        for grade in 0..Self::dimension() {
+            if grade % 2 == 1 {
+                continue;
+            }
+
+            self.get_terms(&mut result, 0, Self::dimension(), grade)
+
+            // iterate over all the basis blades of the given grade
+        }
+
+        result
     }
 
     /// Iterate over all possible odd terms for this signature
@@ -240,33 +287,6 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Display for Multivector<P,
         write!(f, "<TODO Multivector>")
     }
 }
-
-/*
-
-// this is shortlex order on the alphabet {0, 1}
-// see also Monomial Order, graded lexicographical order
-
-....  0000
-
-x...  0001
-.y..  0010
-..z.  0100
-...w  1000
-
-xy..  0011
-x.z.  0101
-x..w  1001
-.yz.  0110
-.y.w  1010
-..zw  1100
-
-xyz.  0111
-xy.w  1011
-x.zw  1101
-.yzw  1110
-
-xyzw  1111
- */
 
 const LABELS_VGA2: [&str; 4] = ["1", "x", "y", "xy"];
 const LABELS_VGA3: [&str; 8] = ["1", "x", "y", "z", "xy", "xz", "yz", "xyz"];
