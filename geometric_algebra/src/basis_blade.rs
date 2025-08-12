@@ -61,15 +61,6 @@ impl BasisBlade {
         Self(x & y)
     }
 
-    /// Union basis blades together, like in a wedge product of basis
-    /// blades with no overlap. This is helpful when enumerating all blades
-    /// for a given GA.
-    pub fn union(&self, other: &Self) -> Self {
-        let Self(x) = self;
-        let Self(y) = other;
-        Self(x | y)
-    }
-
     /// When taking the geometric product ab, how many anticommutative swaps
     /// are needed to sort the vectors in order?
     pub fn product_swap_count(a: &BasisBlade, b: &BasisBlade) -> u8 {
@@ -130,13 +121,75 @@ impl BasisBlade {
         swaps
     }
 
+    fn get_blades_recursive(output: &mut Vec<BasisBlade>, prefix: u8, dimension: u8, grade: u8) {
+        // No more choices to make, the prefix is the blade we want so add it to the output.
+        if grade == 0 {
+            output.push(BasisBlade(prefix));
+            return;
+        }
+
+        // Always select vectors in increasing order of index
+        // To do this, we select one of the available vectors, and
+        // see what the remaining
+        //
+        // E.g. in 5d for a trivector (let's use basis x, y, z, p, m as in CGA)
+        // the decision tree looks like this:
+        //
+        // x | y | z
+        //   |   | p
+        //   |   | m
+        //   | z | p
+        //   |   | m
+        //   | p | m
+        // y | z | p
+        //   |   | m
+        // z | p | m
+
+        let choices = dimension - grade + 1;
+        for i in 0..choices {
+            let selected_vector = 1 << i;
+            let remaining_dimensions = dimension - (i + 1);
+            let mut sub_choices = Vec::new();
+            Self::get_blades_recursive(&mut sub_choices, 0, remaining_dimensions, grade - 1);
+
+            output.extend(sub_choices.into_iter().map(|BasisBlade(x)| {
+                // the sub-choices are the high bits, so shift them up and
+                // union with the selected vector to simulate the wedge product.
+                //
+                // example:
+                // i = 1
+                // selected_vector = 0b10 (y)
+                // sub choice x = 0b11. We don't want xy, but rather 1st and
+                // second vectors after y, i.e. z, w. So we get 0b1100 after
+                // shifting
+                //
+                // finally, unioning them together we get 0b1110, i.e.
+                // the trivector yzw
+                BasisBlade(x << (i + 1) | selected_vector)
+            }));
+        }
+    }
+
     fn get_blades_for_grade(dimension: u8, grade: u8) -> Vec<BasisBlade> {
-        vec![]
+        // 0D is scalars only. In any dimension, grade 0 is a single scalar.
+        if dimension == 0 || grade == 0 {
+            return vec![BasisBlade::scalar()];
+        }
+
+        // Shouldn't happen the way I iterate.
+        if grade > dimension {
+            panic!("grade bigger than dimension!");
+        }
+
+        let mut result = Vec::new();
+        Self::get_blades_recursive(&mut result, 0, dimension, grade);
+
+        result
     }
 
     pub fn get_all_blades(dimension: u8) -> Vec<BasisBlade> {
         let mut result = Vec::new();
-        for grade in 0..dimension {
+        for grade in 0..=dimension {
             let k_blades = Self::get_blades_for_grade(dimension, grade);
             result.extend(k_blades.into_iter());
         }
@@ -145,7 +198,7 @@ impl BasisBlade {
 
     pub fn get_even_blades(dimension: u8) -> Vec<BasisBlade> {
         let mut result = Vec::new();
-        for grade in 0..dimension {
+        for grade in 0..=dimension {
             if grade % 2 == 1 {
                 continue;
             }
@@ -158,7 +211,7 @@ impl BasisBlade {
 
     pub fn get_odd_blades(dimension: u8) -> Vec<BasisBlade> {
         let mut result = Vec::new();
-        for grade in 0..dimension {
+        for grade in 0..=dimension {
             if grade % 2 == 0 {
                 continue;
             }
@@ -363,7 +416,7 @@ mod test {
 
     #[test]
     pub fn get_even_blades_returns_only_even_grades() {
-        let result = BasisBlade::get_all_blades(4);
+        let result = BasisBlade::get_even_blades(4);
 
         let expected = vec![
             // scalar
@@ -386,7 +439,7 @@ mod test {
 
     #[test]
     pub fn get_odd_blades_returns_only_odd_grades() {
-        let result = BasisBlade::get_all_blades(4);
+        let result = BasisBlade::get_odd_blades(4);
 
         let expected = vec![
             // no scalar
