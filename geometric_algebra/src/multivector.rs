@@ -266,22 +266,6 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field + Display> Display
     }
 }
 
-const LABELS_VGA2: [&str; 4] = ["1", "x", "y", "xy"];
-const LABELS_VGA3: [&str; 8] = ["1", "x", "y", "z", "xy", "xz", "yz", "xyz"];
-
-const LABELS_PGA2: [&str; 8] = ["1", "x", "y", "o", "xy", "xo", "yo", "xyo"];
-const LABELS_PGA3: [&str; 16] = [
-    "1", "x", "y", "z", "o", "xy", "xz", "xo", "yz", "yo", "zo", "xyz", "xyo", "xzo", "yzo", "xyzo",
-];
-const LABELS_CGA2: [&str; 16] = [
-    "1", "x", "y", "p", "m", "xy", "xp", "xm", "yp", "ym", "pm", "xyp", "xym", "xpm", "ypm", "xypm",
-];
-const LABELS_CGA3: [&str; 32] = [
-    "1", "x", "y", "z", "p", "m", "xy", "xz", "xp", "xm", "yz", "yp", "ym", "zp", "zm", "pm",
-    "xyz", "xyp", "xym", "xzp", "xzm", "xpm", "yzp", "yzm", "ypm", "zpm", "xyzp", "xyzm", "xypm",
-    "xzpm", "yzpm", "xyzpm",
-];
-
 pub type VGA2<F> = Multivector<2, 0, 0, F>;
 pub type VGA3<F> = Multivector<3, 0, 0, F>;
 pub type PGA2<F> = Multivector<2, 0, 1, F>;
