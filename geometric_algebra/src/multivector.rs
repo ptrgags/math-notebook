@@ -282,9 +282,18 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> PartialEq for Multivector<
     }
 }
 
-impl<const P: u8, const N: u8, const Z: u8, F: Field> Display for Multivector<P, N, Z, F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field + Display> Display
+    for Multivector<P, N, Z, F>
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<TODO Multivector>")
+        let terms: Vec<String> = self
+            .terms
+            .iter()
+            .map(|(blade, coeff)| format!("{}{:?}", coeff, blade))
+            .collect();
+
+        let sum = terms.join(" + ");
+        write!(f, "{}", sum)
     }
 }
 

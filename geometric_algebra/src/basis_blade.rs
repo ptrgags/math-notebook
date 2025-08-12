@@ -61,6 +61,15 @@ impl BasisBlade {
         Self(x & y)
     }
 
+    /// Union basis blades together, like in a wedge product of basis
+    /// blades with no overlap. This is helpful when enumerating all blades
+    /// for a given GA.
+    pub fn union(&self, other: &Self) -> Self {
+        let Self(x) = self;
+        let Self(y) = other;
+        Self(x | y)
+    }
+
     /// When taking the geometric product ab, how many anticommutative swaps
     /// are needed to sort the vectors in order?
     pub fn product_swap_count(a: &BasisBlade, b: &BasisBlade) -> u8 {
@@ -119,6 +128,45 @@ impl BasisBlade {
         }
 
         swaps
+    }
+
+    fn get_blades_for_grade(dimension: u8, grade: u8) -> Vec<BasisBlade> {
+        vec![]
+    }
+
+    pub fn get_all_blades(dimension: u8) -> Vec<BasisBlade> {
+        let mut result = Vec::new();
+        for grade in 0..dimension {
+            let k_blades = Self::get_blades_for_grade(dimension, grade);
+            result.extend(k_blades.into_iter());
+        }
+        result
+    }
+
+    pub fn get_even_blades(dimension: u8) -> Vec<BasisBlade> {
+        let mut result = Vec::new();
+        for grade in 0..dimension {
+            if grade % 2 == 1 {
+                continue;
+            }
+
+            let k_blades = Self::get_blades_for_grade(dimension, grade);
+            result.extend(k_blades.into_iter());
+        }
+        result
+    }
+
+    pub fn get_odd_blades(dimension: u8) -> Vec<BasisBlade> {
+        let mut result = Vec::new();
+        for grade in 0..dimension {
+            if grade % 2 == 0 {
+                continue;
+            }
+
+            let k_blades = Self::get_blades_for_grade(dimension, grade);
+            result.extend(k_blades.into_iter());
+        }
+        result
     }
 }
 
@@ -215,5 +263,147 @@ mod test {
         let result = BasisBlade::product_swap_count(&xy, &zw);
 
         assert_eq!(result, 0);
+    }
+
+    #[test]
+    pub fn get_all_blades_with_0d_returns_blades_in_correct_order() {
+        let result = BasisBlade::get_all_blades(0);
+
+        let expected = vec![
+            // scalar
+            BasisBlade(0b0),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn get_all_blades_with_1d_returns_blades_in_correct_order() {
+        let result = BasisBlade::get_all_blades(1);
+
+        let expected = vec![
+            // scalar
+            BasisBlade(0b0),
+            // vectors
+            BasisBlade(0b1),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn get_all_blades_with_2d_returns_blades_in_correct_order() {
+        let result = BasisBlade::get_all_blades(2);
+
+        let expected = vec![
+            // scalar
+            BasisBlade(0b00),
+            // vectors
+            BasisBlade(0b01),
+            BasisBlade(0b10),
+            // bivectors
+            BasisBlade(0b11),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn get_all_blades_with_3d_returns_blades_in_correct_order() {
+        let result = BasisBlade::get_all_blades(3);
+
+        let expected = vec![
+            // scalar
+            BasisBlade(0b000),
+            // vectors
+            BasisBlade(0b001),
+            BasisBlade(0b010),
+            BasisBlade(0b100),
+            // bivectors
+            BasisBlade(0b011),
+            BasisBlade(0b101),
+            BasisBlade(0b110),
+            // trivector
+            BasisBlade(0b111),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn get_all_blades_with_4d_returns_blades_in_correct_order() {
+        let result = BasisBlade::get_all_blades(4);
+
+        let expected = vec![
+            // scalar
+            BasisBlade(0b0000),
+            // vectors
+            BasisBlade(0b0001),
+            BasisBlade(0b0010),
+            BasisBlade(0b0100),
+            BasisBlade(0b1000),
+            // bivectors
+            BasisBlade(0b0011),
+            BasisBlade(0b0101),
+            BasisBlade(0b1001),
+            BasisBlade(0b0110),
+            BasisBlade(0b1010),
+            BasisBlade(0b1100),
+            // trivectors
+            BasisBlade(0b0111),
+            BasisBlade(0b1011),
+            BasisBlade(0b1101),
+            BasisBlade(0b1110),
+            // Quadvector
+            BasisBlade(0b1111),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn get_even_blades_returns_only_even_grades() {
+        let result = BasisBlade::get_all_blades(4);
+
+        let expected = vec![
+            // scalar
+            BasisBlade(0b0000),
+            // no vectors
+            // bivectors
+            BasisBlade(0b0011),
+            BasisBlade(0b0101),
+            BasisBlade(0b1001),
+            BasisBlade(0b0110),
+            BasisBlade(0b1010),
+            BasisBlade(0b1100),
+            // no trivectors
+            // quadvector
+            BasisBlade(0b1111),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    pub fn get_odd_blades_returns_only_odd_grades() {
+        let result = BasisBlade::get_all_blades(4);
+
+        let expected = vec![
+            // no scalar
+            // vectors
+            BasisBlade(0b0001),
+            BasisBlade(0b0010),
+            BasisBlade(0b0100),
+            BasisBlade(0b1000),
+            // no bivectors
+            // trivectors
+            BasisBlade(0b0111),
+            BasisBlade(0b1011),
+            BasisBlade(0b1101),
+            BasisBlade(0b1110),
+            // no Quadvector
+        ];
+
+        assert_eq!(result, expected);
     }
 }

@@ -35,7 +35,7 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul for Versor<P, N, Z, F>
     }
 }
 
-impl<const P: u8, const N: u8, const Z: u8, F: Field> Display for Versor<P, N, Z, F> {
+impl<const P: u8, const N: u8, const Z: u8, F: Field + Display> Display for Versor<P, N, Z, F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Versor::Even(multivector) => multivector.fmt(f),
