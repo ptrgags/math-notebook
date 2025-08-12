@@ -67,58 +67,27 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
         Self::from(BasisBlade::pentavector(i, j, k, l, m))
     }
 
-    fn get_terms(&self, terms: &mut Vec<(BasisBlade, F)>, blade: u8, vector_count: u8, grade: u8) {
-        // no more choices to make
-        if grade == 0 {
-            let key = BasisBlade::new(blade);
-            let zero = F::zero();
-            let value = self.terms.get(&key).unwrap_or(&zero);
-            terms.push((key, value.clone()));
-            return;
-        }
-
-        // Select one of the vectors and recurse. We have to take into
-        // account how many vectors we have left to meet the desired grade.
-        let stop = vector_count - 1 - grade;
-        for i in 0..stop {
-            let selected_vector = 1 << i;
-            self.get_terms(
-                terms,
-                // if the input blade was xy, and we selected w,
-                // pass xyz into the recursive call
-                selected_vector | blade,
-                // if we had n vectors to chose from, we picked one
-                // of them (-1), but the recursive call should only
-                // examine vectors in positions after this one, hence the - i
-                vector_count - 1 - i,
-                // If we're trying to make an k-blade, we selected
-                // one vector so we still need a (k-1)-blade
-                grade - 1,
-            );
-        }
+    fn get_terms(&self, desired_blades: &[BasisBlade]) -> Vec<(BasisBlade, F)> {
+        let zero = F::zero();
+        desired_blades
+            .iter()
+            .map(|blade| {
+                let coeff = self.terms.get(&blade).unwrap_or(&zero);
+                (*blade, coeff.clone())
+            })
+            .collect()
     }
 
     /// Iterate over all the possible even terms for this signature
     /// and get a list of (basis_blade, coefficient) pairs
     pub fn get_all_even_terms(&self) -> Vec<(BasisBlade, F)> {
-        let mut result = vec![];
-        for grade in 0..Self::dimension() {
-            if grade % 2 == 1 {
-                continue;
-            }
-
-            self.get_terms(&mut result, 0, Self::dimension(), grade)
-
-            // iterate over all the basis blades of the given grade
-        }
-
-        result
+        self.get_terms(&BasisBlade::get_even_blades(Self::dimension()))
     }
 
     /// Iterate over all possible odd terms for this signature
     /// and get a list of (basis_blade, coefficient) pairs
     pub fn get_all_odd_terms(&self) -> Vec<(BasisBlade, F)> {
-        vec![]
+        self.get_terms(&BasisBlade::get_odd_blades(Self::dimension()))
     }
 
     /// Given the basis vector e_i, get the value of e_i * e_i which is
