@@ -1,14 +1,35 @@
-use crate::{multivector::Multivector, rational_poly::RationalPolynomial};
+use std::collections::HashMap;
+
+use crate::{
+    basis_blade::BasisBlade, format_basis_blade::format_basis_blade, multivector::Multivector,
+    polynomial::Polynomial, rational_poly::RationalPolynomial,
+};
 
 pub type SymbolicMultivector<const P: u8, const N: u8, const Z: u8> =
     Multivector<P, N, Z, RationalPolynomial>;
 
 impl<const P: u8, const N: u8, const Z: u8> SymbolicMultivector<P, N, Z> {
+    fn from_blades(symbol: &str, blades: &[BasisBlade]) -> Self {
+        let mut terms = HashMap::new();
+
+        for blade in blades.iter() {
+            let blade_label = format_basis_blade::<P, N, Z>(blade);
+            let coeff_label = format!("{}_{}", symbol, blade_label);
+
+            terms.insert(
+                *blade,
+                RationalPolynomial::from(Polynomial::var(&coeff_label)),
+            );
+        }
+
+        Self::new(terms)
+    }
+
     pub fn even(symbol: &str) -> Self {
-        Self::zero()
+        Self::from_blades(symbol, &BasisBlade::get_even_blades(Self::dimension()))
     }
     pub fn odd(symbol: &str) -> Self {
-        Self::zero()
+        Self::from_blades(symbol, &BasisBlade::get_odd_blades(Self::dimension()))
     }
 }
 
