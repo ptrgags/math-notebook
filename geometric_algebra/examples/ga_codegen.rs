@@ -1,8 +1,7 @@
 use std::error::Error;
 
 use geometric_algebra::{
-    multivector::CGA2,
-    rational_poly::RationalPolynomial,
+    format_basis_blade::format_basis_blade,
     versor::{SymVersorCGA2, SymbolicVersor},
 };
 
@@ -10,13 +9,7 @@ fn declare_versor(versor: &SymVersorCGA2) -> String {
     let assignments: Vec<String> = versor
         .get_all_terms()
         .into_iter()
-        .map(|(blade, coeff)| {
-            format!(
-                "{}: {}",
-                CGA2::<RationalPolynomial>::format_blade(blade),
-                coeff
-            )
-        })
+        .map(|(blade, coeff)| format!("{}: {}", format_basis_blade::<3, 1, 0>(&blade), coeff))
         .collect();
     let destructured = assignments.join(", ");
     format!("{{{}}}", destructured)

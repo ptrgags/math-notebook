@@ -105,22 +105,6 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
             F::zero()
         }
     }
-
-    /// Format a generic blade as e_1234. For specific algebras
-    /// this will be overridden
-    pub fn format_blade(blade: BasisBlade) -> String {
-        let BasisBlade(bits) = blade;
-        let mut subscripts = String::from("e_");
-        for i in 0..8 {
-            if bits >> i & 1 == 0 {
-                continue;
-            }
-
-            subscripts = format!("{}{}", subscripts, i);
-        }
-
-        subscripts
-    }
 }
 
 impl<const P: u8, const N: u8, const Z: u8, F: Field> From<F> for Multivector<P, N, Z, F> {
