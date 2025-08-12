@@ -5,11 +5,13 @@ use geometric_algebra::{
     versor::{SymVersorCGA2, SymbolicVersor},
 };
 
-fn declare_versor(versor: &SymVersorCGA2) -> String {
+fn declare_versor<const P: u8, const N: u8, const Z: u8>(
+    versor: &SymbolicVersor<P, N, Z>,
+) -> String {
     let assignments: Vec<String> = versor
         .get_all_terms()
         .into_iter()
-        .map(|(blade, coeff)| format!("{}: {}", format_basis_blade::<3, 1, 0>(&blade), coeff))
+        .map(|(blade, coeff)| format!("{}: {}", format_basis_blade::<P, N, Z>(&blade), coeff))
         .collect();
     let destructured = assignments.join(", ");
     format!("{{{}}}", destructured)
