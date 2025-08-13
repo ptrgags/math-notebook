@@ -150,3 +150,48 @@ impl Display for RationalPolynomial {
         write!(f, "({})/({})", numerator, denominator)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    pub fn formats_zero_as_zero() {
+        let zero = RationalPolynomial::zero();
+
+        let result = format!("{}", zero);
+
+        assert_eq!(result, "0");
+    }
+
+    #[test]
+    pub fn formats_one_as_1() {
+        let one = RationalPolynomial::one();
+
+        let result = format!("{}", one);
+
+        assert_eq!(result, "1");
+    }
+
+    #[test]
+    pub fn formats_other_denominator_as_fraction() {
+        let numerator = Polynomial::var("x");
+        let denominator = Polynomial::from(2.0) * Polynomial::one();
+        let fraction = RationalPolynomial::new(numerator, denominator);
+
+        let result = format!("{}", fraction);
+
+        assert_eq!(result, "x/2");
+    }
+
+    #[test]
+    pub fn formats_multiple_terms_with_parentheses() {
+        let numerator = Polynomial::var("x") + Polynomial::one();
+        let denominator = Polynomial::from(3.0) + Polynomial::var("y");
+        let fraction = RationalPolynomial::new(numerator, denominator);
+
+        let result = format!("{}", fraction);
+
+        assert_eq!(result, "(x + 1)/(3 + y)");
+    }
+}
