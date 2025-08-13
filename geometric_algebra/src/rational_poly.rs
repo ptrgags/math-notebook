@@ -147,7 +147,7 @@ impl Display for RationalPolynomial {
             return numerator.fmt(f);
         }
 
-        write!(f, "({})/({})", numerator, denominator)
+        write!(f, "{}/{}", numerator, denominator)
     }
 }
 
