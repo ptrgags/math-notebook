@@ -157,12 +157,30 @@ impl PartialEq for Polynomial {
     }
 }
 
+fn format_term(mono: &Monomial, coeff: f64) -> String {
+    if *mono == Monomial::one() {
+        // Scalars formatted like a regular float
+        format!("{}", coeff)
+    } else if is_nearly(coeff.abs(), 1.0) {
+        // if the coefficient is 1, drop the numeral
+        let sign = if coeff < 0.0 { "-" } else { "" };
+        format!("{}{}", sign, mono)
+    } else {
+        // coefficient * numeral
+        format!("{}*{}", coeff, mono)
+    }
+}
+
 impl Display for Polynomial {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.terms.is_empty() {
+            return write!(f, "0");
+        }
+
         let terms: Vec<String> = self
             .terms
             .iter()
-            .map(|(mono, coeff)| format!("{}{}", coeff, mono))
+            .map(|(mono, coeff)| format_term(mono, *coeff))
             .collect();
         let sum = terms.join(" + ");
         write!(f, "{}", sum)
@@ -250,5 +268,68 @@ mod test {
         let ba = poly_b * poly_a;
 
         assert_eq!(ab, ba);
+    }
+
+    #[test]
+    pub fn test_formats_one_as_1() {
+        let one = Polynomial::one();
+
+        let result = format!("{}", one);
+
+        assert_eq!(result, "1");
+    }
+
+    #[test]
+    pub fn test_formats_zero_as_0() {
+        let zero = Polynomial::zero();
+
+        let result = format!("{}", zero);
+
+        assert_eq!(result, "0");
+    }
+
+    #[test]
+    pub fn test_formats_scalar_as_float() {
+        let x = Polynomial::from(-1.5);
+
+        let result = format!("{}", x);
+
+        assert_eq!(result, "-1.5");
+    }
+
+    #[test]
+    pub fn test_drops_leading_one() {
+        let x = Polynomial::var("x");
+
+        let result = format!("{}", x);
+
+        assert_eq!(result, "x");
+    }
+
+    #[test]
+    pub fn test_for_coeff_neg_one_drops_numeral() {
+        let x = -Polynomial::var("x");
+
+        let result = format!("{}", x);
+
+        assert_eq!(result, "-x");
+    }
+
+    #[test]
+    pub fn test_formats_coefficent_times_var() {
+        let x = Polynomial::from(-3.5) * Polynomial::var("x");
+
+        let result = format!("{}", x);
+
+        assert_eq!(result, "-3.5*x");
+    }
+
+    #[test]
+    pub fn test_formats_multivariate_as_code() {
+        let ke = Polynomial::from(0.5) * Polynomial::var("m") * Polynomial::term(1.0, "v", 2);
+
+        let result = format!("{}", ke);
+
+        assert_eq!(result, "0.5*m*v**2");
     }
 }
