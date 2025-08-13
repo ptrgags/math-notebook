@@ -41,11 +41,15 @@ fn package_result<const P: u8, const N: u8, const Z: u8>(
     format!("new {}({})", class_name, comma_separated)
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // For this first iteration, let's just do the geometric product
-    // for even * even
-    let a = SymVersorCGA2::even("a");
-    let b = SymVersorCGA2::even("b");
+pub fn print_product_func<const P: u8, const N: u8, const Z: u8>(
+    a: &SymbolicVersor<P, N, Z>,
+    b: &SymbolicVersor<P, N, Z>,
+) {
+    let b_parity = match b {
+        SymbolicVersor::Even(_) => "even",
+        SymbolicVersor::Odd(_) => "odd",
+    };
+
     let product = a.clone() * b.clone();
 
     let a_declaration = declare_versor(&a);
@@ -53,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let packaged = package_result(&product);
 
-    println!("mul_even(other) {{");
+    println!("mul_{}(other) {{", b_parity);
     println!("  const {} = this;", a_declaration);
     println!("  const {} = other;", b_declaration);
     println!("");
@@ -69,6 +73,28 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("  return {};", packaged);
     println!("}}");
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let a_even = SymVersorCGA2::even("a");
+    let b_even = SymVersorCGA2::even("b");
+    let a_odd = SymVersorCGA2::odd("a");
+    let b_odd = SymVersorCGA2::odd("b");
+
+    println!("// even * even");
+    print_product_func(&a_even, &b_even);
+
+    println!("");
+    println!("// even * odd");
+    print_product_func(&a_even, &b_odd);
+
+    println!("");
+    println!("// odd * odd");
+    print_product_func(&a_odd, &b_odd);
+
+    println!("");
+    println!("// odd * even");
+    print_product_func(&a_odd, &b_even);
 
     Ok(())
 }
