@@ -45,7 +45,7 @@ impl Display for VariablePower {
         match self {
             Self(_, 0) => write!(f, "1"),
             Self(label, 1) => write!(f, "{}", label),
-            Self(label, x) => write!(f, "{}^{}", label, x),
+            Self(label, x) => write!(f, "{}**{}", label, x),
         }
     }
 }
@@ -90,11 +90,11 @@ mod test {
     }
 
     #[test]
-    pub fn formats_power_with_caret() {
+    pub fn formats_power_with_asterisks() {
         let power = VariablePower::new("x", 4);
 
         let result = format!("{}", power);
 
-        assert_eq!(result, "x^4");
+        assert_eq!(result, "x**4");
     }
 }

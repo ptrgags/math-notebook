@@ -81,7 +81,7 @@ impl Display for Monomial {
         }
 
         let var_strs: Vec<String> = self.variables.iter().map(|x| format!("{}", x)).collect();
-        let combined = var_strs.join("");
+        let combined = var_strs.join("*");
         write!(f, "{}", combined)
     }
 }
@@ -148,7 +148,7 @@ mod test {
 
         let result = format!("{}", x);
 
-        assert_eq!(result, "x^3");
+        assert_eq!(result, "x**3");
     }
 
     #[test]
@@ -159,6 +159,6 @@ mod test {
 
         let result = format!("{}", product);
 
-        assert_eq!(result, "x^3y^2");
+        assert_eq!(result, "x**3*y**2");
     }
 }
