@@ -142,6 +142,11 @@ impl Display for RationalPolynomial {
             numerator,
             denominator,
         } = self;
+
+        if *denominator == Polynomial::one() {
+            return numerator.fmt(f);
+        }
+
         write!(f, "({})/({})", numerator, denominator)
     }
 }
