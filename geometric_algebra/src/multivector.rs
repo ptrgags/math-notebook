@@ -4,7 +4,11 @@ use std::{
     ops::{Add, Mul, Sub},
 };
 
-use crate::{basis_blade::BasisBlade, field::Field, format_basis_blade::format_basis_blade};
+use crate::{
+    basis_blade::BasisBlade,
+    field::Field,
+    format_basis_blade::{format_basis_blade, ScalarFormat},
+};
 
 #[derive(Debug, Clone)]
 pub struct Multivector<const P: u8, const N: u8, const Z: u8, F> {
@@ -242,7 +246,13 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field + Display> Display
         let terms: Vec<String> = self
             .terms
             .iter()
-            .map(|(blade, coeff)| format!("{}{}", coeff, format_basis_blade::<P, N, Z>(&blade)))
+            .map(|(blade, coeff)| {
+                format!(
+                    "{}{}",
+                    coeff,
+                    format_basis_blade::<P, N, Z>(&blade, ScalarFormat::Empty)
+                )
+            })
             .collect();
 
         let sum = terms.join(" + ");

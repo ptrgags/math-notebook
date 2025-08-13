@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-    basis_blade::BasisBlade, format_basis_blade::format_basis_blade, multivector::Multivector,
-    polynomial::Polynomial, rational_poly::RationalPolynomial,
+    basis_blade::BasisBlade,
+    format_basis_blade::{format_basis_blade, ScalarFormat},
+    multivector::Multivector,
+    polynomial::Polynomial,
+    rational_poly::RationalPolynomial,
 };
 
 pub type SymbolicMultivector<const P: u8, const N: u8, const Z: u8> =
@@ -13,7 +16,7 @@ impl<const P: u8, const N: u8, const Z: u8> SymbolicMultivector<P, N, Z> {
         let mut terms = HashMap::new();
 
         for blade in blades.iter() {
-            let blade_label = format_basis_blade::<P, N, Z>(blade);
+            let blade_label = format_basis_blade::<P, N, Z>(blade, ScalarFormat::Variable);
             let coeff_label = format!("{}_{}", symbol, blade_label);
 
             terms.insert(

@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use geometric_algebra::{
-    format_basis_blade::format_basis_blade,
+    format_basis_blade::{format_basis_blade, ScalarFormat},
     versor::{SymVersorCGA2, SymbolicVersor},
 };
 
@@ -11,7 +11,13 @@ fn declare_versor<const P: u8, const N: u8, const Z: u8>(
     let assignments: Vec<String> = versor
         .get_all_terms()
         .into_iter()
-        .map(|(blade, coeff)| format!("{}: {}", format_basis_blade::<P, N, Z>(&blade), coeff))
+        .map(|(blade, coeff)| {
+            format!(
+                "{}: {}",
+                format_basis_blade::<P, N, Z>(&blade, ScalarFormat::Variable),
+                coeff
+            )
+        })
         .collect();
     let destructured = assignments.join(", ");
     format!("{{{}}}", destructured)
