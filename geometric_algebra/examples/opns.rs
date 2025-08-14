@@ -7,8 +7,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let x = SymCGA2::vector(0);
     let y = SymCGA2::vector(1);
-    let obj = x;
+    let obj = x + y;
 
+    // let's check:
+    // (x + y) ^(ax:x + ay:y + ap:p + am:m)
+    // (ay:xy + ap:xp + am:xm) + (-ax:xy + ap:yp + am:ym)
+    // = (ay - ax):xy + ap:xp + am:xm + ap:yp + am:ym
+    // yup!
+
+    // the solution constraints are
+    // ap = 0
+    // am = 0
+    // ay - ax = 0
+    // i.e. ay = ax
+    // In other words, solution vectors are of the form
+    // a:x + a:y = 0
+    // this is equivalent to the original vector, (x + y) by homogeneity, as
+    // we would expect for a plane
+
+    println!("A = {}", a);
     println!("obj = {}", obj);
 
     let opns = obj.wedge(a);
