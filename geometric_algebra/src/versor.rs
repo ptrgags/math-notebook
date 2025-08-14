@@ -57,6 +57,11 @@ impl<const P: u8, const N: u8, const Z: u8> SymbolicVersor<P, N, Z> {
         let multivector = SymbolicMultivector::odd(symbol);
         Self::Odd(multivector)
     }
+
+    pub fn generic_vector(symbol: &str) -> Self {
+        let vector = SymbolicMultivector::generic_vector(symbol);
+        Self::Odd(vector)
+    }
 }
 
 pub type SymVersorVGA2 = SymbolicVersor<2, 0, 0>;

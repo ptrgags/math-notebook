@@ -42,6 +42,13 @@ impl BasisBlade {
         Self(value)
     }
 
+    /// Get the grade for this blade. I.e. the number of vectors wedged
+    /// together.
+    pub fn get_grade(&self) -> u8 {
+        let Self(x) = self;
+        x.count_ones() as u8
+    }
+
     /// when taking a geometric product of two basis blades,
     /// the resulting blade will be the symmetric difference of the
     /// basis vectors contained in each blade
@@ -170,7 +177,7 @@ impl BasisBlade {
         }
     }
 
-    fn get_blades_for_grade(dimension: u8, grade: u8) -> Vec<BasisBlade> {
+    pub fn get_blades_for_grade(dimension: u8, grade: u8) -> Vec<BasisBlade> {
         // 0D is scalars only. In any dimension, grade 0 is a single scalar.
         if dimension == 0 || grade == 0 {
             return vec![BasisBlade::scalar()];
@@ -232,6 +239,42 @@ impl Debug for BasisBlade {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    pub fn grade_with_scalar_is_zero() {
+        let scalar = BasisBlade::scalar();
+
+        let result = scalar.get_grade();
+
+        assert_eq!(result, 0);
+    }
+
+    #[test]
+    pub fn grade_with_vector_is_one() {
+        let scalar = BasisBlade::vector(2);
+
+        let result = scalar.get_grade();
+
+        assert_eq!(result, 1);
+    }
+
+    #[test]
+    pub fn grade_with_bivector_is_two() {
+        let scalar = BasisBlade::bivector(0, 3);
+
+        let result = scalar.get_grade();
+
+        assert_eq!(result, 2);
+    }
+
+    #[test]
+    pub fn grade_with_trivector_is_three() {
+        let scalar = BasisBlade::trivector(0, 2, 4);
+
+        let result = scalar.get_grade();
+
+        assert_eq!(result, 3);
+    }
 
     #[test]
     pub fn swap_count_with_scalars_is_zero() {

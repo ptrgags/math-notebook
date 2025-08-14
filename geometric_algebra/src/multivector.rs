@@ -94,6 +94,75 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Multivector<P, N, Z, F> {
         self.get_terms(&BasisBlade::get_odd_blades(Self::dimension()))
     }
 
+    /// Get the nonzero terms in this multivector
+    pub fn get_nonzero_terms(&self) -> Vec<(BasisBlade, F)> {
+        self.terms
+            .iter()
+            .map(|(blade, coeff)| (*blade, coeff.clone()))
+            .collect()
+    }
+
+    fn filtered_product(
+        self,
+        rhs: Self,
+        term_filter: fn((&BasisBlade, &F), (&BasisBlade, &F), (&BasisBlade, &F)) -> bool,
+    ) -> Self {
+        let mut terms = HashMap::new();
+
+        for (blade_a, coeff_a) in self.terms.iter() {
+            for (blade_b, coeff_b) in rhs.terms.iter() {
+                let result_blade = blade_a.symmetric_diff(blade_b);
+
+                let swap_count = BasisBlade::product_swap_count(blade_a, blade_b);
+                let mut swap_sign = F::one();
+                if swap_count % 2 == 1 {
+                    swap_sign = -swap_sign;
+                }
+
+                let mut squared_sign = F::one();
+                let BasisBlade(overlap) = BasisBlade::intersection(blade_a, blade_b);
+                for i in 0..8 {
+                    if overlap >> i & 1 == 1 {
+                        squared_sign = squared_sign * Self::get_signature(i);
+                    }
+                }
+
+                let coeff = coeff_a.clone() * coeff_b.clone() * swap_sign * squared_sign;
+
+                let a = (blade_a, coeff_a);
+                let b = (blade_b, coeff_b);
+                let term = (&result_blade, &coeff);
+
+                if !term_filter(a, b, term) {
+                    continue;
+                }
+
+                terms
+                    .entry(result_blade)
+                    .and_modify(|e: &mut F| *e = e.clone() + coeff.clone())
+                    .or_insert(coeff);
+            }
+        }
+
+        Self::new(terms)
+    }
+
+    /// Compute the wedge product. Only the terms that increase grade are
+    /// included
+    pub fn wedge(self, rhs: Self) -> Self {
+        self.filtered_product(rhs, |a, b, ab| {
+            let (a_blade, _) = a;
+            let (b_blade, _) = b;
+            let (ab_blade, _) = ab;
+
+            let grade_a = a_blade.get_grade();
+            let grade_b = b_blade.get_grade();
+            let grade_ab = ab_blade.get_grade();
+
+            grade_a + grade_b == grade_ab
+        })
+    }
+
     /// Given the basis vector e_i, get the value of e_i * e_i which is
     /// either 1, -1, or 0 depending on the signature of the algebra.
     /// All the positive vectors go first, then the negative ones, then the
@@ -182,36 +251,7 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field> Mul for Multivector<P, N, 
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        let mut terms = HashMap::new();
-
-        for (blade_a, coeff_a) in self.terms.iter() {
-            for (blade_b, coeff_b) in rhs.terms.iter() {
-                let key = blade_a.symmetric_diff(blade_b);
-
-                let swap_count = BasisBlade::product_swap_count(blade_a, blade_b);
-                let mut swap_sign = F::one();
-                if swap_count % 2 == 1 {
-                    swap_sign = -swap_sign;
-                }
-
-                let mut squared_sign = F::one();
-                let BasisBlade(overlap) = BasisBlade::intersection(blade_a, blade_b);
-                for i in 0..8 {
-                    if overlap >> i & 1 == 1 {
-                        squared_sign = squared_sign * Self::get_signature(i);
-                    }
-                }
-
-                let coeff = coeff_a.clone() * coeff_b.clone() * swap_sign * squared_sign;
-
-                terms
-                    .entry(key)
-                    .and_modify(|e: &mut F| *e = e.clone() + coeff.clone())
-                    .or_insert(coeff);
-            }
-        }
-
-        Self::new(terms)
+        self.filtered_product(rhs, |_, _, _| true)
     }
 }
 
@@ -243,12 +283,16 @@ impl<const P: u8, const N: u8, const Z: u8, F: Field + Display> Display
     for Multivector<P, N, Z, F>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.terms.is_empty() {
+            return write!(f, "0");
+        }
+
         let terms: Vec<String> = self
             .terms
             .iter()
             .map(|(blade, coeff)| {
                 format!(
-                    "{}{}",
+                    "({}){}",
                     coeff,
                     format_basis_blade::<P, N, Z>(&blade, ScalarFormat::Empty)
                 )

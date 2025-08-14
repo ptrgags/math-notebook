@@ -31,8 +31,16 @@ impl<const P: u8, const N: u8, const Z: u8> SymbolicMultivector<P, N, Z> {
     pub fn even(symbol: &str) -> Self {
         Self::from_blades(symbol, &BasisBlade::get_even_blades(Self::dimension()))
     }
+
     pub fn odd(symbol: &str) -> Self {
         Self::from_blades(symbol, &BasisBlade::get_odd_blades(Self::dimension()))
+    }
+
+    pub fn generic_vector(symbol: &str) -> Self {
+        Self::from_blades(
+            symbol,
+            &BasisBlade::get_blades_for_grade(Self::dimension(), 1),
+        )
     }
 }
 
