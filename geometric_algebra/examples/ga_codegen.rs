@@ -32,7 +32,12 @@ fn package_result<const P: u8, const N: u8, const Z: u8>(
         SymbolicVersor::Odd(_) => "Odd",
     };
 
-    let vars: Vec<String> = BasisBlade::get_all_blades(4)
+    let blades = match result {
+        SymbolicVersor::Even(_) => BasisBlade::get_even_blades(P + N + Z),
+        SymbolicVersor::Odd(_) => BasisBlade::get_odd_blades(P + N + Z),
+    };
+
+    let vars: Vec<String> = blades
         .into_iter()
         .map(|blade| format_basis_blade::<P, N, Z>(&blade, ScalarFormat::Variable))
         .collect();
@@ -89,12 +94,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     print_product_func(&a_even, &b_odd);
 
     println!("");
-    println!("// odd * odd");
-    print_product_func(&a_odd, &b_odd);
-
-    println!("");
     println!("// odd * even");
     print_product_func(&a_odd, &b_even);
+
+    println!("");
+    println!("// odd * odd");
+    print_product_func(&a_odd, &b_odd);
 
     Ok(())
 }

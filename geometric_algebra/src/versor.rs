@@ -54,8 +54,8 @@ impl<const P: u8, const N: u8, const Z: u8> SymbolicVersor<P, N, Z> {
     }
 
     pub fn odd(symbol: &str) -> Self {
-        let multivector = SymbolicMultivector::even(symbol);
-        Self::Even(multivector)
+        let multivector = SymbolicMultivector::odd(symbol);
+        Self::Odd(multivector)
     }
 }
 
