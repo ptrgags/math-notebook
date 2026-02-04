@@ -65,6 +65,14 @@ BINARY_PRODUCT_FUNCS = {
     'mag': {
         'label': "Magnitude of a",
         "func": lambda a, b: a * (~a)
+    },
+    'dual': {
+        'label': "Hodge Dual of a",
+        'func': lambda a, b: a.hodge()
+    },
+    'antidual': {
+        'label': "Anti-Hodge Dual of a",
+        'func': lambda a, b: a.unhodge()
     }
 }
 
