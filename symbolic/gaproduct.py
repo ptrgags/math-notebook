@@ -53,6 +53,18 @@ BINARY_PRODUCT_FUNCS = {
     'anticommutator': {
         'label': "Anticommutator product",
         "func": lambda a, b: a.acp(b)
+    },
+    'rev': {
+        'label': "Reverse of A",
+        "func": lambda a, b: ~a
+    },
+    'inv': {
+        'label': "Inverse of A",
+        "func": lambda a, b: ~a / (a * (~a))
+    },
+    'mag': {
+        'label': "Magnitude of a",
+        "func": lambda a, b: a * (~a)
     }
 }
 
