@@ -9,3 +9,7 @@ def even(scalar, xy, xp, xm, yp, ym, pm, xypm):
 
 def odd(x, y, p, m, xyp, xym, xpm, ypm):
     return alg.multivector(e1=x, e2=y, e3=p, e4=m, e123=xyp, e124=xym, e134=xpm, e234=ypm)
+
+
+def lerp(a, b, t):
+    return (1.0 - t) * a + t * b
