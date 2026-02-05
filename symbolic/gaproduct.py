@@ -169,16 +169,16 @@ class CGA1D:
         return self.alg.multivector(
             e=f'{label}s',
             e12=f'{label}xp',
-            e13=f'{label}xn',
-            e23=f"{label}pn",
+            e13=f'{label}xm',
+            e23=f"{label}pm",
         )
 
     def make_odd(self, label):
         return self.alg.multivector(
             e1=f'{label}x',
             e2=f'{label}p',
-            e3=f'{label}n',
-            e123=f"{label}xpn",
+            e3=f'{label}m',
+            e123=f"{label}xpm",
         )
 
 
@@ -192,11 +192,11 @@ class CGA2D:
             e=f'{label}s',
             e12=f'{label}xy',
             e13=f'{label}xp',
-            e14=f'{label}xn',
+            e14=f'{label}xm',
             e23=f"{label}yp",
-            e24=f"{label}yn",
-            e34=f"{label}pn",
-            e1234=f"{label}xypn"
+            e24=f"{label}ym",
+            e34=f"{label}pm",
+            e1234=f"{label}xypm"
         )
 
     def make_odd(self, label):
@@ -204,11 +204,11 @@ class CGA2D:
             e1=f'{label}x',
             e2=f'{label}y',
             e3=f'{label}p',
-            e4=f'{label}n',
+            e4=f'{label}m',
             e123=f"{label}xyp",
-            e124=f'{label}xyn',
-            e134=f'{label}xpn',
-            e234=f'{label}ypn'
+            e124=f'{label}xym',
+            e134=f'{label}xpm',
+            e234=f'{label}ypm'
         )
 
 
@@ -223,18 +223,18 @@ class CGA3D:
             e12=f'{label}xy',
             e13=f'{label}xz',
             e14=f'{label}xp',
-            e15=f'{label}xn',
+            e15=f'{label}xm',
             e23=f"{label}yz",
             e24=f"{label}yp",
-            e25=f"{label}yn",
+            e25=f"{label}ym",
             e34=f"{label}zp",
-            e35=f"{label}zn",
+            e35=f"{label}zm",
             e45=f"{label}pn",
-            e1234=f"{label}xyzn",
-            e1235=f"{label}xyzn",
-            e1245=f"{label}xypn",
-            e1345=f"{label}xzpn",
-            e2345=f"{label}yzpn",
+            e1234=f"{label}xyzm",
+            e1235=f"{label}xyzm",
+            e1245=f"{label}xypm",
+            e1345=f"{label}xzpm",
+            e2345=f"{label}yzpm",
         )
 
     def make_odd(self, label):
@@ -246,15 +246,15 @@ class CGA3D:
             e5=f'{label}n',
             e123=f'{label}xyz',
             e124=f'{label}xyp',
-            e125=f'{label}xyn',
+            e125=f'{label}xym',
             e134=f'{label}xzp',
-            e135=f'{label}xzn',
-            e145=f'{label}xpn',
+            e135=f'{label}xzm',
+            e145=f'{label}xpm',
             e234=f'{label}yzp',
-            e235=f'{label}yzn',
-            e245=f'{label}ypn',
-            e345=f'{label}zpn',
-            e12345=f'{label}xyzpn'
+            e235=f'{label}yzm',
+            e245=f'{label}ypm',
+            e345=f'{label}zpm',
+            e12345=f'{label}xyzpm'
         )
 
 
