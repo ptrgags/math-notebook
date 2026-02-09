@@ -13,3 +13,7 @@ def odd(x, y, p, m, xyp, xym, xpm, ypm):
 
 def lerp(a, b, t):
     return (1.0 - t) * a + t * b
+
+
+def unit_sandwich(a, b):
+    return a * b * (~a)
